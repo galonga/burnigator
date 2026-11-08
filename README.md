@@ -1,63 +1,147 @@
-# Bildkarte (Leaflet CRS.Simple)
+# Burnigator
 
-Eine kleine, datenbankfreie Kartenanwendung für normales PHP-Webhosting wie ALL-INKL. Besucher sehen eine Bildkarte und POIs mit Kategorien und automatisch erzeugter Legende. Die Inhaberin oder der Inhaber pflegt Bild, Kategorien und Orte im Adminbereich.
+Burnigator is a self-hosted, database-free festival map and programme for standard PHP web hosting. Visitors can explore an image map, browse a 24-hour timetable, filter and save favourite events, and install the site as a web app. Owners manage the map, programme, accounts, appearance, and integrations from the admin panel.
 
-## Voraussetzungen
+The application uses [Leaflet](https://leafletjs.com/) with `CRS.Simple`; the map is an image, not a geographic map. It is designed for shared PHP hosting such as ALL-INKL and does not need Docker, a database, Composer, or a build step.
 
-- PHP 7.4 oder neuer, mit den üblichen Funktionen für JSON, Sessions, Datei-Uploads und GD/Fileinfo (Bildprüfung)
-- HTTPS empfohlen
-- Leaflet und Font Awesome Free sind lokal eingebunden. Die Karte und die Symbolauswahl funktionieren daher ohne externe CDN-Verbindung. SoundCloud-Musik und Matomo-Tracking benötigen weiterhin eine Internetverbindung.
-- Die Oberfläche lässt sich über den Sprachschalter auf Deutsch oder Englisch umstellen; die Auswahl bleibt im Browser gespeichert. Font Awesome liefert die durchsuchbare Symbolauswahl.
-- Kein Docker, keine Datenbank und kein Composer nötig
+## Features
 
-## Designsystem für UI-Änderungen
+- **Interactive image map:** The visitor view opens on the timetable by default. Visitors can switch to the image map, which fits the full image into view the first time it is opened, then pan and zoom. POIs have Font Awesome icons and categories. Visitors can search places, show or hide POI names, and hide categories; owners can choose monochrome or colored POI icons.
+- **Festival timetable:** Browse Wednesday through Sunday one day at a time. Each day spans 24 hours, places appear as rows, and event blocks are positioned at their start and end times. The current-time indicator, favourite filter, and event-category filters help visitors find programme items.
+- **Independent timelines:** Add up to three named programme rows that are not attached to a place.
+- **Event details and favourites:** Events can include a host, description, multiple categories, and an external link with a custom label. Visitors open the details card by selecting an event and can save favourites in their browser; favourites remain after a reload on that device.
+- **Print exports:** Export the map with a numbered place index or export the selected timetable day as a high-resolution JPEG. The exports target A2 printing and 300 DPI where browser canvas limits permit. A configured QR URL is included in the exports.
+- **Admin panel:** Manage POIs, categories, events, independent timelines, general configuration, accounts, backups, and change history. Places are grouped by category and can be collapsed for a more compact overview.
+- **Optional integrations:** Configure a SoundCloud playlist, Matomo tracking URL and site ID, and the browser's experimental translation API for event descriptions. The compact SoundCloud player offers play/pause, random next track, 30-second skip, volume control, and a link to the current track.
+- **Branding and navigation:** Upload a title logo and favicon, set a custom top-bar button, and configure an optional legal notice link. The favicon is also used to generate the installed web app icon.
+- **Responsive German and English interface:** The visitor and admin views adapt to mobile screens. Users can switch the UI language; the selection is kept in the browser.
+- **Installable and offline visitor view:** A service worker caches the visitor shell, map data, and current image assets. On app start, the app requests fresh data when online and falls back to its cached copy while offline.
 
-Vor jeder Änderung an der Besucher- oder Adminoberfläche bitte [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md) und die zentralen Regeln in `assets/design-system.css` berücksichtigen. Farben werden über semantische `--color-*`-Tokens gesteuert; Typografie, Abstände, Formen und Control-Mindestgrößen über die jeweiligen `--type-*`, `--space-*`, `--shape-*` und `--control-height*`-Tokens. Neue oder geänderte interaktive Komponenten müssen ihre passenden Hover-, Fokus-, Aktiv-, Auswahl-, Aufklapp-, Deaktiviert-, Lade- und Fehlerzustände konsistent definieren und semantisch auszeichnen (z.B. `aria-selected`, `aria-pressed`, `aria-expanded`, `aria-invalid`, `aria-busy`). Bestehende Komponentenregeln sollen erweitert werden, statt parallele Einzellösungen für Buttons, Eingabefelder oder Karten einzuführen. `sources/` ist Referenzmaterial und bleibt unverändert.
+## Requirements
 
-Die sichtbare Build-Anzeige steht aktuell auf **1343**. Bei jeder folgenden App-Änderung muss die angezeigte Nummer um eins steigen; die Offline-Cache-Version in `sw.js` ist dabei ebenfalls zu aktualisieren.
+- PHP 7.4 or newer with JSON, sessions, file uploads, and filesystem locking enabled
+- An Apache-compatible web server with `.htaccess` support
+- HTTPS for normal use and service-worker/PWA support (localhost is suitable for local development)
+- Writable `data/` and `uploads/` directories; `config.php` must also be writable during first-time setup
+- GD is recommended for generating resized app icons from the uploaded favicon. If it is unavailable, the built-in app icons are used.
 
-Der optionale Impress-Link wird bei der Ersteinrichtung abgefragt und kann später unter **Konfiguration → Allgemeine Einstellungen** geändert werden. Ist das Feld leer, erscheint kein Impress-Link im Besucherfooter.
+Leaflet, Font Awesome, and the QR code library are bundled locally. SoundCloud and Matomo require an internet connection. Browser translation is experimental and only appears in browsers that support the relevant APIs.
 
-Im Adminbereich unter **Konfiguration → SoundCloud-Player** kann der Owner den Player in der Besucheransicht ein- oder ausblenden und die verwendete öffentliche SoundCloud-Playlist festlegen. Standardmäßig ist der Player sichtbar und verwendet die Minmon-Podcast-Playlist.
+## Installation
 
-## Installation per FTP
+1. Download or clone this repository.
+2. Upload the **contents of the repository root** to a web directory, for example `www/burnigator/`. Do not upload a parent archive folder as an extra nested directory.
+3. Make sure PHP can write to `config.php`, `data/`, and `uploads/` for the initial setup. The setup creates `data/map.json` and installs the owner account.
+4. Open `https://your-domain.example/burnigator/setup.php` and follow the wizard. Set a strong owner password of at least 12 characters. The wizard also collects basic appearance and optional settings, including the legal notice URL.
+5. Sign in at `https://your-domain.example/burnigator/admin.php` with username `owner` and the password you chose.
+6. Upload a PNG/JPG map image, create categories, and add places. Set each POI's name, icon, description, category, and position. Enable **Has programme** to add events.
+7. Use the Configuration tab to set optional branding, integrations, appearance, accounts, and the legal notice link.
 
-1. Entpacke `image-map.zip` auf deinem Rechner.
-2. Lade den Inhalt des Ordners `image-map/` per FTP in einen eigenen Webordner, zum Beispiel `www/karte/`.
-3. Öffne `https://deine-domain.example/karte/setup.php` und lege ein starkes Passwort mit mindestens 12 Zeichen fest.
-4. Melde dich unter `/karte/admin.php` mit Benutzername `owner` und dem bei der Einrichtung gewählten Passwort an.
-5. Lade ein PNG- oder JPG-Hintergrundbild hoch. Lege Kategorien mit Namen und Farbe an. Klicke anschließend auf die Karte, um Orte zu setzen. Ziehe vorhandene Marker direkt an die gewünschte Stelle. Optional kannst du im Adminbereich ein PNG-Titellogo und ein PNG-Favicon hochladen. Das Logo ersetzt die Titelzeile; ein Klick auf Titel oder Logo öffnet hamburn.de in einem neuen Tab.
-6. Trage Name, Font Awesome Symbol, Beschreibung und Kategorie ein und wähle **Änderungen speichern**. Die durchsuchbare Symbolsammlung enthält zahlreiche freie Symbole. Bereits gespeicherte Unicode-Symbole bleiben sichtbar. Den Symbolmodus stellst du oben im Adminbereich ein; die Einstellung gilt für alle POIs und Besucher. Im Adminbereich sind Orte nach Kategorien gruppiert; mit **Alle einklappen**/**Alle ausklappen** kannst du die Übersicht steuern. Eingeklappte Einträge zeigen Icon und Namen. Aktiviere **Hat Programm**, wenn ein Ort Programmpunkte hat, und füge je Tag von Mittwoch bis Sonntag Startzeit, Endzeit, Veranstaltung und optional eine Beschreibung hinzu. Zusätzlich lassen sich bis zu drei frei benannte Timelines ohne Ortsbindung anlegen; sie erscheinen im WWW als eigene, abgeteilte Zeilen. Das Owner- und das WWW-Konto können diese Timelines bearbeiten. Optional kannst du eine externe URL und einen Linktext ergänzen; nur gültige HTTP- und HTTPS-Links werden gespeichert. Für Veranstaltungen lassen sich im Kategorien-Dropdown mehrere passende Symbole auswählen, etwa Musik, Performance, Bewegung, Ruhe, Lautstärke, Basteln oder 18+-Inhalte. Besucher sehen diese Orte im Tab **WWW (Verpassungsschutz)**; Veranstaltungen liegen auf einer 24-Stunden-Zeitleiste mit kompakteren Ortsnamen, damit mehr vom Zeitraster sichtbar bleibt. Beim Überfahren eines Programmpunkts erscheinen die Eventkategorien mit Symbol und Namen, Beschreibung sowie ein optionaler Link. Die Orte in der Seitenliste und der POI-Popup auf der Karte verlinken direkt zum WWW-Eintrag. In der Besucher-Topbar neben dem Titel spielt ein kompakter SoundCloud-Player die Playlist [minmon podcast](https://soundcloud.com/minmon_kollektiv/sets/minmon-podcast) ab; Play, Pause, nächster Titel und ein Lautstärkeregler stehen bereit. Nach einem Klick auf Play wird ein zufälliger Titel geladen; der aktuelle Titel ist als Link zu seiner SoundCloud-Seite anklickbar. Der Player zeigt **Lust auf Groove?** / **Need some groove?**, benötigt eine Internetverbindung zu SoundCloud und startet erst nach Klick auf **Play**. Die Schaltfläche **Vollsicherung exportieren** lädt Kartendaten, POIs, ortsgebundene Programme, zusätzliche Timelines, Logo, Favicon und Hintergrundbild gemeinsam herunter; **Vollsicherung importieren** kann diese Sicherung wiederherstellen. Die fünf letzten Kartenstände lassen sich im Owner-Adminbereich automatisch wiederherstellen. Über den Sprachschalter kannst du die Oberfläche zwischen Deutsch und Englisch umschalten. Die Besucherkarte liegt unter `/karte/`.
+After setup, `config.php` does not need to remain writable. Keep `data/` and `uploads/` writable by PHP because the application stores changes there.
 
-## Eingeschränkte Zusatzkonten
+## Updating an existing installation
 
-Im Adminbereich des Owner-Kontos kannst du zwei zusätzliche Konten einrichten: ein POI-Konto und ein WWW-Konto. Vergib jeweils einen Benutzernamen und ein Passwort mit mindestens 12 Zeichen. Das POI-Konto kann POIs anlegen, verschieben, bearbeiten und löschen, aber keine Kategorien, Bilder oder Programmdaten ändern. Das WWW-Konto kann ausschließlich die Programmfreigabe und die Veranstaltungen bearbeiten. Leere Passwortfelder behalten ein vorhandenes Passwort; einen Benutzernamen leer lassen und speichern entfernt dieses Konto.
+Upload updated application files over the existing installation, but **preserve the server's `config.php`, `data/`, and `uploads/`**. These contain the installed owner credential hash, map and programme data, additional accounts, snapshots, change history, and uploaded images. In particular, do not replace the live `config.php` with the repository's uninstalled setup template.
 
-Das Owner-Adminprotokoll zeigt die letzten Änderungen mit Benutzername, Rolle und Zeitstempel; Einträge werden in `data/history.json` gespeichert. Im Owner-Bereich kannst du außerdem eine eigene Beschriftung und HTTP(S)-URL für einen zusätzlichen Besucher-Topbar-Button festlegen.
+Keep the `.htaccess` files in the application root, `data/`, and `uploads/`. If you have made local customizations to application files, merge those before replacing them.
 
-Die Berechtigungen werden in der PHP-API geprüft, nicht nur durch ausgeblendete Admin-Steuerelemente. Konten und Passwort-Hashes liegen in `data/accounts.json`; `.htaccess` sperrt den direkten Zugriff auf `data/`. Schreibzugriffe der eingeschränkten Konten aktualisieren nur ihre eigenen Datenfelder. Jede Änderung trägt zusätzlich die geladene Datenrevision mit; wenn zwischenzeitlich jemand gespeichert hat, wird der Speichervorgang abgelehnt und die Oberfläche fordert zum Neuladen auf, statt fremde Änderungen zu überschreiben. Nach fünf falschen Anmeldeversuchen von derselben IP-Adresse wird der Login für 15 Minuten gesperrt. Sitzungscookies sind `HttpOnly`, `SameSite=Lax` und bei HTTPS `Secure`.
+## Admin accounts and permissions
 
-## Schreibrechte auf ALL-INKL
+The owner account has full access, including general configuration, categories, map image, backups, snapshots, and account management. The owner can change their password in the Configuration tab.
 
-PHP muss `config.php` während der Ersteinrichtung sowie die Ordner `data/` und `uploads/` beschreiben dürfen. Normalerweise erstellt das Setup die Unterordner selbst. Falls es wegen der Rechte scheitert, lege `data` und `uploads` im FTP-Programm an und gib nur diesen Ordnern die vom Hosting geforderten Schreibrechte (typischerweise 755 oder 775). Stelle danach möglichst restriktive Rechte ein. `config.php` muss nach dem Setup nicht mehr beschreibbar sein.
+The owner can create two optional limited accounts:
 
-## Dateien und Schutz
+| Account | Permissions |
+| --- | --- |
+| POI editor | Add, move, edit, and delete POIs, including assigning them to existing categories. It cannot create or edit categories, change map images, or edit programme data. It cannot delete a POI that has programme events attached. |
+| WWW editor | Edit event programmes and independent timelines, without changing POI details or general configuration. |
 
-- `index.php`: öffentliche Karte, ausschließlich lesend
-- `admin.php`: Anmeldung, Rollenoberflächen und Kontoverwaltung
-- `auth.php`: Sitzungsrollen, Kontenspeicherung und Dateisperre
-- `api.php`: öffentliche Leseantwort und angemeldete, CSRF-geschützte Schreibaktionen
-- `data/map.json` und `data/accounts.json`: Kartendaten (einschließlich bis zu drei ortsunabhängigen Timelines) und Konten; durch `.htaccess` gegen direkten Abruf geschützt
-- `uploads/`: hochgeladene Bilder; PHP-Ausführung und direkter Zugriff sind per `.htaccess` gesperrt. Die Bilder werden über die Kartenansicht eingebettet, deshalb muss der Webserver Bilddateien aus diesem Ordner ausliefern können. Falls der Hoster Regeln in `.htaccess` ignoriert, verschiebe `uploads/` außerhalb des Webroots und konfiguriere die Pfade entsprechend.
+Each limited account has its own username and password. Passwords must be at least 12 characters. Leaving a password blank while saving keeps an existing password; clearing the username and saving removes that account.
 
-Das Setup ist für Apache-kompatibles Hosting mit `.htaccess` gedacht. Sichere `data/map.json`, `config.php` und `uploads/` regelmäßig über FTP. Zusätzlich erstellt die Anwendung vor Kartenänderungen automatisch Snapshots der Kartendaten; der Owner kann die letzten fünf Snapshots im Adminbereich wiederherstellen. Die Snapshots liegen geschützt in `data/snapshots/`. Ein Vollbackup aus dem Adminbereich enthält auch Bilddateien, sodass es unabhängig von der vorhandenen Installation wiederhergestellt werden kann. Das Administratorpasswort wird nur als Hash gespeichert. Schreibzugriffe erfordern eine aktive Sitzung mit passender Rolle und einen CSRF-Token; Uploads sind auf PNG/JPG und 20 MB begrenzt.
+## Configuration
 
-## Offline-Besucheransicht
+The owner-only Configuration tab contains:
 
-Die Besucheransicht lädt lokale Kopien von Leaflet und Font Awesome und kann nach dem ersten Online-Aufruf als Offline-Kopie im Browser verfügbar bleiben. Ein Service Worker speichert die Oberfläche, Bibliotheken, Kartendaten und aktuelle Kartenbilder zwischen. Die Offline-Nutzung setzt einen Browser mit Service-Worker-Unterstützung und HTTPS voraus (localhost ist für Tests ebenfalls erlaubt). Admin-Anmeldung, Änderungen und SoundCloud-Wiedergabe benötigen eine Netzwerkverbindung.
+- General title, custom top-bar button, optional legal notice URL, optional WWW-export QR URL, and browser translation toggle
+- SoundCloud player visibility and public playlist URL
+- Main UI colors, title logo, and favicon
+- Matomo base URL and site ID; an empty Matomo URL disables tracking
+- Limited account management and owner password change
+- Change history, data import/export, and snapshot restore
 
-Neben den JPG-Exporten auf der Karte und im WWW steht **Als App installieren** bereit. Android/Chromium öffnet den nativen Installationsdialog; auf iPhone/iPad zeigt der Button den Weg über Safari **Teilen → Zum Home-Bildschirm**. Das hochgeladene PNG-Favicon wird auf Installationssymbolgröße skaliert und als App-Symbol verwendet. Beim Öffnen der installierten App werden Kartendaten immer frisch vom Server geladen, wenn eine Verbindung verfügbar ist; offline startet sie mit den zuletzt zwischengespeicherten Daten. Matomo protokolliert POI-Klicks nach Ortsnamen, POI-Detailansichten und Klicks auf Programmpunkte als Ereignisse.
+The default theme uses blue `#305EAA`, pink `#E94F85`, orange-red `#E63D1A`, and warm cream `#E6D0BB`. The SoundCloud player is visible by default and uses the Minmon podcast playlist.
 
-## Bedienhinweise
+## Data model and storage
 
-Die Bildkarte nutzt Leaflet `CRS.Simple`. POI-Positionen werden relativ zur Bildbreite und -höhe gespeichert, damit sie beim Vergrößern und Verkleinern korrekt bleiben. Die Karte ist nicht georeferenziert. Besucher können je Kategorie die POI-Namen auf der Karte einblenden und Kategorien aus Karte und Ortsliste ausblenden. Diese Anzeigeauswahl wird lokal im jeweiligen Browser gespeichert. Der Timetable zeigt POIs mit aktiviertem Programm als Zeilen und die Tage Mittwoch bis Sonntag als Spalten; Zellen listen zeitlich sortierte Veranstaltungen. Die Endzeit einer Veranstaltung muss nach ihrer Startzeit am selben Tag liegen. Im Fußbereich wird sichtbar angezeigt, ob die Daten gerade vom Server geladen wurden oder aus dem Offline-Cache stammen. Ein Admin kann POIs anlegen, benennen, ein Font Awesome Symbol im Kartenpunkt auswählen oder einen eigenen Unicode-Zeichenwert verwenden, beschreiben, Kategorien zuweisen, auf der Karte verschieben und löschen sowie Programmpunkte mit Uhrzeit erfassen.
+The application stores structured data as JSON and images as files; no SQL database is used. The public visitor page reads map data from `api.php`. All write actions require an authenticated session, a matching role, and a CSRF token.
+
+At a high level, the map data contains:
+
+- **Categories:** names and colors
+- **POIs:** a stable ID, normalized `x`/`y` coordinates, name, description, category, icon, and optional programme
+- **Events:** start/end time, title, host, description, selected event categories, and optional external link and link text
+- **Independent timelines:** up to three named rows with the same event structure
+- **Configuration:** theme, branding paths, optional links, tracking, translation, and SoundCloud settings
+
+POI coordinates are normalized from `0` to `1`, so marker positions scale with the uploaded image. Programme days use the keys Wednesday through Sunday; event times use 24-hour `HH:MM` format. An event end time, when set, must be later than its start time on the same day.
+
+Runtime files are stored as follows:
+
+| Path | Contents |
+| --- | --- |
+| `config.php` | Installed flag and initial owner password hash |
+| `data/map.json` | Map, categories, POIs, programmes, timelines, and configuration |
+| `data/accounts.json` | Active owner and optional limited-account password hashes after account changes |
+| `data/history.json` | Recent admin changes by username and role |
+| `data/login-attempts.json` | Login throttling state |
+| `data/snapshots/` | Up to five recent map-data snapshots |
+| `uploads/` | Map image, title logo, and favicon |
+
+Do not commit live runtime data, password hashes, or uploaded event/map images to a public repository. Back up `config.php`, `data/`, and `uploads/` separately from the application source.
+
+## Security and hosting notes
+
+- The root `.htaccess` prevents directory listings and blocks direct access to `config.php`.
+- `data/.htaccess` blocks all direct web access to JSON data and snapshots.
+- `uploads/.htaccess` blocks PHP and other script execution while allowing the browser to load uploaded images for the public map.
+- Passwords are stored as password hashes. Login attempts are throttled after five failed attempts from the same IP address for 15 minutes.
+- Sessions use `HttpOnly` and `SameSite=Lax` cookies; cookies are marked `Secure` when HTTPS is active.
+- Image uploads are validated by format and size. Map images may be up to 20 MB; branding PNGs may be up to 5 MB.
+- The application uses file locks and revision checks to prevent concurrent saves from silently overwriting newer map data.
+
+If the host ignores `.htaccess`, do not expose the `data/` directory publicly. Ask the hosting provider how to deny direct access or move private storage outside the web root and adjust the application paths accordingly. The `uploads/` directory must serve the referenced image files to visitors, while script execution there must remain disabled.
+
+## Backups and recovery
+
+The Configuration tab provides a full JSON backup and restore workflow. A full backup contains the map, categories, POIs, programmes, timelines, configuration, and uploaded image assets. Before data changes, the application also creates snapshots and retains the latest five; the owner can restore these in the admin panel.
+
+Keep an independent FTP or hosting backup of `config.php`, `data/`, and `uploads/`. A full backup downloaded from the admin panel is convenient for migration, but it should also be stored somewhere safe outside the web server.
+
+## Privacy and analytics
+
+Matomo tracking is configurable and disabled by clearing its URL. When enabled, the app sends page views and interaction events such as map POI clicks, timetable event interactions, favourites, and media-player actions to the configured Matomo installation. SoundCloud playback is served by SoundCloud. Browser-stored favourites and map/category display preferences remain local to the visitor's device.
+
+## Project structure
+
+| Path | Purpose |
+| --- | --- |
+| `index.php` | Public map and timetable |
+| `admin.php` | Login and admin interface |
+| `setup.php` | First-install configuration wizard |
+| `api.php` | Public read endpoint and authenticated write actions |
+| `auth.php` | Account, role, and login support |
+| `assets/map.js` | Map, timetable, player, exports, and visitor interactions |
+| `assets/admin.js` | Admin editing and configuration |
+| `assets/style.css` | Application styles |
+| `assets/design-system.css` | Shared UI tokens, components, and states |
+| `assets/i18n.js` | German and English UI strings |
+| `sw.js` | Offline cache and service-worker behavior |
+| `docs/agents/` | Issue tracker, triage-label, and domain-doc guidance for engineering skills |
+| `DESIGN_SYSTEM.md` | Design-system guidance for interface changes |
+
+## Development notes
+
+- There is no compilation step or dependency installation. The local Leaflet, Font Awesome, and QR code assets are committed with the application.
+- Follow [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) and `assets/design-system.css` when changing UI. Use the semantic color, typography, spacing, shape, and control-size tokens, and keep applicable interaction states consistent across visitor and admin screens.
+- When changing application code or the visitor shell, increment the build number shown in the visitor footer and update the cache name in `sw.js` so installed/offline clients receive the new version.
+- GitHub Issues for this project live at [galonga/burnigator](https://github.com/galonga/burnigator). Repository-specific issue, triage, and domain-doc conventions are in `docs/agents/`.
