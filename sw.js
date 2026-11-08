@@ -1,4 +1,6 @@
-const CACHE_NAME='burnigator-offline-v55';
+const INSTANCE_ID='__BURNIGATOR_INSTANCE_ID__';
+const CACHE_PREFIX='burnigator-'+INSTANCE_ID+'-offline-';
+const CACHE_NAME=CACHE_PREFIX+'v56';
 const SHELL_FILES=[
   './','./index.php','./api.php',
   './assets/style.css','./assets/design-system.css','./assets/i18n.js','./assets/theme.js','./assets/easter-egg.js','./assets/map.js','./assets/matomo.js','./assets/pwa.js',
@@ -30,7 +32,7 @@ self.addEventListener('install',event=>event.waitUntil((async()=>{
 })()));
 
 self.addEventListener('activate',event=>event.waitUntil((async()=>{
-  for(const key of await caches.keys())if(key.startsWith('burnigator-offline-')&&key!==CACHE_NAME)await caches.delete(key);
+  for(const key of await caches.keys())if(key.startsWith(CACHE_PREFIX)&&key!==CACHE_NAME)await caches.delete(key);
   await self.clients.claim();
 })()));
 

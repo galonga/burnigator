@@ -1,12 +1,10 @@
 <?php
 declare(strict_types=1);
-$isHttps = (!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off') || (int)($_SERVER['SERVER_PORT'] ?? 0) === 443;
-session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'secure' => $isHttps, 'httponly' => true, 'samesite' => 'Lax']);
-session_start();
-header('Content-Type: application/json; charset=utf-8');
-header('X-Content-Type-Options: nosniff');
 $config = require __DIR__ . '/config.php';
 require_once __DIR__ . '/auth.php';
+startAppSession($config);
+header('Content-Type: application/json; charset=utf-8');
+header('X-Content-Type-Options: nosniff');
 function respond(int $status, array $body): void { http_response_code($status); echo json_encode($body, JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE); exit; }
 function defaultTheme(): array { return ['primary'=>'#305EAA','accent'=>'#E94F85','alert'=>'#E63D1A','background'=>'#E6D0BB']; }
 function cleanTheme($value): array { $defaults=defaultTheme();$theme=[];foreach($defaults as $key=>$fallback){$color=is_array($value)&&is_string($value[$key]??null)?$value[$key]:'';$theme[$key]=preg_match('/^#[0-9a-fA-F]{6}$/D',$color)?strtoupper($color):$fallback;}return $theme; }

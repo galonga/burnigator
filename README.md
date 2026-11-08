@@ -22,6 +22,7 @@ The application uses [Leaflet](https://leafletjs.com/) with `CRS.Simple`; the ma
 - PHP 7.4 or newer with JSON, sessions, file uploads, and filesystem locking enabled
 - An Apache-compatible web server with `.htaccess` support
 - HTTPS for normal use and service-worker/PWA support (localhost is suitable for local development)
+- One complete application copy and writable data/upload directories per hosted festival instance
 - Writable `data/` and `uploads/` directories; `config.php` must also be writable during first-time setup
 - GD is recommended for generating resized app icons from the uploaded favicon. If it is unavailable, the built-in app icons are used.
 
@@ -36,6 +37,8 @@ Leaflet, Font Awesome, and the QR code library are bundled locally. SoundCloud a
 5. Sign in at `https://your-domain.example/burnigator/admin.php` with username `owner` and the password you chose.
 6. Upload a PNG/JPG map image, create categories, and add places. Set each POI's name, icon, description, category, and position. Enable **Has programme** to add events.
 7. Use the Configuration tab to set optional branding, integrations, appearance, accounts, and the legal notice link.
+
+For hosted festivals, provision a separate application directory and data/upload folders for each festival, then run the setup wizard separately in each copy. Setup assigns each copy a random installation ID. Do not clone an already-installed festival's `config.php`, `data/`, or `uploads/` into a second tenant. Keep each festival on its own subdomain; its session cookie and service-worker cache are also namespaced to its installation.
 
 After setup, `config.php` does not need to remain writable. Keep `data/` and `uploads/` writable by PHP because the application stores changes there.
 
@@ -89,7 +92,7 @@ Runtime files are stored as follows:
 
 | Path | Contents |
 | --- | --- |
-| `config.php` | Installed flag and initial owner password hash |
+| `config.php` | Installation ID, installed flag, and initial owner password hash |
 | `data/map.json` | Map, categories, POIs, programmes, timelines, and configuration |
 | `data/accounts.json` | Active owner and optional limited-account password hashes after account changes |
 | `data/history.json` | Recent admin changes by username and role |
@@ -105,7 +108,7 @@ Do not commit live runtime data, password hashes, or uploaded event/map images t
 - `data/.htaccess` blocks all direct web access to JSON data and snapshots.
 - `uploads/.htaccess` blocks PHP and other script execution while allowing the browser to load uploaded images for the public map.
 - Passwords are stored as password hashes. Login attempts are throttled after five failed attempts from the same IP address for 15 minutes.
-- Sessions use `HttpOnly` and `SameSite=Lax` cookies; cookies are marked `Secure` when HTTPS is active.
+- Sessions use installation-specific, host-only cookies with `HttpOnly` and `SameSite=Lax`; cookies are marked `Secure` when HTTPS is active. Service-worker cache names also include the installation ID, and cleanup is limited to that installation's caches.
 - Image uploads are validated by format and size. Map images may be up to 20 MB; branding PNGs may be up to 5 MB.
 - The application uses file locks and revision checks to prevent concurrent saves from silently overwriting newer map data.
 
@@ -135,7 +138,8 @@ Matomo tracking is configurable and disabled by clearing its URL. When enabled, 
 | `assets/style.css` | Application styles |
 | `assets/design-system.css` | Shared UI tokens, components, and states |
 | `assets/i18n.js` | German and English UI strings |
-| `sw.js` | Offline cache and service-worker behavior |
+| `sw.php` | Serves the installation-specific service worker |
+| `sw.js` | Service-worker source template |
 | `docs/agents/` | Issue tracker, triage-label, and domain-doc guidance for engineering skills |
 | `DESIGN_SYSTEM.md` | Design-system guidance for interface changes |
 
@@ -143,5 +147,5 @@ Matomo tracking is configurable and disabled by clearing its URL. When enabled, 
 
 - There is no compilation step or dependency installation. The local Leaflet, Font Awesome, and QR code assets are committed with the application.
 - Follow [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) and `assets/design-system.css` when changing UI. Use the semantic color, typography, spacing, shape, and control-size tokens, and keep applicable interaction states consistent across visitor and admin screens.
-- When changing application code or the visitor shell, increment the build number shown in the visitor footer and update the cache name in `sw.js` so installed/offline clients receive the new version.
+- When changing application code or the visitor shell, increment the build number shown in the visitor footer and update the cache version in `sw.js` so installed/offline clients receive the new version.
 - GitHub Issues for this project live at [galonga/burnigator](https://github.com/galonga/burnigator). Repository-specific issue, triage, and domain-doc conventions are in `docs/agents/`.

@@ -1,6 +1,21 @@
 <?php
 declare(strict_types=1);
 
+function appInstanceId(array $config): string {
+    $configured = (string)($config['instance_id'] ?? '');
+    if (preg_match('/^[a-f0-9]{32}$/D', $configured)) return $configured;
+    $installationPath = realpath(__DIR__) ?: __DIR__;
+    return substr(hash('sha256', $installationPath), 0, 32);
+}
+
+function startAppSession(array $config): void {
+    $isHttps = (!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off') || (int)($_SERVER['SERVER_PORT'] ?? 0) === 443;
+    $sessionSuffix = substr(appInstanceId($config), 0, 16);
+    session_name('BURNIGATOR' . $sessionSuffix);
+    session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'secure' => $isHttps, 'httponly' => true, 'samesite' => 'Lax']);
+    session_start();
+}
+
 function appUsers(array $config): array {
     $path = __DIR__ . '/data/accounts.json';
     if (is_file($path)) {

@@ -1,5 +1,5 @@
 (async function(){
-  if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>{});
+  if('serviceWorker' in navigator)navigator.serviceWorker.register('./sw.php',{updateViaCache:'none'}).then(registration=>registration.update()).catch(()=>{});
   function trackVisitorClick(action,label){window.trackAppEvent?.('Visitor',action,String(label||''));}
   document.getElementById('refresh-data')?.addEventListener('click',event=>{const activeTab=document.getElementById('timetable-view')?.hidden?'map':'timetable';saveActiveTab(activeTab);window.trackAppEvent?.('Visitor','refresh_data');event.currentTarget.disabled=true;event.currentTarget.classList.add('is-refreshing');const label=event.currentTarget.querySelector('span');if(label)label.textContent=window.AppI18n.t('refreshingData');setTimeout(()=>window.location.reload(),180);});
   let response,data;try{response=await fetch('api.php',{cache:'no-store'});if(!response.ok)throw new Error('http');data=await response.json();if(!data||typeof data!=='object'||!Array.isArray(data.categories)||!Array.isArray(data.pois))throw new Error('data');data.theme=window.BurnigatorTheme.apply(data.theme);}catch(_){showMapLoadError();return;}
