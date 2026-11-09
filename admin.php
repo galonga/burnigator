@@ -17,7 +17,7 @@ if (empty($_SESSION['admin']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = loginIsLimited() ? 'loginRateLimited' : 'badPassword';
     }
 }
-?><!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>Burnigator — Administration</title><link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" crossorigin=""><link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css"><link rel="stylesheet" href="assets/style.css?v=build-1344"><link rel="stylesheet" href="assets/design-system.css?v=build-1344"><script src="assets/matomo.js?v=admin-matomo-1"></script></head><body class="admin-page <?=empty($_SESSION['admin']) ? 'admin-login-page' : 'admin-console-page'?>">
+?><!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>Burnigator — Administration</title><link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" crossorigin=""><link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css"><link rel="stylesheet" href="assets/style.css?v=build-1351"><link rel="stylesheet" href="assets/design-system.css?v=build-1351"><script src="assets/matomo.js?v=admin-matomo-1"></script></head><body class="admin-page <?=empty($_SESSION['admin']) ? 'admin-login-page' : 'admin-console-page'?>">
 <?php if (empty($_SESSION['admin'])): ?><form class="panel narrow" method="post"><header class="form-head"><h1 data-i18n="admin">Administration</h1><select id="language-switch" aria-label="Language" data-i18n-aria="lang"><option value="de">DE</option><option value="en">EN</option></select></header><p><a href="index.php" data-i18n="backToMap">Zur Besucherkarte</a></p><?php if ($error): ?><p class="error" data-i18n="<?=htmlspecialchars($error, ENT_QUOTES, 'UTF-8')?>"><?=htmlspecialchars($error === 'loginRateLimited' ? 'Zu viele Versuche. Bitte 15 Minuten warten.' : 'Passwort nicht korrekt.', ENT_QUOTES, 'UTF-8')?></p><?php endif; ?><label><span data-i18n="username">Benutzername</span><input type="text" name="username" required minlength="3" maxlength="32" autocomplete="username" value="owner"></label><label><span data-i18n="password">Passwort</span><input type="password" name="password" required autocomplete="current-password"></label><button class="button button-primary" data-i18n="login">Anmelden</button></form><script src="assets/i18n.js"></script>
 <?php else: ?>
 <header class="topbar"><h1 data-i18n="adminTitle">Karte bearbeiten</h1><span class="admin-app-name">Burnigator</span><nav><select id="language-switch" aria-label="Language" data-i18n-aria="lang"><option value="de">DE</option><option value="en">EN</option></select> <a class="button button-secondary subtle" href="index.php" data-i18n="visitorMap">Besucherkarte</a> <a class="button button-primary button-danger danger" href="?logout=1" data-i18n="logout">Abmelden</a></nav></header>
@@ -44,6 +44,12 @@ if (empty($_SESSION['admin']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
 <label class="setting-toggle"><input id="browser-translation-enabled" type="checkbox"><span data-i18n="enableBrowserTranslation">Browserübersetzung für WWW-Beschreibungen anbieten</span></label>
 <p class="hint" data-i18n="browserTranslationHint">Nutzt die experimentelle Übersetzungsfunktion des Browsers. Sie erscheint nur in Browsern, die sie unterstützen.</p>
 <button id="save-map" class="button button-primary" data-i18n="save">Änderungen speichern</button>
+</section>
+<section class="config-card" aria-labelledby="publication-heading">
+<h2 id="publication-heading" data-i18n="publicationSettings">Veröffentlichung</h2>
+<p id="publication-status" class="publication-state" role="status"></p>
+<p class="hint" data-i18n="publicationHint">Unveröffentlichte Festivals sind nur für angemeldete Teammitglieder sichtbar. Nur der Owner kann die Sichtbarkeit ändern.</p>
+<button id="publication-toggle" type="button" class="button button-primary"></button>
 </section>
 <section class="config-card" aria-labelledby="config-soundcloud-heading">
 <h2 id="config-soundcloud-heading" data-i18n="soundcloudSettings">SoundCloud-Player</h2>
@@ -99,4 +105,4 @@ if (empty($_SESSION['admin']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
 </section>
 <div id="map" aria-label="Karte bearbeiten" data-i18n-aria="mapLabel"></div>
 </main>
-<script>window.MAP_CSRF=<?=json_encode($_SESSION['csrf'])?>;window.ADMIN_ROLE=<?=json_encode($role)?>;</script><script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="assets/fa-icons.js"></script><script src="assets/i18n.js?v=build-1344"></script><script src="assets/theme.js?v=build-1344"></script><script src="assets/admin.js?v=build-1344"></script><script src="assets/backup-admin.js"></script><?php endif; ?></body></html>
+<script>window.MAP_CSRF=<?=json_encode($_SESSION['csrf'])?>;window.ADMIN_ROLE=<?=json_encode($role)?>;</script><script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="assets/fa-icons.js"></script><script src="assets/i18n.js?v=build-1351"></script><script src="assets/theme.js?v=build-1351"></script><script src="assets/admin.js?v=build-1351"></script><script src="assets/backup-admin.js?v=build-1351"></script><?php endif; ?></body></html>

@@ -1,6 +1,6 @@
 # Burnigator
 
-Burnigator is a self-hosted, database-free festival map and programme for standard PHP web hosting. Visitors can explore an image map, browse a 24-hour timetable, filter and save favourite events, and install the site as a web app. Owners manage the map, programme, accounts, appearance, and integrations from the admin panel.
+Burnigator is a festival map and programme for standard PHP web hosting, with isolated application copies for hosted festivals and a self-hosted deployment path. Visitors can explore an image map, browse a 24-hour timetable, filter and save favourite events, and install the site as a web app. Owners manage the map, programme, accounts, appearance, publication, and integrations from the admin panel.
 
 The application uses [Leaflet](https://leafletjs.com/) with `CRS.Simple`; the map is an image, not a geographic map. It is designed for shared PHP hosting such as ALL-INKL and does not need Docker, a database, Composer, or a build step.
 
@@ -12,6 +12,7 @@ The application uses [Leaflet](https://leafletjs.com/) with `CRS.Simple`; the ma
 - **Event details and favourites:** Events can include a host, description, multiple categories, and an external link with a custom label. Visitors open the details card by selecting an event and can save favourites in their browser; favourites remain after a reload on that device.
 - **Print exports:** Export the map with a numbered place index or export the selected timetable day as a high-resolution JPEG. The exports target A2 printing and 300 DPI where browser canvas limits permit. A configured QR URL is included in the exports.
 - **Admin panel:** Manage POIs, categories, events, independent timelines, general configuration, accounts, backups, and change history. Places are grouped by category and can be collapsed for a more compact overview.
+- **Hosted pilot visibility:** New installations start unpublished. Signed-in festival editors can preview the map and timetable; only the owner can publish or unpublish the visitor view.
 - **Optional integrations:** Configure a SoundCloud playlist, Matomo tracking URL and site ID, and the browser's experimental translation API for event descriptions. The compact SoundCloud player offers play/pause, random next track, 30-second skip, volume control, and a link to the current track.
 - **Branding and navigation:** Upload a title logo and favicon, set a custom top-bar button, and configure an optional legal notice link. The favicon is also used to generate the installed web app icon.
 - **Responsive German and English interface:** The visitor and admin views adapt to mobile screens. Users can switch the UI language; the selection is kept in the browser.
@@ -37,6 +38,7 @@ Leaflet, Font Awesome, and the QR code library are bundled locally. SoundCloud a
 5. Sign in at `https://your-domain.example/burnigator/admin.php` with username `owner` and the password you chose.
 6. Upload a PNG/JPG map image, create categories, and add places. Set each POI's name, icon, description, category, and position. Enable **Has programme** to add events.
 7. Use the Configuration tab to set optional branding, integrations, appearance, accounts, and the legal notice link.
+8. The festival stays private after setup. Sign in as the owner, check the visitor preview, then publish it from Configuration when it is ready.
 
 For hosted festivals, provision a separate application directory and data/upload folders for each festival, then run the setup wizard separately in each copy. Setup assigns each copy a random installation ID. Do not clone an already-installed festival's `config.php`, `data/`, or `uploads/` into a second tenant. Keep each festival on its own subdomain; its session cookie and service-worker cache are also namespaced to its installation.
 
@@ -84,7 +86,7 @@ At a high level, the map data contains:
 - **POIs:** a stable ID, normalized `x`/`y` coordinates, name, description, category, icon, and optional programme
 - **Events:** start/end time, title, host, description, selected event categories, and optional external link and link text
 - **Independent timelines:** up to three named rows with the same event structure
-- **Configuration:** theme, branding paths, optional links, tracking, translation, and SoundCloud settings
+- **Configuration:** theme, branding paths, optional links, tracking, translation, SoundCloud settings, and publication state
 
 POI coordinates are normalized from `0` to `1`, so marker positions scale with the uploaded image. Programme days use the keys Wednesday through Sunday; event times use 24-hour `HH:MM` format. An event end time, when set, must be later than its start time on the same day.
 
@@ -109,8 +111,10 @@ Do not commit live runtime data, password hashes, or uploaded event/map images t
 - `uploads/.htaccess` blocks PHP and other script execution while allowing the browser to load uploaded images for the public map.
 - Passwords are stored as password hashes. Login attempts are throttled after five failed attempts from the same IP address for 15 minutes.
 - Sessions use installation-specific, host-only cookies with `HttpOnly` and `SameSite=Lax`; cookies are marked `Secure` when HTTPS is active. Service-worker cache names also include the installation ID, and cleanup is limited to that installation's caches.
+- Unpublished map data is served only to signed-in festival accounts and is excluded from offline data caching. If a visitor saved a previously published version for offline use, taking the site offline cannot immediately erase that device's already downloaded copy.
 - Image uploads are validated by format and size. Map images may be up to 20 MB; branding PNGs may be up to 5 MB.
 - The application uses file locks and revision checks to prevent concurrent saves from silently overwriting newer map data.
+- Older installations without a saved publication setting remain public after upgrade; only new setup runs default to unpublished.
 
 If the host ignores `.htaccess`, do not expose the `data/` directory publicly. Ask the hosting provider how to deny direct access or move private storage outside the web root and adjust the application paths accordingly. The `uploads/` directory must serve the referenced image files to visitors, while script execution there must remain disabled.
 

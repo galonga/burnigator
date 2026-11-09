@@ -8,12 +8,17 @@ function appInstanceId(array $config): string {
     return substr(hash('sha256', $installationPath), 0, 32);
 }
 
-function startAppSession(array $config): void {
+function startAppSession(array $config, bool $create = true): void {
     $isHttps = (!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off') || (int)($_SERVER['SERVER_PORT'] ?? 0) === 443;
     $sessionSuffix = substr(appInstanceId($config), 0, 16);
     session_name('BURNIGATOR' . $sessionSuffix);
+    if (!$create && !isset($_COOKIE[session_name()])) return;
     session_set_cookie_params(['lifetime' => 0, 'path' => '/', 'secure' => $isHttps, 'httponly' => true, 'samesite' => 'Lax']);
     session_start();
+}
+
+function appCanPreviewUnpublished(): bool {
+    return !empty($_SESSION['admin']) && in_array(appRole(), ['owner', 'poi', 'www'], true);
 }
 
 function appUsers(array $config): array {

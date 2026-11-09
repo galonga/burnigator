@@ -1,9 +1,14 @@
 <?php
 declare(strict_types=1);
-header('Content-Type: application/manifest+json; charset=utf-8');
-header('Cache-Control: no-cache, no-store, must-revalidate');
+require_once __DIR__ . '/auth.php';
+$config = require __DIR__ . '/config.php';
+startAppSession($config, false);
 $mapPath=__DIR__.'/data/map.json';
 $map=is_file($mapPath)?json_decode((string)file_get_contents($mapPath),true):null;
+if(is_array($map)&&($map['published']??true)!==true&&!appCanPreviewUnpublished()){http_response_code(404);header('Cache-Control: no-store');exit;}
+header('X-Burnigator-Published: '.(!is_array($map)||($map['published']??true)===true?'true':'false'));
+header('Content-Type: application/manifest+json; charset=utf-8');
+header('Cache-Control: no-cache, no-store, must-revalidate');
 $favicon=is_array($map)?(string)($map['favicon']??''):'';
 $customIcon=preg_match('~^uploads/favicon-[a-f0-9]{24}\.png$~',$favicon)&&is_file(__DIR__.'/'.$favicon);
 $iconVersion=$customIcon?basename($favicon):'default';
