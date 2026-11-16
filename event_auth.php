@@ -236,10 +236,36 @@ function eventAuthUpsertOrder(PDO $db, string $code, string $status, bool $eligi
         : 'INSERT INTO burnigator_event_auth_orders(event_id,order_hash,status,eligible,source,sync_marker,updated_at) VALUES(?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE status=VALUES(status),eligible=VALUES(eligible),source=VALUES(source),sync_marker=VALUES(sync_marker),updated_at=VALUES(updated_at)';
     $db->prepare($sql)->execute([eventAuthEventId(),eventOrderHash($code), $status, $eligible ? 1 : 0, $source, $marker, gmdate('Y-m-d H:i:s')]);
 }
-function eventAuthSyncPretix(PDO $db, array $settings): array {
+/** Thrown when an import would revoke access for a suspicious share of the current attendees. Nothing is changed. */
+final class EventAuthSyncGuardException extends RuntimeException {
+    public $eligibleBefore; public $counts;
+    public function __construct(int $eligibleBefore, array $counts) { parent::__construct('Import would revoke access for many attendees.'); $this->eligibleBefore = $eligibleBefore; $this->counts = $counts; }
+}
+/** An import is suspicious if it leaves nobody eligible, or drops eligibility by 5+ orders and more than 30%. */
+function eventAuthSyncGuardTripped(int $before, int $after): bool {
+    return $before > 0 && ($after === 0 || ($before - $after >= 5 && $after < $before * 0.7));
+}
+/**
+ * Applies a full order list from one source in a single short transaction. Orders of that
+ * source that are missing from the list lose access; orders from other sources are untouched.
+ * Unless $force is set, a suspicious drop in eligible orders aborts the whole import.
+ * @param array<int, array{0:string,1:string,2:bool}> $orders [code, status, eligible]
+ */
+function eventAuthApplyOrders(PDO $db, array $orders, string $source, bool $force = false): array {
+    $eventId = eventAuthEventId(); $marker = bin2hex(random_bytes(16)); $counts = ['imported'=>0,'eligible'=>0,'ineligible'=>0];
+    $db->beginTransaction();
+    try {
+        $q = $db->prepare('SELECT COUNT(*) FROM burnigator_event_auth_orders WHERE event_id=? AND source=? AND eligible=1'); $q->execute([$eventId, $source]); $before = (int)$q->fetchColumn();
+        foreach ($orders as [$code, $status, $eligible]) { eventAuthUpsertOrder($db, $code, $status, $eligible, $source, $marker); $counts['imported']++; $counts[$eligible ? 'eligible' : 'ineligible']++; }
+        if (!$force && eventAuthSyncGuardTripped($before, $counts['eligible'])) throw new EventAuthSyncGuardException($before, $counts);
+        $db->prepare('UPDATE burnigator_event_auth_orders SET eligible=0, updated_at=? WHERE event_id=? AND source=? AND sync_marker<>?')->execute([gmdate('Y-m-d H:i:s'), $eventId, $source, $marker]);
+        eventAuthSetting($db, 'last_sync_at', gmdate('c')); eventAuthSetting($db, 'last_sync_source', $source); $db->commit(); return $counts;
+    } catch (Throwable $e) { if ($db->inTransaction()) $db->rollBack(); throw $e; }
+}
+function eventAuthSyncPretix(PDO $db, array $settings, bool $force = false): array {
     $base = (string)($settings['pretix_base_url'] ?? ''); $organizer = rawurlencode((string)($settings['pretix_organizer'] ?? '')); $event = rawurlencode((string)($settings['pretix_event'] ?? '')); $token = eventAuthDecrypt((string)($settings['pretix_token_encrypted'] ?? ''));
     if ($organizer === '' || $event === '' || $token === '') throw new RuntimeException('Pretix settings are incomplete.');
-    $prefix = 'organizers/' . $organizer . '/events/' . $event . '/orders/'; $next = pretixApiUrl($base, $prefix); $marker = bin2hex(random_bytes(16)); $counts = ['imported'=>0,'eligible'=>0,'ineligible'=>0];
+    $prefix = 'organizers/' . $organizer . '/events/' . $event . '/orders/'; $next = pretixApiUrl($base, $prefix);
     // Fetch every page before touching the database so a slow Pretix server never holds a write transaction open.
     $orders = []; $pages = 0;
     while ($next !== null && ++$pages <= 1000) {
@@ -255,30 +281,23 @@ function eventAuthSyncPretix(PDO $db, array $settings): array {
         if ($next !== null) { $origin = parse_url($base); $nextParts = parse_url($next); if (!is_array($nextParts) || strtolower((string)($nextParts['scheme'] ?? '')) !== 'https' || strtolower((string)($nextParts['host'] ?? '')) !== strtolower((string)($origin['host'] ?? ''))) throw new RuntimeException('Pretix pagination left the configured host.'); }
     }
     if ($next !== null) throw new RuntimeException('Pretix sync exceeded the page limit.');
-    $db->beginTransaction();
-    try {
-        foreach ($orders as [$code, $status, $eligible]) { eventAuthUpsertOrder($db, $code, $status, $eligible, 'pretix', $marker); $counts['imported']++; $counts[$eligible ? 'eligible' : 'ineligible']++; }
-        $db->prepare('UPDATE burnigator_event_auth_orders SET eligible=0, updated_at=? WHERE event_id=? AND sync_marker<>?')->execute([gmdate('Y-m-d H:i:s'),eventAuthEventId(), $marker]);
-        eventAuthSetting($db, 'last_sync_at', gmdate('c')); eventAuthSetting($db, 'last_sync_source', 'pretix'); $db->commit(); return $counts;
-    } catch (Throwable $e) { if ($db->inTransaction()) $db->rollBack(); throw $e; }
+    return eventAuthApplyOrders($db, $orders, 'pretix', $force);
 }
-function eventAuthCsvImport(PDO $db, string $path): array {
+function eventAuthCsvImport(PDO $db, string $path, bool $force = false): array {
     $fh = fopen($path, 'rb'); if (!$fh) throw new RuntimeException('CSV upload could not be read.');
-    $header = fgetcsv($fh, 0, ',', '"', ''); $header = is_array($header) ? array_map(static fn($v) => strtolower(trim((string)$v)), $header) : [];
-    if (isset($header[0])) $header[0] = ltrim($header[0], "\xEF\xBB\xBF");
-    $codeIndex = array_search('order code', $header, true); if ($codeIndex === false) $codeIndex = array_search('order_code', $header, true); if ($codeIndex === false) $codeIndex = array_search('ordercode', $header, true);
-    $statusIndex = array_search('status', $header, true);
-    if ($codeIndex === false || $statusIndex === false) { fclose($fh); throw new RuntimeException('CSV must include Order code and Status columns.'); }
-    $marker = bin2hex(random_bytes(16)); $counts = ['imported'=>0,'eligible'=>0,'ineligible'=>0]; $seen=[]; $db->beginTransaction();
     try {
+        $header = fgetcsv($fh, 0, ',', '"', ''); $header = is_array($header) ? array_map(static fn($v) => strtolower(trim((string)$v)), $header) : [];
+        if (isset($header[0])) $header[0] = ltrim($header[0], "\xEF\xBB\xBF");
+        $codeIndex = array_search('order code', $header, true); if ($codeIndex === false) $codeIndex = array_search('order_code', $header, true); if ($codeIndex === false) $codeIndex = array_search('ordercode', $header, true);
+        $statusIndex = array_search('status', $header, true);
+        if ($codeIndex === false || $statusIndex === false) throw new RuntimeException('CSV must include Order code and Status columns.');
+        $orders = []; $seen = [];
         while (($row = fgetcsv($fh, 0, ',', '"', '')) !== false) {
             $code = trim((string)($row[$codeIndex] ?? '')); if ($code === '' || strlen($code) > 100) continue;
-            $hash=eventOrderHash($code);if(isset($seen[$hash]))continue;$seen[$hash]=true;
+            $hash = eventOrderHash($code); if (isset($seen[$hash])) continue; $seen[$hash] = true;
             $status = strtolower(trim((string)($row[$statusIndex] ?? 'unknown')));
-            $eligible = in_array($status, ['p','paid','bezahlt'], true);
-            eventAuthUpsertOrder($db, $code, $status, $eligible, 'csv', $marker); $counts['imported']++; $counts[$eligible ? 'eligible' : 'ineligible']++;
+            $orders[] = [$code, $status, in_array($status, ['p','paid','bezahlt'], true)];
         }
-        fclose($fh); $db->prepare('UPDATE burnigator_event_auth_orders SET eligible=0, updated_at=? WHERE event_id=? AND sync_marker<>?')->execute([gmdate('Y-m-d H:i:s'),eventAuthEventId(), $marker]);
-        eventAuthSetting($db, 'last_sync_at', gmdate('c')); eventAuthSetting($db, 'last_sync_source', 'csv'); $db->commit(); return $counts;
-    } catch (Throwable $e) { if(is_resource($fh))fclose($fh);if($db->inTransaction())$db->rollBack();throw $e; }
+    } finally { fclose($fh); }
+    return eventAuthApplyOrders($db, $orders, 'csv', $force);
 }

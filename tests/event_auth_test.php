@@ -61,6 +61,26 @@ check((int)$q->fetchColumn()===0,'CSV canceled status revokes posting access');
 $q->execute([eventAuthEventId(),eventOrderHash('CSV-EXPIRED')]);
 check((int)$q->fetchColumn()===0,'CSV expired status revokes posting access');
 
+// Source scoping and the safeguard against destructive imports
+$guardOrders=[];for($i=0;$i<10;$i++)$guardOrders[]=['GUARD-PRETIX-'.$i,'p',true];
+eventAuthApplyOrders($db,$guardOrders,'pretix');
+$csvOrders=[];for($i=0;$i<10;$i++)$csvOrders[]=['GUARD-CSV-'.$i,'p',true];
+eventAuthApplyOrders($db,$csvOrders,'csv');
+$eligibleOf=function(string $source) use($db){$q=$db->prepare('SELECT COUNT(*) FROM burnigator_event_auth_orders WHERE event_id=? AND source=? AND eligible=1');$q->execute([eventAuthEventId(),$source]);return (int)$q->fetchColumn();};
+check($eligibleOf('pretix')===10&&$eligibleOf('csv')>=10,'both sources start with eligible orders');
+$csvBefore=$eligibleOf('csv');
+eventAuthApplyOrders($db,array_slice($guardOrders,0,9),'pretix');
+check($eligibleOf('pretix')===9,'a small drop applies and revokes the missing order');
+check($eligibleOf('csv')===$csvBefore,'a Pretix sync never revokes CSV-sourced orders');
+$blocked=false;try{eventAuthApplyOrders($db,[],'pretix');}catch(EventAuthSyncGuardException $e){$blocked=true;check($e->eligibleBefore===9,'guard reports the current eligible count');}
+check($blocked,'an empty import is refused');
+check($eligibleOf('pretix')===9,'a refused import changes nothing');
+$blocked=false;try{eventAuthApplyOrders($db,array_slice($guardOrders,0,3),'pretix');}catch(EventAuthSyncGuardException $e){$blocked=true;}
+check($blocked&&$eligibleOf('pretix')===9,'a drop of more than 30% and 5 orders is refused and rolled back');
+eventAuthApplyOrders($db,array_slice($guardOrders,0,3),'pretix',true);
+check($eligibleOf('pretix')===3,'a forced import applies the drop after confirmation');
+check(!eventAuthSyncGuardTripped(0,0)&&!eventAuthSyncGuardTripped(3,2),'guard ignores empty and small installs');
+
 $GLOBALS['burnigatorConfig'] = ['instance_id'=>str_repeat('b',32)];
 check(eventAuthSetting($db,'last_sync_at')===null, 'settings are isolated by installation');
 check((int)$db->query('SELECT COUNT(*) FROM burnigator_schema_migrations')->fetchColumn()===1, 'versioned schema migration is recorded');
