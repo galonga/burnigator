@@ -23,6 +23,13 @@ function clearRuntimeDirectory(string $path, bool $preserveHtaccess = true): voi
         if (!rmdir($target)) throw new RuntimeException('Could not remove runtime directory.');
     }
 }
+function assertRuntimeDirectoryClearable(string $path): void {
+    if (is_link($path) || !is_dir($path) || !is_writable($path)) throw new RuntimeException('Runtime directory is not writable.');
+    foreach (scandir($path) ?: [] as $name) {
+        $target = $path . DIRECTORY_SEPARATOR . $name;
+        if ($name !== '.' && $name !== '..' && !is_link($target) && is_dir($target)) assertRuntimeDirectoryClearable($target);
+    }
+}
 function defaultTheme(): array { return ['primary'=>'#305EAA','accent'=>'#E94F85','alert'=>'#E63D1A','background'=>'#E6D0BB']; }
 function cleanTheme($value): array { $defaults=defaultTheme();$theme=[];foreach($defaults as $key=>$fallback){$color=is_array($value)&&is_string($value[$key]??null)?$value[$key]:'';$theme[$key]=preg_match('/^#[0-9a-fA-F]{6}$/D',$color)?strtoupper($color):$fallback;}return $theme; }
 function cleanMatomoUrl($value): string { $url=is_string($value)?trim($value):'';if($url==='')return '';if(strlen($url)>2048||!filter_var($url,FILTER_VALIDATE_URL))return 'https://www.minmon.de/piwik/';$parts=parse_url($url);if(!is_array($parts)||!in_array(strtolower((string)($parts['scheme']??'')),['http','https'],true)||empty($parts['host'])||isset($parts['user'])||isset($parts['pass'])||isset($parts['query'])||isset($parts['fragment']))return 'https://www.minmon.de/piwik/';return rtrim($url,'/').'/'; }
@@ -68,12 +75,12 @@ if ($_SERVER['REQUEST_METHOD']==='GET' && in_array((string)($_GET['action'] ?? '
     if(!(readMap()['published']??true)&&!appCanPreviewUnpublished())respond(404,['error'=>'not_published']);
     try {
         $map=readMap();
-        $db = eventAuthDb($config);
         if (($_GET['action'] ?? '') === 'event-auth-status') {
-            if (empty($_COOKIE[eventAuthCsrfCookieName($config)])) setcookie(eventAuthCsrfCookieName($config), bin2hex(random_bytes(32)), ['expires'=>time()+2592000,'path'=>'/','secure'=>true,'httponly'=>false,'samesite'=>'Strict']);
-            $session = eventAuthCurrentSession($db, $config);
+            if (empty($_COOKIE[eventAuthCsrfCookieName($config)])) setcookie(eventAuthCsrfCookieName($config), bin2hex(random_bytes(32)), ['expires'=>time()+2592000,'path'=>'/','secure'=>eventAuthHttps(),'httponly'=>false,'samesite'=>'Strict']);
+            $session = eventAuthTokenHash($config) !== null ? eventAuthCurrentSession(eventAuthDb($config), $config) : null;
             respond(200, $session ? ['authenticated'=>true,'pseudonym'=>$session['pseudonym'],'csrfCookie'=>eventAuthCsrfCookieName($config),'pinboardEnabled'=>($map['pinboardEnabled']??false)===true] : ['authenticated'=>false,'csrfCookie'=>eventAuthCsrfCookieName($config),'pinboardEnabled'=>($map['pinboardEnabled']??false)===true]);
         }
+        $db = eventAuthDb($config);
         $owner = !empty($_SESSION['admin']) && appRole() === 'owner';
         if (!(($map['pinboardEnabled']??false)===true) && !$owner) respond(404,['error'=>'not_found']);
         $currentSession = eventAuthCurrentSession($db,$config); $sessionHash = (string)($currentSession['order_hash'] ?? '');
@@ -97,10 +104,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array((string)($_GET['action'] ?
             eventAuthRequireCsrf($config);
             $input = json_decode((string)file_get_contents('php://input'), true);
             $code = is_array($input) ? (string)($input['orderCode'] ?? '') : '';
-            if (eventAuthRateLimited($db, (string)($_SERVER['REMOTE_ADDR'] ?? 'unknown'))) respond(429, ['error'=>'authentication_failed']);
-            if (!preg_match('/^[A-Z0-9\\-\\s]{3,100}$/iD', $code)) respond(401, ['error'=>'authentication_failed']);
+            $ip = (string)($_SERVER['REMOTE_ADDR'] ?? 'unknown');
+            if (eventAuthLoginBlocked($db, $ip)) respond(429, ['error'=>'authentication_failed']);
+            if (!preg_match('/^[A-Z0-9\\-\\s]{3,100}$/iD', $code)) { eventAuthLoginFailed($db, $ip); respond(401, ['error'=>'authentication_failed']); }
             $hash = eventOrderHash($code); $pseudonym=eventAuthPseudonymForOrder($db,$hash);
-            if ($pseudonym===null) respond(401, ['error'=>'authentication_failed']);
+            if ($pseudonym===null) { eventAuthLoginFailed($db, $ip); respond(401, ['error'=>'authentication_failed']); }
             $token = bin2hex(random_bytes(32)); $csrf = bin2hex(random_bytes(32)); $tokenHash = hash('sha256', $token); $now = gmdate('Y-m-d H:i:s');
             $db->prepare('DELETE FROM burnigator_event_auth_sessions WHERE event_id=? AND expires_at<=?')->execute([eventAuthEventId(),$now]);
             $db->prepare('INSERT INTO burnigator_event_auth_sessions(event_id,token_hash,order_hash,pseudonym,expires_at,created_at) VALUES(?,?,?,?,?,?)')->execute([eventAuthEventId(),$tokenHash,$hash,$pseudonym,gmdate('Y-m-d H:i:s',time()+2592000),$now]);
@@ -112,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array((string)($_GET['action'] ?
             eventAuthClearCookies($config); respond(200,['ok'=>true]);
         }
         $session = eventAuthCurrentSession($db, $config); if (!$session) respond(401,['error'=>'authentication_required']);
-        if (in_array($action,['pinboard-create','pinboard-update','pinboard-delete'],true) && eventAuthRateLimited($db,(string)($_SERVER['REMOTE_ADDR']??'unknown'),'write')) respond(429,['error'=>'rate_limited']);
+        if (in_array($action,['pinboard-create','pinboard-update','pinboard-delete'],true) && eventAuthWriteLimited($db,(string)$session['order_hash'])) respond(429,['error'=>'rate_limited']);
         $input = json_decode((string)file_get_contents('php://input'), true); if (!is_array($input)) $input = [];
         $now = gmdate('Y-m-d H:i:s');
         if ($action === 'pinboard-create') {
@@ -141,8 +149,8 @@ if ($_SERVER['REQUEST_METHOD']==='GET' && ($_GET['action'] ?? '') === 'event-aut
         $counts=['total'=>0,'eligible'=>0,'ineligible'=>0];
         $q=$db->prepare('SELECT eligible,COUNT(*) AS amount FROM burnigator_event_auth_orders WHERE event_id=? GROUP BY eligible');$q->execute([eventAuthEventId()]);foreach($q as $row){$amount=(int)$row['amount'];$counts['total']+=$amount;$counts[(int)$row['eligible']===1?'eligible':'ineligible']=$amount;}
         $breakdown=$db->prepare('SELECT source,status,eligible,COUNT(*) AS amount FROM burnigator_event_auth_orders WHERE event_id=? GROUP BY source,status,eligible ORDER BY source,status,eligible DESC');$breakdown->execute([eventAuthEventId()]);$orderGroups=[];foreach($breakdown as $row)$orderGroups[]=['source'=>(string)$row['source'],'status'=>(string)$row['status'],'eligible'=>(int)$row['eligible']===1,'count'=>(int)$row['amount']];
-        respond(200,['settings'=>['pretix_base_url'=>$settings['pretix_base_url']??'','pretix_organizer'=>$settings['pretix_organizer']??'','pretix_event'=>$settings['pretix_event']??'','tokenConfigured'=>!empty($settings['pretix_token_encrypted'])],'lastSyncAt'=>eventAuthSetting($db,'last_sync_at'),'lastSyncSource'=>eventAuthSetting($db,'last_sync_source'),'counts'=>$counts,'orderGroups'=>$orderGroups,'databaseReady'=>true,'secretReady'=>eventAuthSecret()!=='','pinboardEnabled'=>((readMap()['pinboardEnabled']??false)===true)]);
-    } catch (Throwable $e) { respond(503,['error'=>'feature_unavailable','databaseReady'=>false,'secretReady'=>eventAuthSecret()!=='']); }
+        respond(200,['settings'=>['pretix_base_url'=>$settings['pretix_base_url']??'','pretix_organizer'=>$settings['pretix_organizer']??'','pretix_event'=>$settings['pretix_event']??'','tokenConfigured'=>!empty($settings['pretix_token_encrypted'])],'lastSyncAt'=>eventAuthSetting($db,'last_sync_at'),'lastSyncSource'=>eventAuthSetting($db,'last_sync_source'),'counts'=>$counts,'orderGroups'=>$orderGroups,'databaseReady'=>true,'https'=>eventAuthHttps(),'secretReady'=>eventAuthSecret()!=='','pinboardEnabled'=>((readMap()['pinboardEnabled']??false)===true)]);
+    } catch (Throwable $e) { respond(503,['error'=>'feature_unavailable','databaseReady'=>false,'https'=>eventAuthHttps(),'secretReady'=>eventAuthSecret()!=='']); }
 }
 if ($_SERVER['REQUEST_METHOD']==='GET') { $map=readMap();if(!$map['published']){header('X-Burnigator-Published: false');header('Cache-Control: private, no-store');if(!appCanPreviewUnpublished())respond(404,['error'=>'not_published']);}else header('X-Burnigator-Published: true');respond(200,$map); }
 $role=appRole();
@@ -161,15 +169,18 @@ if (in_array($action,['event-auth-settings','event-auth-sync','event-auth-import
         $tempConfig=__DIR__.'/.reset-config-'.bin2hex(random_bytes(8)).'.php';
         $uninstalled="<?php\ndeclare(strict_types=1);\nreturn ['installed' => false];\n";
         if(file_put_contents($tempConfig,$uninstalled,LOCK_EX)===false)respond(500,['error'=>'reset_failed']);
+        $dbCleared=false;
         try{
+            // Verify the filesystem part can succeed before the irreversible database delete.
+            assertRuntimeDirectoryClearable($dataPath);assertRuntimeDirectoryClearable($uploadsPath);
             $dsn=(string)(getenv('BURNIGATOR_DB_DSN')?:($config['event_auth_db_dsn']??''));
-            if($dsn!=='')eventAuthResetInstallation(eventAuthDb($config));
+            if($dsn!==''){eventAuthResetInstallation(eventAuthDb($config));$dbCleared=true;}
             $cleared=withMapLock(function() use($dataPath,$uploadsPath,$tempConfig,$configPath){
                 clearRuntimeDirectory($dataPath);clearRuntimeDirectory($uploadsPath);
                 return rename($tempConfig,$configPath);
             });
             if($cleared!==true)throw new RuntimeException('Could not replace installation config.');
-        }catch(Throwable $e){if(is_file($tempConfig))@unlink($tempConfig);respond(500,['error'=>'reset_failed']);}
+        }catch(Throwable $e){if(is_file($tempConfig))@unlink($tempConfig);respond(500,['error'=>$dbCleared?'reset_partial':'reset_failed']);}
         $_SESSION=[];session_destroy();
         respond(200,['ok'=>true,'redirect'=>'setup.php']);
     }
@@ -228,7 +239,7 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && in_array($action,['save','save-poi','
     $in=json_decode((string)file_get_contents('php://input'),true); if(!is_array($in)) respond(400,['error'=>'Ungültige Daten.']);
     if($action==='save' && $role!=='owner') respond(403,['error'=>'Keine Berechtigung']);
     if(in_array($action,['save-poi','save-pois','delete-poi'],true) && !in_array($role,['owner','poi'],true)) respond(403,['error'=>'Keine Berechtigung']);
-    if(in_array($action,['save-program','save-timelines'],true) && $role!=='owner') respond(403,['error'=>'Keine Berechtigung']);
+    if(in_array($action,['save-program','save-timelines'],true) && !in_array($role,['owner','www'],true)) respond(403,['error'=>'Keine Berechtigung']);
     if($action==='save-accounts' && $role!=='owner') respond(403,['error'=>'Keine Berechtigung']);
     if($action==='set-publication' && $role!=='owner') respond(403,['error'=>'Keine Berechtigung']);
     if($action==='set-publication') {

@@ -1,6 +1,6 @@
 const INSTANCE_ID='__BURNIGATOR_INSTANCE_ID__';
 const CACHE_PREFIX='burnigator-'+INSTANCE_ID+'-offline-';
-const CACHE_NAME=CACHE_PREFIX+'v65';
+const CACHE_NAME=CACHE_PREFIX+'v66';
 async function clearUploadedAssets(cache){for(const request of await cache.keys())if(new URL(request.url).pathname.includes('/uploads/'))await cache.delete(request);}
 const SHELL_FILES=[
   './assets/style.css','./assets/design-system.css','./assets/i18n.js','./assets/theme.js','./assets/easter-egg.js','./assets/map.js','./assets/matomo.js','./assets/pwa.js',

@@ -2,6 +2,7 @@
 declare(strict_types=1);
 
 /** Event-scoped attendee authentication and pinboard persistence. */
+const EVENT_AUTH_SCHEMA_VERSION = 1;
 function eventAuthSecret(): string {
     $config = $GLOBALS['burnigatorConfig'] ?? [];
     $secret = (string)(getenv('BURNIGATOR_EVENT_AUTH_SECRET') ?: (is_array($config) ? ($config['event_auth_secret'] ?? '') : ''));
@@ -20,7 +21,14 @@ function eventAuthDb(array $config): PDO {
     $pass = (string)(getenv('BURNIGATOR_DB_PASSWORD') ?: ($config['event_auth_db_password'] ?? ''));
     if ($dsn === '') throw new RuntimeException('Event authentication database is not configured.');
     $db = new PDO($dsn, $user, $pass, [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_EMULATE_PREPARES => false]);
-    eventAuthMigrate($db);
+    // Migrations are idempotent, but checking them costs DB round trips. A small flag file
+    // records the applied version so normal requests skip the check; if the flag cannot be
+    // read or written we simply migrate (and re-check) every time.
+    $flag = __DIR__ . '/data/event-auth-schema';
+    if ((int)@file_get_contents($flag) !== EVENT_AUTH_SCHEMA_VERSION) {
+        eventAuthMigrate($db);
+        @file_put_contents($flag, (string)EVENT_AUTH_SCHEMA_VERSION, LOCK_EX);
+    }
     return $db;
 }
 
@@ -131,34 +139,72 @@ function eventAuthRequireCsrf(array $config): void {
     if ($cookie === '' || !hash_equals($cookie, $header)) { http_response_code(403); echo json_encode(['error' => 'request_failed']); exit; }
 }
 function eventAuthSetCookies(array $config, string $token, string $csrf): void {
-    setcookie(eventAuthCookieName($config), $token, ['expires' => time() + 2592000, 'path' => '/', 'secure' => true, 'httponly' => true, 'samesite' => 'Strict']);
-    setcookie(eventAuthCsrfCookieName($config), $csrf, ['expires' => time() + 2592000, 'path' => '/', 'secure' => true, 'httponly' => false, 'samesite' => 'Strict']);
+    setcookie(eventAuthCookieName($config), $token, ['expires' => time() + 2592000, 'path' => '/', 'secure' => eventAuthHttps(), 'httponly' => true, 'samesite' => 'Strict']);
+    setcookie(eventAuthCsrfCookieName($config), $csrf, ['expires' => time() + 2592000, 'path' => '/', 'secure' => eventAuthHttps(), 'httponly' => false, 'samesite' => 'Strict']);
 }
 function eventAuthClearCookies(array $config): void {
-    foreach ([eventAuthCookieName($config), eventAuthCsrfCookieName($config)] as $name) setcookie($name, '', ['expires' => time() - 3600, 'path' => '/', 'secure' => true, 'httponly' => $name === eventAuthCookieName($config), 'samesite' => 'Strict']);
+    foreach ([eventAuthCookieName($config), eventAuthCsrfCookieName($config)] as $name) setcookie($name, '', ['expires' => time() - 3600, 'path' => '/', 'secure' => eventAuthHttps(), 'httponly' => $name === eventAuthCookieName($config), 'samesite' => 'Strict']);
 }
 function eventAuthPseudonym(): string {
     $first = ['Amber','Ash','Blazing','Bright','Burning','Calm','Charcoal','Copper','Crackling','Dancing','Dawn','Deep','Distant','Electric','Ember','Feral','Fierce','Flaming','Flickering','Foxfire','Golden','Glowing','Hidden','Indigo','Kindled','Lively','Lone','Lunar','Mellow','Midnight','Molten','Neon','Nimble','Northern','Quiet','Radiant','Restless','Rising','Scarlet','Secret','Shimmering','Shy','Silver','Smoky','Solar','Sooty','Southern','Steady','Stellar','Stray','Summer','Sunlit','Swift','Tender','Velvet','Violet','Wandering','Warm','Wild','Winter','Wise','Witty','Yellow','Young'];
     $second = ['Badger','Bat','Beetle','Bison','Bumblebee','Caracal','Cat','Chinchilla','Cicada','Comet','Crane','Cricket','Crow','Deer','Dingo','Dolphin','Dragon','Eagle','Echidna','Falcon','Ferret','Finch','Firefly','Fox','Gecko','Gibbon','Hare','Heron','Hedgehog','Ibis','Jackal','Kestrel','Koala','Lemur','Lynx','Marten','Meerkat','Mole','Moth','Newt','Ocelot','Octopus','Owl','Panda','Panther','Parrot','Peacock','Penguin','Phoenix','Pika','Puffin','Quokka','Raccoon','Raven','Robin','Salamander','Seal','Sparrow','Starling','Stoat','Tiger','Tortoise','Viper','Wren'];
-    return $first[random_int(0,count($first)-1)] . ' ' . $second[random_int(0,count($second)-1)];
+    // 64 x 64 words x 900 numbers = ~3.7 million combinations per event.
+    return $first[random_int(0,count($first)-1)] . ' ' . $second[random_int(0,count($second)-1)] . ' ' . random_int(100,999);
 }
 function eventAuthPseudonymForOrder(PDO $db, string $orderHash): ?string {
     $q=$db->prepare('SELECT pseudonym,eligible FROM burnigator_event_auth_orders WHERE event_id=? AND order_hash=?');$q->execute([eventAuthEventId(),$orderHash]);$row=$q->fetch();
     if(!is_array($row)||(int)$row['eligible']!==1)return null;
     $name=(string)($row['pseudonym']??'');
-    if($name===''){for($attempt=0;$attempt<64;$attempt++){$candidate=eventAuthPseudonym();$check=$db->prepare('SELECT 1 FROM burnigator_event_auth_orders WHERE event_id=? AND pseudonym=?');$check->execute([eventAuthEventId(),$candidate]);if($check->fetchColumn())continue;try{$db->prepare('UPDATE burnigator_event_auth_orders SET pseudonym=? WHERE event_id=? AND order_hash=? AND pseudonym IS NULL')->execute([$candidate,eventAuthEventId(),$orderHash]);}catch(PDOException $e){continue;}$q->execute([eventAuthEventId(),$orderHash]);$row=$q->fetch();$name=(string)($row['pseudonym']??'');if($name!=='')break;}if($name==='')throw new RuntimeException('Could not assign a unique pseudonym.');}
+    if($name===''){for($attempt=0;$attempt<64;$attempt++){$candidate=eventAuthPseudonym();$check=$db->prepare('SELECT 1 FROM burnigator_event_auth_orders WHERE event_id=? AND pseudonym=?');$check->execute([eventAuthEventId(),$candidate]);if($check->fetchColumn())continue;try{$db->prepare('UPDATE burnigator_event_auth_orders SET pseudonym=? WHERE event_id=? AND order_hash=? AND pseudonym IS NULL')->execute([$candidate,eventAuthEventId(),$orderHash]);}catch(PDOException $e){if((string)$e->getCode()!=='23000')throw $e;continue;}$q->execute([eventAuthEventId(),$orderHash]);$row=$q->fetch();$name=(string)($row['pseudonym']??'');if($name!=='')break;}if($name==='')throw new RuntimeException('Could not assign a unique pseudonym.');}
     return $name;
 }
-function eventAuthRateLimited(PDO $db, string $ip, string $scope = 'auth'): bool {
-    $secret = eventAuthSecret(); if ($secret === '') return true;
-    if(!in_array($scope,['auth','write'],true))throw new InvalidArgumentException('Invalid rate-limit scope.');
-    $eventId=eventAuthEventId();$key = hash_hmac('sha256', $ip, $secret); $now = time(); $q = $db->prepare('SELECT window_started,hits FROM burnigator_event_auth_rate_limits WHERE event_id=? AND scope=? AND ip_hash=?'); $q->execute([$eventId,$scope,$key]); $row = $q->fetch();
-    if (!is_array($row) || $now - strtotime((string)$row['window_started']) >= 900) {
-        $started = gmdate('Y-m-d H:i:s', $now);
-        $sql = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite' ? 'INSERT INTO burnigator_event_auth_rate_limits(event_id,scope,ip_hash,window_started,hits) VALUES(?,?,?, ?,1) ON CONFLICT(event_id,scope,ip_hash) DO UPDATE SET window_started=excluded.window_started,hits=1' : 'INSERT INTO burnigator_event_auth_rate_limits(event_id,scope,ip_hash,window_started,hits) VALUES(?,?,?, ?,1) ON DUPLICATE KEY UPDATE window_started=VALUES(window_started),hits=1';
-        $db->prepare($sql)->execute([$eventId,$scope,$key, $started]); return false;
-    }
-    $hits = (int)$row['hits'] + 1; $db->prepare('UPDATE burnigator_event_auth_rate_limits SET hits=? WHERE event_id=? AND scope=? AND ip_hash=?')->execute([$hits,$eventId,$scope, $key]); return $hits > 8;
+/** Scope => [max hits, window in seconds]. Scope names must fit the VARCHAR(16) column. */
+function eventAuthRateLimits(): array {
+    return [
+        'auth-ip' => [10, 900],     // failed logins per client network (NAT-tolerant: successes are not counted)
+        'auth-event' => [300, 900], // failed logins for the whole event: throttles distributed guessing
+        'write-user' => [20, 600],  // pinboard writes per attendee order, independent of shared IPs
+    ];
+}
+/** Client identity for rate limiting: IPv6 clients are grouped by /64 so rotating addresses does not help. */
+function eventAuthClientKey(string $ip): string {
+    $packed = @inet_pton($ip);
+    return ($packed !== false && strlen($packed) === 16) ? 'v6:' . bin2hex(substr($packed, 0, 8)) : $ip;
+}
+function eventAuthRateKey(string $subject): string {
+    $secret = eventAuthSecret(); if ($secret === '') throw new RuntimeException('Event authentication secret is not configured.');
+    return hash_hmac('sha256', $subject, $secret);
+}
+/** Current hit count for a scope/subject without recording a hit. */
+function eventAuthRateCount(PDO $db, string $scope, string $subject): int {
+    $limits = eventAuthRateLimits(); if (!isset($limits[$scope])) throw new InvalidArgumentException('Invalid rate-limit scope.');
+    $q = $db->prepare('SELECT window_started,hits FROM burnigator_event_auth_rate_limits WHERE event_id=? AND scope=? AND ip_hash=?');
+    $q->execute([eventAuthEventId(), $scope, eventAuthRateKey($subject)]); $row = $q->fetch();
+    return (is_array($row) && time() - (int)strtotime((string)$row['window_started'] . ' UTC') < $limits[$scope][1]) ? (int)$row['hits'] : 0;
+}
+/** Atomically record one hit (the increment and the window reset happen in a single statement) and return the new count. */
+function eventAuthRateHit(PDO $db, string $scope, string $subject): int {
+    $limits = eventAuthRateLimits(); if (!isset($limits[$scope])) throw new InvalidArgumentException('Invalid rate-limit scope.');
+    $eventId = eventAuthEventId(); $key = eventAuthRateKey($subject); $now = time();
+    $stamp = gmdate('Y-m-d H:i:s', $now); $cutoff = gmdate('Y-m-d H:i:s', $now - $limits[$scope][1]);
+    $sql = $db->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite'
+        ? 'INSERT INTO burnigator_event_auth_rate_limits(event_id,scope,ip_hash,window_started,hits) VALUES(?,?,?,?,1) ON CONFLICT(event_id,scope,ip_hash) DO UPDATE SET hits=CASE WHEN window_started<=? THEN 1 ELSE hits+1 END, window_started=CASE WHEN window_started<=? THEN excluded.window_started ELSE window_started END'
+        : 'INSERT INTO burnigator_event_auth_rate_limits(event_id,scope,ip_hash,window_started,hits) VALUES(?,?,?,?,1) ON DUPLICATE KEY UPDATE hits=IF(window_started<=?,1,hits+1), window_started=IF(window_started<=?,VALUES(window_started),window_started)';
+    $db->prepare($sql)->execute([$eventId, $scope, $key, $stamp, $cutoff, $cutoff]);
+    if (random_int(1, 50) === 1) $db->prepare('DELETE FROM burnigator_event_auth_rate_limits WHERE event_id=? AND window_started<?')->execute([$eventId, gmdate('Y-m-d H:i:s', $now - 86400)]);
+    return eventAuthRateCount($db, $scope, $subject);
+}
+/** True when this client (or the whole event) has used up its failed-login budget. */
+function eventAuthLoginBlocked(PDO $db, string $ip): bool {
+    $limits = eventAuthRateLimits();
+    return eventAuthRateCount($db, 'auth-ip', eventAuthClientKey($ip)) >= $limits['auth-ip'][0] || eventAuthRateCount($db, 'auth-event', 'event') >= $limits['auth-event'][0];
+}
+function eventAuthLoginFailed(PDO $db, string $ip): void {
+    eventAuthRateHit($db, 'auth-ip', eventAuthClientKey($ip)); eventAuthRateHit($db, 'auth-event', 'event');
+}
+/** Records a pinboard write for this attendee order and reports whether it exceeds the budget. */
+function eventAuthWriteLimited(PDO $db, string $orderHash): bool {
+    return eventAuthRateHit($db, 'write-user', $orderHash) > eventAuthRateLimits()['write-user'][0];
 }
 
 function pretixApiUrl(string $base, string $path): string {
@@ -193,28 +239,28 @@ function eventAuthUpsertOrder(PDO $db, string $code, string $status, bool $eligi
 function eventAuthSyncPretix(PDO $db, array $settings): array {
     $base = (string)($settings['pretix_base_url'] ?? ''); $organizer = rawurlencode((string)($settings['pretix_organizer'] ?? '')); $event = rawurlencode((string)($settings['pretix_event'] ?? '')); $token = eventAuthDecrypt((string)($settings['pretix_token_encrypted'] ?? ''));
     if ($organizer === '' || $event === '' || $token === '') throw new RuntimeException('Pretix settings are incomplete.');
-    $prefix = 'organizers/' . $organizer . '/events/' . $event . '/orders/'; $next = pretixApiUrl($base, $prefix); $marker = bin2hex(random_bytes(16)); $counts = ['imported'=>0,'eligible'=>0,'ineligible'=>0]; $db->beginTransaction();
-    try {
-        $pages = 0;
-        while ($next !== null && ++$pages <= 1000) {
-            $payload = pretixGetJson($next, $token);
-            foreach ((array)($payload['results'] ?? []) as $order) {
-                if (!is_array($order) || empty($order['code'])) continue;
-                $status = (string)($order['status'] ?? 'unknown');
-                // The documented order-list resource includes a refunds array. Fail closed
-                // if a Pretix deployment omits it rather than requesting by order code.
-                $refundsKnown = is_array($order['refunds'] ?? null); $positionsKnown = is_array($order['positions'] ?? null);
-                $refunds = $refundsKnown ? $order['refunds'] : [];
-                $eligible = $refundsKnown && $positionsKnown && pretixOrderEligible($order, $refunds); eventAuthUpsertOrder($db, (string)$order['code'], $status, $eligible, 'pretix', $marker);
-                $counts['imported']++; $counts[$eligible ? 'eligible' : 'ineligible']++;
-            }
-            $next = isset($payload['next']) && is_string($payload['next']) && $payload['next'] !== '' ? $payload['next'] : null;
-            if ($next !== null) { $origin = parse_url($base); $nextParts = parse_url($next); if (!is_array($nextParts) || strtolower((string)($nextParts['scheme'] ?? '')) !== 'https' || strtolower((string)($nextParts['host'] ?? '')) !== strtolower((string)($origin['host'] ?? ''))) throw new RuntimeException('Pretix pagination left the configured host.'); }
+    $prefix = 'organizers/' . $organizer . '/events/' . $event . '/orders/'; $next = pretixApiUrl($base, $prefix); $marker = bin2hex(random_bytes(16)); $counts = ['imported'=>0,'eligible'=>0,'ineligible'=>0];
+    // Fetch every page before touching the database so a slow Pretix server never holds a write transaction open.
+    $orders = []; $pages = 0;
+    while ($next !== null && ++$pages <= 1000) {
+        $payload = pretixGetJson($next, $token);
+        foreach ((array)($payload['results'] ?? []) as $order) {
+            if (!is_array($order) || empty($order['code'])) continue;
+            // The documented order-list resource includes a refunds array. Fail closed
+            // if a Pretix deployment omits it rather than requesting by order code.
+            $refundsKnown = is_array($order['refunds'] ?? null); $positionsKnown = is_array($order['positions'] ?? null);
+            $orders[] = [(string)$order['code'], (string)($order['status'] ?? 'unknown'), $refundsKnown && $positionsKnown && pretixOrderEligible($order, $refundsKnown ? $order['refunds'] : [])];
         }
-        if ($next !== null) throw new RuntimeException('Pretix sync exceeded the page limit.');
+        $next = isset($payload['next']) && is_string($payload['next']) && $payload['next'] !== '' ? $payload['next'] : null;
+        if ($next !== null) { $origin = parse_url($base); $nextParts = parse_url($next); if (!is_array($nextParts) || strtolower((string)($nextParts['scheme'] ?? '')) !== 'https' || strtolower((string)($nextParts['host'] ?? '')) !== strtolower((string)($origin['host'] ?? ''))) throw new RuntimeException('Pretix pagination left the configured host.'); }
+    }
+    if ($next !== null) throw new RuntimeException('Pretix sync exceeded the page limit.');
+    $db->beginTransaction();
+    try {
+        foreach ($orders as [$code, $status, $eligible]) { eventAuthUpsertOrder($db, $code, $status, $eligible, 'pretix', $marker); $counts['imported']++; $counts[$eligible ? 'eligible' : 'ineligible']++; }
         $db->prepare('UPDATE burnigator_event_auth_orders SET eligible=0, updated_at=? WHERE event_id=? AND sync_marker<>?')->execute([gmdate('Y-m-d H:i:s'),eventAuthEventId(), $marker]);
         eventAuthSetting($db, 'last_sync_at', gmdate('c')); eventAuthSetting($db, 'last_sync_source', 'pretix'); $db->commit(); return $counts;
-    } catch (Throwable $e) { $db->rollBack(); throw $e; }
+    } catch (Throwable $e) { if ($db->inTransaction()) $db->rollBack(); throw $e; }
 }
 function eventAuthCsvImport(PDO $db, string $path): array {
     $fh = fopen($path, 'rb'); if (!$fh) throw new RuntimeException('CSV upload could not be read.');
@@ -234,5 +280,5 @@ function eventAuthCsvImport(PDO $db, string $path): array {
         }
         fclose($fh); $db->prepare('UPDATE burnigator_event_auth_orders SET eligible=0, updated_at=? WHERE event_id=? AND sync_marker<>?')->execute([gmdate('Y-m-d H:i:s'),eventAuthEventId(), $marker]);
         eventAuthSetting($db, 'last_sync_at', gmdate('c')); eventAuthSetting($db, 'last_sync_source', 'csv'); $db->commit(); return $counts;
-    } catch (Throwable $e) { if(is_resource($fh))fclose($fh);$db->rollBack();throw $e; }
+    } catch (Throwable $e) { if(is_resource($fh))fclose($fh);if($db->inTransaction())$db->rollBack();throw $e; }
 }
