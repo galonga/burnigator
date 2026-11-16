@@ -19,18 +19,16 @@ if [ -z "$app_changed" ]; then
   exit 0
 fi
 
-# Print the numeric version from FILE at REF, or nothing if it cannot be found.
-# Tolerates whitespace and quote-style changes around the value.
-build_of() { git show "$1:index.php" | grep -oE "aria-label=[\"']Build [0-9]+[\"']" | head -1 | grep -oE '[0-9]+' || true; }
-cache_of() { git show "$1:sw.js" | grep -oE "CACHE_PREFIX[[:space:]]*\+[[:space:]]*[\"']v[0-9]+[\"']" | head -1 | grep -oE '[0-9]+' || true; }
-
 status=0
 
-# check LABEL FILE BASE_VALUE HEAD_VALUE: both values must be numeric and HEAD > BASE.
+# check LABEL FILE PATTERN: the number matched by PATTERN in FILE must be present
+# in both refs and larger at head. Patterns tolerate whitespace/quote changes.
 check() {
-  local label="$1" file="$2" old="$3" new="$4"
+  local label="$1" file="$2" pattern="$3" old new
+  old=$(git show "$base:$file" | grep -oE "$pattern" | head -1 | grep -oE '[0-9]+' || true)
+  new=$(git show "$head:$file" | grep -oE "$pattern" | head -1 | grep -oE '[0-9]+' || true)
   if [ -z "$old" ] || [ -z "$new" ]; then
-    echo "::error file=$file::Could not read the $label from $file (base='${old}', head='${new}'). The check's pattern may need updating."
+    echo "::error file=$file::Could not read the $label from $file (base='$old', head='$new'). The check's pattern may need updating."
     status=1
   elif [ "$new" -le "$old" ]; then
     echo "::error file=$file::Application files changed but the $label in $file did not increase (base $old, head $new)."
@@ -38,8 +36,8 @@ check() {
   fi
 }
 
-check "footer build number" index.php "$(build_of "$base")" "$(build_of "$head")"
-check "CACHE_NAME version" sw.js "$(cache_of "$base")" "$(cache_of "$head")"
+check "footer build number" index.php "aria-label=[\"']Build [0-9]+[\"']"
+check "CACHE_NAME version" sw.js "CACHE_PREFIX[[:space:]]*\\+[[:space:]]*[\"']v[0-9]+[\"']"
 
 if [ "$status" -ne 0 ]; then
   echo "Changed application files:"; echo "$app_changed"
