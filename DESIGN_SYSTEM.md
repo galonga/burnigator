@@ -46,7 +46,7 @@ Every interactive component must define its applicable states in `assets/design-
 
 Use native `disabled` for controls that cannot be activated. Use `aria-disabled` only when an element needs to remain focusable; its action must also be blocked in code. State should be exposed semantically, not only by color. Reduced-motion preferences disable interaction transitions.
 
-The owner can adjust the app palette from General settings. The `theme` object in `data/map.json` stores `primary`, `accent`, `alert`, and `background` hex colors; missing or invalid values resolve to the original Burnigator defaults.
+The setup wizard randomly selects one of five coordinated palettes; owners can adjust the app palette from Configuration → General. The `theme` object in `data/map.json` stores `primary`, `accent`, `alert`, and `background` hex colors; missing or invalid values resolve to the original Burnigator defaults.
 
 ## Component consistency constraint
 

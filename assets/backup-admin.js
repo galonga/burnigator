@@ -70,10 +70,9 @@
       select.onchange=()=>button.disabled=!select.value;
       button.onclick=restoreSnapshot;
       wrap.append(heading,hint,select,button);
-      const historyCard=ownerTools.querySelector('[data-i18n="historyHeading"]')?.closest('.config-card');
-      const accountsCard=ownerTools.querySelector('[data-i18n="accountsHeading"]')?.closest('.config-card');
-      const insertBefore=historyCard||accountsCard;
-      if(insertBefore?.parentElement)insertBefore.parentElement.insertBefore(wrap,insertBefore);else ownerTools.appendChild(wrap);
+      const securityPanel=document.querySelector('[data-config-section="configTabSecurity"]');
+      const historyCard=securityPanel?.querySelector('[data-i18n="historyHeading"]')?.closest('.config-card');
+      if(historyCard?.parentElement)historyCard.parentElement.insertBefore(wrap,historyCard.nextSibling);else if(securityPanel)securityPanel.appendChild(wrap);else ownerTools.appendChild(wrap);
       window.AppI18n.apply();
       window.addEventListener('image-map-language-change',()=>{select.setAttribute('aria-label',window.AppI18n.t('restoreSnapshot'));if(!select.value&&select.options.length===1)select.options[0].textContent=window.AppI18n.t('snapshotsEmpty');});
     }
