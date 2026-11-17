@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 420" role="img" aria-labelledby="art-title" width="560" height="420">
+            <title id="art-title">Stylised timetable and event map</title>
+            <rect x="8" y="8" width="544" height="404" rx="24" fill="#FFFAF3" stroke="#DCC9B6" stroke-width="2"/>
+            <rect x="8" y="8" width="544" height="52" rx="24" fill="#305EAA"/>
+            <rect x="8" y="36" width="544" height="24" fill="#305EAA"/>
+            <circle cx="36" cy="34" r="8" fill="#E6D0BB"/>
+            <rect x="54" y="28" width="96" height="12" rx="6" fill="#F5EADD"/>
+            <rect x="404" y="24" width="64" height="20" rx="10" fill="#F5EADD"/>
+            <rect x="476" y="24" width="56" height="20" rx="10" fill="#E94F85"/>
+
+            <g>
+              <rect x="32" y="84" width="236" height="304" rx="16" fill="#F5EADD"/>
+              <g font-family="Roboto, 'Noto Sans', 'Segoe UI', system-ui, sans-serif" font-size="12" fill="#26364D">
+                <text x="48" y="110" font-weight="600">Timetable</text>
+                <text x="48" y="140" fill="#5b6b82">Main stage</text>
+                <text x="48" y="206" fill="#5b6b82">Workshop tent</text>
+                <text x="48" y="272" fill="#5b6b82">Chill-out area</text>
+              </g>
+              <rect x="48" y="148" width="92" height="24" rx="8" fill="#305EAA"/>
+              <rect x="150" y="148" width="64" height="24" rx="8" fill="#E94F85"/>
+              <rect x="88" y="214" width="76" height="24" rx="8" fill="#E94F85"/>
+              <rect x="172" y="214" width="62" height="24" rx="8" fill="#305EAA"/>
+              <rect x="48" y="280" width="118" height="24" rx="8" fill="#305EAA"/>
+              <line x1="146" y1="124" x2="146" y2="360" stroke="#E63D1A" stroke-width="2" stroke-dasharray="4 4"/>
+              <rect x="48" y="334" width="186" height="30" rx="15" fill="#FFFAF3" stroke="#DCC9B6"/>
+              <circle cx="68" cy="349" r="6" fill="#E94F85"/>
+              <rect x="82" y="345" width="104" height="8" rx="4" fill="#DCC9B6"/>
+            </g>
+
+            <g>
+              <rect x="284" y="84" width="244" height="304" rx="16" fill="#E6D0BB"/>
+              <path d="M306 330 C340 270 372 300 404 250 C436 200 470 232 504 150" fill="none" stroke="#F5EADD" stroke-width="14" stroke-linecap="round"/>
+              <rect x="312" y="116" width="72" height="44" rx="10" fill="#F5EADD" stroke="#DCC9B6"/>
+              <rect x="430" y="300" width="68" height="52" rx="10" fill="#F5EADD" stroke="#DCC9B6"/>
+              <g fill="#E94F85" stroke="#FFFAF3" stroke-width="3">
+                <path d="M348 198c-12 0-20 9-20 20 0 15 20 30 20 30s20-15 20-30c0-11-8-20-20-20Z"/>
+                <path d="M470 120c-12 0-20 9-20 20 0 15 20 30 20 30s20-15 20-30c0-11-8-20-20-20Z"/>
+              </g>
+              <path d="M410 280c-12 0-20 9-20 20 0 15 20 30 20 30s20-15 20-30c0-11-8-20-20-20Z" fill="#305EAA" stroke="#FFFAF3" stroke-width="3"/>
+              <rect x="300" y="352" width="120" height="24" rx="12" fill="#FFFAF3" stroke="#DCC9B6"/>
+              <rect x="314" y="360" width="64" height="8" rx="4" fill="#DCC9B6"/>
+            </g>
+          </svg>

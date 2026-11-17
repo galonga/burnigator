@@ -1,8 +1,31 @@
-# Burnigator
+<p align="center">
+  <a href="https://burnigator.com"><img src="docs/images/icon.svg" alt="Burnigator logo" width="96" height="96"></a>
+</p>
+
+<h1 align="center">Burnigator</h1>
+
+<p align="center">
+  <strong>Your event, its map and its programme in one web app.</strong><br>
+  Interactive image map, 24-hour programme and community pinboard. Runs on standard PHP hosting.
+</p>
+
+<p align="center">
+  <a href="https://burnigator.com">Website</a> ·
+  <a href="#features">Features</a> ·
+  <a href="#installation">Installation</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a> ·
+  <a href="LICENSE">AGPL-3.0</a>
+</p>
+
+<p align="center">
+  <a href="https://burnigator.com"><img src="docs/images/overview.svg" alt="Illustration of the Burnigator programme timetable next to the event map" width="640"></a>
+</p>
 
 Burnigator is an event management tool for standard PHP web hosting, with isolated application copies for hosted events and a self-hosted deployment path. It brings together an image map, a 24-hour programme, event information, and an optional pinboard. Owners manage event details, locations, schedules, accounts, appearance, publication, and integrations from the admin panel.
 
 The application uses [Leaflet](https://leafletjs.com/) with `CRS.Simple`; the map is an image, not a geographic map. It is designed for shared PHP hosting such as ALL-INKL and does not need Docker, Composer, or a build step. The core map works without a database; the optional event authentication and pinboard features use MariaDB.
+
+Learn more, and see what Burnigator offers guests and organizers, at **[burnigator.com](https://burnigator.com)**.
 
 ## Features
 
@@ -137,6 +160,13 @@ Keep an independent FTP or hosting backup of `config.php`, `data/`, and `uploads
 
 Matomo tracking is off by default. It only runs when the owner enters a Matomo URL and site ID, and clearing the URL disables it again. When enabled, the app sends page views and interaction events such as map POI clicks, timetable event interactions, favourites, and media-player actions to the configured Matomo installation. SoundCloud playback is served by SoundCloud. Browser-stored favourites and map/category display preferences remain local to the visitor's device.
 
+## Links
+
+- **Website:** [burnigator.com](https://burnigator.com)
+- **Source and issues:** [github.com/galonga/burnigator](https://github.com/galonga/burnigator)
+- **Contributing:** [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Security reports:** [SECURITY.md](SECURITY.md)
+
 ## Project structure
 
 | Path | Purpose |
@@ -157,6 +187,7 @@ Matomo tracking is off by default. It only runs when the owner enters a Matomo U
 | `sw.js` | Service-worker source template |
 | `docs/agents/` | Issue tracker, triage-label, and domain-doc guidance for engineering skills |
 | `DESIGN_SYSTEM.md` | Design-system guidance for interface changes |
+| `docs/images/` | Logo and illustration used in this README (also used on burnigator.com) |
 | `CONTRIBUTING.md`, `SECURITY.md` | How to contribute and how to report vulnerabilities |
 | `THIRD_PARTY_NOTICES.md` | Licenses of bundled libraries |
 
@@ -170,4 +201,4 @@ Matomo tracking is off by default. It only runs when the owner enters a Matomo U
 
 ## License
 
-Burnigator is free software, released under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). You may use, study, modify and share it. If you run a modified version as a network service, the AGPL requires you to offer the source code of your modified version to its users. The visitor page footer links to the source at [burnigator.com](https://burnigator.com), as the AGPL requires for network use. The bundled third-party libraries keep their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Burnigator is free software, released under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). You may use, study, modify and share it. If you run a modified version as a network service, the AGPL requires you to offer the source code of your modified version to its users. The visitor page footer links to [burnigator.com](https://burnigator.com), which points to the source, as the AGPL requires for network use. The bundled third-party libraries keep their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
