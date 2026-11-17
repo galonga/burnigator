@@ -1,4 +1,4 @@
-window.FA_ICON_OPTIONS=`
+window.FA_ICON_OPTIONS = `
 location-dot|Standort Ort location map pin
 map-marker-alt|Marker Karte marker map pin
 house|Haus Zuhause home house
@@ -304,4 +304,10 @@ person-skiing|Wintersport Ski winter sports skiing
 fire-burner|Grill Feuerstelle grill firepit
 hot-tub-person|Wellness Whirlpool spa hot tub
 spa|Wellness Entspannung wellness relax
-` .trim().split('\n').map(line=>{const [name,labels]=line.split('|');return ['fa-'+name.trim(),labels.trim()];});
+`
+  .trim()
+  .split('\n')
+  .map((line) => {
+    const [name, labels] = line.split('|');
+    return ['fa-' + name.trim(), labels.trim()];
+  });

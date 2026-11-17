@@ -1,51 +1,87 @@
-(function(){
-  const defaults={primary:'#305EAA',accent:'#E94F85',alert:'#E63D1A',background:'#E6D0BB'};
-  const normalize=value=>Object.fromEntries(Object.entries(defaults).map(([key,fallback])=>{const color=typeof value?.[key]==='string'&&/^#[0-9a-f]{6}$/i.test(value[key])?value[key].toUpperCase():fallback;return [key,color];}));
-  const shade=(hex,factor)=>'#'+[1,3,5].map(i=>Math.round(parseInt(hex.slice(i,i+2),16)*factor).toString(16).padStart(2,'0')).join('').toUpperCase();
-  const tint=(hex,ratio)=>'#'+[1,3,5].map(i=>Math.round(parseInt(hex.slice(i,i+2),16)*(1-ratio)+255*ratio).toString(16).padStart(2,'0')).join('').toUpperCase();
-  const luminance=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((sum,v,index)=>sum+v*[.2126,.7152,.0722][index],0);
-  function apply(value){
-    const theme=normalize(value),root=document.documentElement.style;
-    const set=(name,color)=>root.setProperty('--color-'+name,color);
-    const derived=(name,isDefault,color)=>isDefault?root.removeProperty('--color-'+name):set(name,color);
-    const defaultPrimary=theme.primary===defaults.primary,defaultAccent=theme.accent===defaults.accent,defaultAlert=theme.alert===defaults.alert,defaultBackground=theme.background===defaults.background;
-    set('primary',theme.primary);
-    derived('primary-hover',defaultPrimary,shade(theme.primary,.82));
-    derived('primary-strong',defaultPrimary,shade(theme.primary,.68));
-    derived('primary-container',defaultPrimary,tint(theme.primary,.86));
-    derived('primary-container-hover',defaultPrimary,tint(theme.primary,.78));
-    derived('primary-container-soft',defaultPrimary,tint(theme.primary,.90));
-    derived('primary-outline',defaultPrimary,tint(theme.primary,.66));
-    derived('primary-outline-strong',defaultPrimary,tint(theme.primary,.52));
-    derived('primary-outline-selected',defaultPrimary,tint(theme.primary,.60));
-    set('on-primary',luminance(theme.primary)>.18?'#17202B':'#FFFFFF');
-    set('accent',theme.accent);
-    derived('accent-container',defaultAccent,tint(theme.accent,.86));
-    derived('accent-subtle',defaultAccent,tint(theme.accent,.94));
-    derived('accent-container-strong',defaultAccent,tint(theme.accent,.88));
-    derived('accent-strong',defaultAccent,shade(theme.accent,.72));
-    derived('on-accent-container',defaultAccent,shade(theme.accent,.52));
-    set('on-accent',luminance(theme.accent)>.18?'#17202B':'#FFFFFF');
-    set('alert',theme.alert);
-    derived('alert-hover',defaultAlert,shade(theme.alert,.78));
-    set('on-alert',luminance(theme.alert)>.18?'#17202B':'#FFFFFF');
-    derived('alert-container',defaultAlert,tint(theme.alert,.86));
-    derived('alert-outline',defaultAlert,tint(theme.alert,.35));
-    derived('on-alert-container',defaultAlert,shade(theme.alert,.61));
-    set('background',theme.background);
-    derived('surface-low',defaultBackground,tint(theme.background,.58));
-    derived('surface-container',defaultBackground,tint(theme.background,.38));
-    derived('surface-container-high',defaultBackground,tint(theme.background,.50));
-    derived('surface-high',defaultBackground,tint(theme.background,.92));
-    derived('surface-timetable',defaultBackground,tint(theme.background,.94));
-    derived('divider',defaultBackground,shade(theme.background,.72));
-    derived('outline',defaultBackground,shade(theme.background,.76));
-    derived('outline-strong',defaultBackground,shade(theme.background,.64));
-    derived('outline-hover',defaultBackground,shade(theme.background,.52));
-    derived('map-background',defaultBackground,theme.background);
-    derived('focus-ring',defaultAccent,'0 0 0 3px '+theme.accent+'55');
+(function () {
+  const defaults = { primary: '#305EAA', accent: '#E94F85', alert: '#E63D1A', background: '#E6D0BB' };
+  const normalize = (value) =>
+    Object.fromEntries(
+      Object.entries(defaults).map(([key, fallback]) => {
+        const color =
+          typeof value?.[key] === 'string' && /^#[0-9a-f]{6}$/i.test(value[key])
+            ? value[key].toUpperCase()
+            : fallback;
+        return [key, color];
+      })
+    );
+  const shade = (hex, factor) =>
+    '#' +
+    [1, 3, 5]
+      .map((i) =>
+        Math.round(parseInt(hex.slice(i, i + 2), 16) * factor)
+          .toString(16)
+          .padStart(2, '0')
+      )
+      .join('')
+      .toUpperCase();
+  const tint = (hex, ratio) =>
+    '#' +
+    [1, 3, 5]
+      .map((i) =>
+        Math.round(parseInt(hex.slice(i, i + 2), 16) * (1 - ratio) + 255 * ratio)
+          .toString(16)
+          .padStart(2, '0')
+      )
+      .join('')
+      .toUpperCase();
+  const luminance = (hex) =>
+    [1, 3, 5]
+      .map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+      .map((v) => (v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4))
+      .reduce((sum, v, index) => sum + v * [0.2126, 0.7152, 0.0722][index], 0);
+  function apply(value) {
+    const theme = normalize(value),
+      root = document.documentElement.style;
+    const set = (name, color) => root.setProperty('--color-' + name, color);
+    const derived = (name, isDefault, color) =>
+      isDefault ? root.removeProperty('--color-' + name) : set(name, color);
+    const defaultPrimary = theme.primary === defaults.primary,
+      defaultAccent = theme.accent === defaults.accent,
+      defaultAlert = theme.alert === defaults.alert,
+      defaultBackground = theme.background === defaults.background;
+    set('primary', theme.primary);
+    derived('primary-hover', defaultPrimary, shade(theme.primary, 0.82));
+    derived('primary-strong', defaultPrimary, shade(theme.primary, 0.68));
+    derived('primary-container', defaultPrimary, tint(theme.primary, 0.86));
+    derived('primary-container-hover', defaultPrimary, tint(theme.primary, 0.78));
+    derived('primary-container-soft', defaultPrimary, tint(theme.primary, 0.9));
+    derived('primary-outline', defaultPrimary, tint(theme.primary, 0.66));
+    derived('primary-outline-strong', defaultPrimary, tint(theme.primary, 0.52));
+    derived('primary-outline-selected', defaultPrimary, tint(theme.primary, 0.6));
+    set('on-primary', luminance(theme.primary) > 0.18 ? '#17202B' : '#FFFFFF');
+    set('accent', theme.accent);
+    derived('accent-container', defaultAccent, tint(theme.accent, 0.86));
+    derived('accent-subtle', defaultAccent, tint(theme.accent, 0.94));
+    derived('accent-container-strong', defaultAccent, tint(theme.accent, 0.88));
+    derived('accent-strong', defaultAccent, shade(theme.accent, 0.72));
+    derived('on-accent-container', defaultAccent, shade(theme.accent, 0.52));
+    set('on-accent', luminance(theme.accent) > 0.18 ? '#17202B' : '#FFFFFF');
+    set('alert', theme.alert);
+    derived('alert-hover', defaultAlert, shade(theme.alert, 0.78));
+    set('on-alert', luminance(theme.alert) > 0.18 ? '#17202B' : '#FFFFFF');
+    derived('alert-container', defaultAlert, tint(theme.alert, 0.86));
+    derived('alert-outline', defaultAlert, tint(theme.alert, 0.35));
+    derived('on-alert-container', defaultAlert, shade(theme.alert, 0.61));
+    set('background', theme.background);
+    derived('surface-low', defaultBackground, tint(theme.background, 0.58));
+    derived('surface-container', defaultBackground, tint(theme.background, 0.38));
+    derived('surface-container-high', defaultBackground, tint(theme.background, 0.5));
+    derived('surface-high', defaultBackground, tint(theme.background, 0.92));
+    derived('surface-timetable', defaultBackground, tint(theme.background, 0.94));
+    derived('divider', defaultBackground, shade(theme.background, 0.72));
+    derived('outline', defaultBackground, shade(theme.background, 0.76));
+    derived('outline-strong', defaultBackground, shade(theme.background, 0.64));
+    derived('outline-hover', defaultBackground, shade(theme.background, 0.52));
+    derived('map-background', defaultBackground, theme.background);
+    derived('focus-ring', defaultAccent, '0 0 0 3px ' + theme.accent + '55');
     return theme;
   }
-  window.BurnigatorTheme={defaults,normalize,apply};
-  if(window.BURNIGATOR_INITIAL_THEME)apply(window.BURNIGATOR_INITIAL_THEME);
+  window.BurnigatorTheme = { defaults, normalize, apply };
+  if (window.BURNIGATOR_INITIAL_THEME) apply(window.BURNIGATOR_INITIAL_THEME);
 })();

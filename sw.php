@@ -1,5 +1,6 @@
 <?php
-declare(strict_types=1);
+
+declare (strict_types=1);
 require_once __DIR__ . '/auth.php';
 $config = require __DIR__ . '/config.php';
 $worker = file_get_contents(__DIR__ . '/sw.js');
