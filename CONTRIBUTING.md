@@ -53,7 +53,18 @@ CI runs the PHP and JavaScript syntax checks and the version-bump check.
 - Add screenshots for visible changes.
 - Do not include runtime data, passwords, or uploaded images.
 
-By contributing, you agree that your contribution is released under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0), the same license as the rest of the project.
+## License and contributor agreement
+
+Burnigator is released under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0).
+
+By submitting a contribution (for example a pull request), you confirm and agree that:
+
+1. You wrote the contribution yourself, or you have the right to submit it, and it does not include code you may not share (for example from an employer or from a project with an incompatible license).
+2. Your contribution is licensed under the AGPL-3.0, like the rest of the project.
+3. You also grant the project maintainer a perpetual, worldwide, non-exclusive, royalty-free, irrevocable license to use, modify, sublicense and distribute your contribution under any license, including commercial and proprietary terms. This lets the maintainer offer Burnigator under other terms, for example for hosting, without asking every contributor again.
+4. You keep the copyright in your contribution.
+
+If you cannot agree to this, please open an issue instead of a pull request so we can find another way.
 
 ## Labels
 

@@ -25,8 +25,8 @@ if (!$isPublished && !$previewOnly) {
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="light">
     <title>Burnigator</title>
-    <link rel="stylesheet" href="assets/style.css?v=build-1357">
-    <link rel="stylesheet" href="assets/design-system.css?v=build-1357">
+    <link rel="stylesheet" href="assets/style.css?v=build-1358">
+    <link rel="stylesheet" href="assets/design-system.css?v=build-1358">
   </head>
   <body class="form-page">
     <main class="panel narrow">
@@ -34,7 +34,7 @@ if (!$isPublished && !$previewOnly) {
       <p data-i18n="festivalUnpublished">Dieses Festival ist noch nicht veröffentlicht.|This festival has not been published yet.</p>
       <label><span data-i18n="lang">Sprache|Language</span>
       <select id="language-switch"><option value="de">DE</option><option value="en">EN</option></select></label>
-    </main><script src="assets/i18n.js?v=build-1357"></script>
+    </main><script src="assets/i18n.js?v=build-1358"></script>
   </body>
 </html><?php 
     exit;
@@ -87,10 +87,10 @@ if ($titleLinkUrl !== '') {
     <link id="site-favicon" rel="icon">
     <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
-    <link rel="stylesheet" href="assets/style.css?v=build-1357">
-    <link rel="stylesheet" href="assets/design-system.css?v=build-1357"><script src="assets/matomo.js?v=admin-matomo-1"></script><?php 
+    <link rel="stylesheet" href="assets/style.css?v=build-1358">
+    <link rel="stylesheet" href="assets/design-system.css?v=build-1358"><script src="assets/matomo.js?v=admin-matomo-1"></script><?php 
 echo appInitialThemeScript(is_array($publicMap) ? $publicMap : null);
-?><script src="assets/theme.js?v=build-1357"></script></head>
+?><script src="assets/theme.js?v=build-1358"></script></head>
 <body class="public-page">
   <header class="topbar">
     <div class="topbar-brand"><?= $brandOpen ?>
@@ -139,16 +139,16 @@ echo appInitialThemeScript(is_array($publicMap) ? $publicMap : null);
       </div><button id="export-day-jpg" class="button button-secondary subtle export-jpg-button" type="button" data-i18n="exportDayJpg">Diesen Tag als JPG exportieren</button>
     </section>
   </main>
-  <footer class="owner-credit"><span data-i18n="ownerHint">Powered by|Powered by</span> <a href="https://burnigator.com" target="_blank" rel="noopener noreferrer">burnigator.com</a><?php 
+  <footer class="owner-credit"><span data-i18n="ownerHint">Powered by|Powered by</span> <a href="https://burnigator.com" target="_blank" rel="noopener noreferrer">burnigator.com</a><span aria-hidden="true">·</span><a href="https://burnigator.com" target="_blank" rel="noopener noreferrer" data-i18n="sourceLink">Quellcode</a><?php 
 if ($impressUrl !== '') {
     ?><span aria-hidden="true">·</span><a href="<?php 
     echo htmlspecialchars($impressUrl, ENT_QUOTES, 'UTF-8');
     ?>" target="_blank" rel="noopener noreferrer" data-i18n="impressLink">Impressum</a><?php 
 }
-?><span aria-hidden="true">·</span><button id="install-app" type="button" class="install-app-button button-outlined" aria-label="App installieren" data-i18n-aria="installApp" hidden><i class="fa-solid fa-download" aria-hidden="true"></i><span data-i18n="installApp">App installieren</span></button><span id="install-app-divider" aria-hidden="true" hidden>·</span><button id="burnigator-easter-trigger" type="button" class="burnigator-brand button-text" aria-label="Burnigator">Burnigator</button><span aria-hidden="true">·</span><small id="last-updated" class="last-updated">…</small><span class="build-number" aria-label="Build 1357">Build 1357</span></footer>
+?><span aria-hidden="true">·</span><button id="install-app" type="button" class="install-app-button button-outlined" aria-label="App installieren" data-i18n-aria="installApp" hidden><i class="fa-solid fa-download" aria-hidden="true"></i><span data-i18n="installApp">App installieren</span></button><span id="install-app-divider" aria-hidden="true" hidden>·</span><button id="burnigator-easter-trigger" type="button" class="burnigator-brand button-text" aria-label="Burnigator">Burnigator</button><span aria-hidden="true">·</span><small id="last-updated" class="last-updated">…</small><span class="build-number" aria-label="Build 1358">Build 1358</span></footer>
 <div id="burnigator-easter-toast" class="burnigator-toast" role="status" aria-live="polite" hidden>
 </div>
-<script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="assets/i18n.js?v=build-1357"></script><script src="assets/easter-egg.js?v=persistent-sparks-1"></script><script src="assets/pwa.js?v=install-2"></script><script src="https://w.soundcloud.com/player/api.js" async></script><script src="assets/vendor/qrcode.min.js"></script><script src="assets/map.js?v=build-1357"></script>
+<script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="assets/i18n.js?v=build-1358"></script><script src="assets/easter-egg.js?v=persistent-sparks-1"></script><script src="assets/pwa.js?v=install-2"></script><script src="https://w.soundcloud.com/player/api.js" async></script><script src="assets/vendor/qrcode.min.js"></script><script src="assets/map.js?v=build-1358"></script>
 <script src="assets/pinboard.js?v=2"></script>
 </body>
 </html>

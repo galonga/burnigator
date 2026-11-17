@@ -170,4 +170,4 @@ Matomo tracking is off by default. It only runs when the owner enters a Matomo U
 
 ## License
 
-Burnigator is free software, released under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). You may use, study, modify and share it. If you run a modified version as a network service, the AGPL requires you to offer the source code of your modified version to its users. The bundled third-party libraries keep their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+Burnigator is free software, released under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). You may use, study, modify and share it. If you run a modified version as a network service, the AGPL requires you to offer the source code of your modified version to its users. The visitor page footer links to the source at [burnigator.com](https://burnigator.com), as the AGPL requires for network use. The bundled third-party libraries keep their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

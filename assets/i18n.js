@@ -478,6 +478,7 @@
     lang: 'Sprache|Language',
     ownerHint: 'Powered by|Powered by',
     impressLink: 'Impressum|Legal notice',
+    sourceLink: 'Quellcode|Source code',
     refreshData: 'Aktualisieren|Refresh',
     closeDetails: 'Details schließen|Close details',
     installApp: 'Als App installieren|Install app',

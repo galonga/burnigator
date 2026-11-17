@@ -14,3 +14,4 @@
 - [ ] I followed `DESIGN_SYSTEM.md` for UI changes
 - [ ] JS and CSS are formatted with Prettier
 - [ ] No runtime data, passwords or uploads are included
+- [ ] I agree to the license and contributor agreement in `CONTRIBUTING.md`
