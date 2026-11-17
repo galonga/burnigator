@@ -1,10 +1,11 @@
 <?php
 
 declare (strict_types=1);
-$config = require __DIR__ . '/config.php';
+$config = require is_file(__DIR__ . '/config.php') ? __DIR__ . '/config.php' : __DIR__ . '/config.sample.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/theme_bootstrap.php';
 startAppSession($config);
+appSendSecurityHeaders();
 $role = appRole();
 if (empty($config['installed'])) {
     header('Location: setup.php');
@@ -48,8 +49,8 @@ if (empty($_SESSION['admin']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Burnigator — Administration</title>
     <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
-    <link rel="stylesheet" href="assets/style.css?v=build-1356">
-    <link rel="stylesheet" href="assets/design-system.css?v=build-1356"><script src="assets/matomo.js?v=admin-matomo-1"></script>
+    <link rel="stylesheet" href="assets/style.css?v=build-1357">
+    <link rel="stylesheet" href="assets/design-system.css?v=build-1357"><script src="assets/matomo.js?v=admin-matomo-1"></script>
   </head><body class="admin-page <?php 
 echo empty($_SESSION['admin']) ? 'admin-login-page' : 'admin-console-page';
 ?>">
@@ -119,6 +120,7 @@ if (empty($_SESSION['admin'])) {
   <label><span data-i18n="customButtonLabel">Zusatzbutton-Text (optional)</span><input id="custom-button-label" maxlength="40"></label>
   <label><span data-i18n="customButtonUrl">Zusatzbutton-Link (https://…)</span><input id="custom-button-url" type="url" maxlength="2048" placeholder="https://"></label>
   <label><span data-i18n="wwwQrUrl">QR-Code-URL für WWW-JPG (optional)</span><input id="www-qr-url" type="url" maxlength="2048" placeholder="https://"></label>
+  <label><span data-i18n="titleLinkUrl">Titel-Link (optional)</span><input id="title-link-url" type="url" maxlength="2048" placeholder="https://"></label>
   <label><span data-i18n="impressUrl">Impress-Link (optional)</span><input id="impress-url" type="url" maxlength="2048" placeholder="https://"></label>
   <label class="setting-toggle"><input id="browser-translation-enabled" type="checkbox"><span data-i18n="enableBrowserTranslation">Browserübersetzung für WWW-Beschreibungen anbieten</span></label>
   <p class="hint" data-i18n="browserTranslationHint">Nutzt die experimentelle Übersetzungsfunktion des Browsers. Sie erscheint nur in Browsern, die sie unterstützen.</p>
@@ -133,7 +135,7 @@ if (empty($_SESSION['admin'])) {
 <section class="config-card" aria-labelledby="config-soundcloud-heading">
   <h2 id="config-soundcloud-heading" data-i18n="soundcloudSettings">SoundCloud-Player</h2>
   <label class="setting-toggle"><input id="soundcloud-enabled" type="checkbox" checked><span data-i18n="showSoundcloudPlayer">SoundCloud-Player in der Besucheransicht anzeigen</span></label>
-  <label><span data-i18n="soundcloudPlaylistUrl">SoundCloud-Playlist-URL</span><input id="soundcloud-playlist" type="url" maxlength="2048" value="https://soundcloud.com/minmon_kollektiv/sets/minmon-podcast" placeholder="https://soundcloud.com/…/sets/…"></label>
+  <label><span data-i18n="soundcloudPlaylistUrl">SoundCloud-Playlist-URL</span><input id="soundcloud-playlist" type="url" maxlength="2048" placeholder="https://soundcloud.com/…/sets/…"></label>
   <p class="hint" data-i18n="soundcloudPlaylistHint">Es kann eine öffentliche SoundCloud-Playlist mit /sets/ im Link verwendet werden.</p>
 <button id="save-soundcloud" type="button" class="button button-primary" data-i18n="saveSoundcloud">SoundCloud-Einstellungen speichern</button>
 </section>
@@ -275,9 +277,9 @@ XWDYD,canceled
     echo json_encode($_SESSION['csrf']);
     ?>;window.ADMIN_ROLE=<?php 
     echo json_encode($role);
-    ?>;</script><script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="assets/fa-icons.js"></script><script src="assets/i18n.js?v=build-1356"></script><?php 
+    ?>;</script><script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="assets/fa-icons.js"></script><script src="assets/i18n.js?v=build-1357"></script><?php 
     echo appInitialThemeScript();
-    ?><script src="assets/theme.js?v=build-1356"></script><script src="assets/admin.js?v=build-1356"></script><script src="assets/backup-admin.js?v=build-1356"></script><?php 
+    ?><script src="assets/theme.js?v=build-1357"></script><script src="assets/admin.js?v=build-1357"></script><script src="assets/backup-admin.js?v=build-1357"></script><?php 
 }
 ?></body>
 </html>

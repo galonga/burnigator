@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-$config = require __DIR__ . '/config.php';
+$config = require is_file(__DIR__ . '/config.php') ? __DIR__ . '/config.php' : __DIR__ . '/config.sample.php';
 $GLOBALS['burnigatorConfig'] = $config;
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/event_auth.php';
@@ -83,11 +83,11 @@ function cleanMatomoUrl($value): string
         return '';
     }
     if (strlen($url) > 2048 || !filter_var($url, FILTER_VALIDATE_URL)) {
-        return 'https://www.minmon.de/piwik/';
+        return '';
     }
     $parts = parse_url($url);
     if (!is_array($parts) || !in_array(strtolower((string) ($parts['scheme'] ?? '')), ['http', 'https'], true) || empty($parts['host']) || isset($parts['user']) || isset($parts['pass']) || isset($parts['query']) || isset($parts['fragment'])) {
-        return 'https://www.minmon.de/piwik/';
+        return '';
     }
     return rtrim($url, '/') . '/';
 }
@@ -108,17 +108,20 @@ function cleanOptionalHttpUrl($value): string
 function cleanMatomoSiteId($value): string
 {
     $id = (string) $value;
-    return preg_match('/^[1-9][0-9]{0,8}$/D', $id) ? $id : '7';
+    return preg_match('/^[1-9][0-9]{0,8}$/D', $id) ? $id : '';
 }
 
 function defaultSoundCloudPlaylist(): string
 {
-    return 'https://soundcloud.com/minmon_kollektiv/sets/minmon-podcast';
+    return '';
 }
 
 function cleanSoundCloudPlaylist($value): ?string
 {
     $url = is_string($value) ? trim($value) : '';
+    if ($url === '') {
+        return '';
+    }
     if (strlen($url) > 2048 || !filter_var($url, FILTER_VALIDATE_URL)) {
         return null;
     }
@@ -149,9 +152,10 @@ function readMap(): array
         'customButton' => ['label' => '', 'url' => ''],
         'qrUrl' => '',
         'impressUrl' => '',
+        'titleLinkUrl' => '',
         'theme' => defaultTheme(),
-        'matomoUrl' => 'https://www.minmon.de/piwik/',
-        'matomoSiteId' => '7',
+        'matomoUrl' => '',
+        'matomoSiteId' => '',
         'categories' => [],
         'pois' => [],
         'timelines' => [],
@@ -167,6 +171,7 @@ function readMap(): array
     $m['matomoUrl'] = cleanMatomoUrl($m['matomoUrl'] ?? $fallback['matomoUrl']);
     $m['matomoSiteId'] = cleanMatomoSiteId($m['matomoSiteId'] ?? $fallback['matomoSiteId']);
     $m['impressUrl'] = cleanOptionalHttpUrl($m['impressUrl'] ?? '');
+    $m['titleLinkUrl'] = cleanOptionalHttpUrl($m['titleLinkUrl'] ?? '');
     $m['soundcloudEnabled'] = ($m['soundcloudEnabled'] ?? true) !== false;
     $m['soundcloudPlaylist'] = cleanSoundCloudPlaylist($m['soundcloudPlaylist'] ?? $fallback['soundcloudPlaylist']) ?? $fallback['soundcloudPlaylist'];
     return $m;
@@ -1017,6 +1022,7 @@ if ($action === 'restore-snapshot' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $m['timelines'] = cleanIndependentTimelines($m['timelines'] ?? []);
     $m['theme'] = cleanTheme($m['theme'] ?? null);
     $m['impressUrl'] = cleanOptionalHttpUrl($m['impressUrl'] ?? '');
+    $m['titleLinkUrl'] = cleanOptionalHttpUrl($m['titleLinkUrl'] ?? '');
     $m['matomoUrl'] = cleanMatomoUrl($m['matomoUrl'] ?? readMap()['matomoUrl']);
     $m['matomoSiteId'] = cleanMatomoSiteId($m['matomoSiteId'] ?? readMap()['matomoSiteId']);
     $m['soundcloudEnabled'] = ($m['soundcloudEnabled'] ?? true) !== false;
@@ -1162,6 +1168,7 @@ if ($action === 'restore-backup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         'soundcloudPlaylist' => cleanSoundCloudPlaylist($src['soundcloudPlaylist'] ?? defaultSoundCloudPlaylist()) ?? defaultSoundCloudPlaylist(),
         'qrUrl' => $qrUrl,
         'impressUrl' => cleanOptionalHttpUrl($src['impressUrl'] ?? ''),
+        'titleLinkUrl' => cleanOptionalHttpUrl($src['titleLinkUrl'] ?? ''),
         'image' => $paths['image'],
         'logo' => $paths['logo'],
         'favicon' => $paths['favicon'],
@@ -1804,7 +1811,7 @@ $m = [
     'title' => cleanText($in['title'] ?? 'Mein Event', 100) ?: 'Mein Event',
     'theme' => cleanTheme($in['theme'] ?? $old['theme'] ?? null),
     'matomoUrl' => cleanMatomoUrl($in['matomoUrl'] ?? $old['matomoUrl'] ?? ''),
-    'matomoSiteId' => cleanMatomoSiteId($in['matomoSiteId'] ?? $old['matomoSiteId'] ?? '7'),
+    'matomoSiteId' => cleanMatomoSiteId($in['matomoSiteId'] ?? $old['matomoSiteId'] ?? ''),
     'image' => (string) ($old['image'] ?? ''),
     'logo' => (string) ($old['logo'] ?? ''),
     'favicon' => (string) ($old['favicon'] ?? ''),
@@ -1817,6 +1824,7 @@ $m = [
     'customButton' => ['label' => $customLabel, 'url' => $customUrl],
     'qrUrl' => $qrUrl,
     'impressUrl' => cleanOptionalHttpUrl($in['impressUrl'] ?? $old['impressUrl'] ?? ''),
+    'titleLinkUrl' => cleanOptionalHttpUrl($in['titleLinkUrl'] ?? $old['titleLinkUrl'] ?? ''),
     'published' => ($old['published'] ?? true) === true,
     'pinboardEnabled' => ($old['pinboardEnabled'] ?? false) === true,
     'categories' => $cats,

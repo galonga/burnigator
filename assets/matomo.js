@@ -21,8 +21,8 @@
   });
   function start(settings) {
     const base = typeof settings?.matomoUrl === 'string' ? settings.matomoUrl.trim() : '';
-    const id = String(settings?.matomoSiteId || '7');
-    if (!base) {
+    const id = String(settings?.matomoSiteId || '');
+    if (!base || !id) {
       initialized = true;
       enabled = false;
       pending.length = 0;
@@ -68,5 +68,5 @@
       return response.json();
     })
     .then(start)
-    .catch(() => start({ matomoUrl: 'https://www.minmon.de/piwik/', matomoSiteId: '7' }));
+    .catch(() => start({}));
 })();

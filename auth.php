@@ -244,3 +244,51 @@ function withMapLock(callable $callback)
         fclose($handle);
     }
 }
+
+/**
+ * Origin (scheme://host[:port]) of the configured Matomo installation, or '' when tracking is off.
+ */
+function appMatomoOrigin(): string
+{
+    $map = json_decode((string) @file_get_contents(__DIR__ . '/data/map.json'), true);
+    $url = is_array($map) && is_string($map['matomoUrl'] ?? null) ? trim($map['matomoUrl']) : '';
+    $parts = $url !== '' ? parse_url($url) : false;
+    if (!is_array($parts) || empty($parts['host']) || !in_array(strtolower((string) ($parts['scheme'] ?? '')), ['http', 'https'], true)) {
+        return '';
+    }
+    $origin = strtolower($parts['scheme']) . '://' . $parts['host'];
+    return isset($parts['port']) ? $origin . ':' . $parts['port'] : $origin;
+}
+
+/**
+ * Sends the security headers for HTML pages. The Content-Security-Policy allows only this site,
+ * the SoundCloud player and the optionally configured Matomo installation.
+ */
+function appSendSecurityHeaders(): void
+{
+    $matomo = appMatomoOrigin();
+    $withMatomo = static function (string $directive) use ($matomo): string {
+        return $matomo === '' ? $directive : $directive . ' ' . $matomo;
+    };
+    $policy = [
+        "default-src 'self'",
+        $withMatomo("script-src 'self' 'unsafe-inline' https://w.soundcloud.com"),
+        "style-src 'self' 'unsafe-inline'",
+        $withMatomo("img-src 'self' data: blob:"),
+        "font-src 'self'",
+        $withMatomo("connect-src 'self'"),
+        'frame-src https://w.soundcloud.com',
+        "media-src 'self'",
+        "manifest-src 'self'",
+        "worker-src 'self'",
+        "object-src 'none'",
+        "base-uri 'self'",
+        "form-action 'self'",
+        "frame-ancestors 'self'",
+    ];
+    header('Content-Security-Policy: ' . implode('; ', $policy));
+    header('X-Content-Type-Options: nosniff');
+    header('X-Frame-Options: SAMEORIGIN');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()');
+}

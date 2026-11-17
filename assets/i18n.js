@@ -428,6 +428,9 @@
     customButtonLabel: 'Zusatzbutton-Text (optional)|Custom button label (optional)',
     customButtonUrl: 'Zusatzbutton-Link (https://…)|Custom button URL (https://…)',
     wwwQrUrl: 'QR-Code-URL für WWW-JPG (optional)|WWW JPG export QR URL (optional)',
+    titleLinkUrl: 'Titel-Link (optional)|Title link URL (optional)',
+    titleLinkUrlInvalid:
+      'Der Titel-Link muss eine gültige HTTP- oder HTTPS-Adresse sein.|The title link URL must be a valid HTTP or HTTPS address.',
     impressUrl: 'Impress-Link (optional)|Legal notice URL (optional)',
     impressUrlInvalid:
       'Der Impress-Link muss eine gültige HTTP- oder HTTPS-Adresse sein.|The legal notice URL must be a valid HTTP or HTTPS address.',
@@ -473,7 +476,7 @@
     musicPaused: 'Pausiert|Paused',
     musicUnavailable: 'SoundCloud-Player nicht verfügbar|SoundCloud player unavailable',
     lang: 'Sprache|Language',
-    ownerHint: 'Nothing special: coded with ❤️ by|Nothing special: coded with ❤️ by',
+    ownerHint: 'Powered by|Powered by',
     impressLink: 'Impressum|Legal notice',
     refreshData: 'Aktualisieren|Refresh',
     closeDetails: 'Details schließen|Close details',

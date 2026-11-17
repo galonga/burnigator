@@ -24,7 +24,7 @@
         height: 0,
         qrUrl: '',
         soundcloudEnabled: true,
-        soundcloudPlaylist: 'https://soundcloud.com/minmon_kollektiv/sets/minmon-podcast',
+        soundcloudPlaylist: '',
         categories: [],
         pois: [],
         timelines: [],
@@ -190,12 +190,12 @@
     document.getElementById('custom-button-url').value = data.customButton?.url || '';
     document.getElementById('www-qr-url').value = data.qrUrl || '';
     document.getElementById('impress-url').value = data.impressUrl || '';
-    document.getElementById('matomo-url').value = data.matomoUrl ?? 'https://www.minmon.de/piwik/';
-    document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '7';
+    document.getElementById('title-link-url').value = data.titleLinkUrl || '';
+    document.getElementById('matomo-url').value = data.matomoUrl ?? '';
+    document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '';
     document.getElementById('browser-translation-enabled').checked = data.browserTranslationEnabled === true;
     document.getElementById('soundcloud-enabled').checked = data.soundcloudEnabled !== false;
-    document.getElementById('soundcloud-playlist').value =
-      data.soundcloudPlaylist || 'https://soundcloud.com/minmon_kollektiv/sets/minmon-podcast';
+    document.getElementById('soundcloud-playlist').value = data.soundcloudPlaylist || '';
     setThemeFields(data.theme);
     Object.values(themeFields).forEach((input) =>
       input.addEventListener('input', () => {
@@ -972,6 +972,7 @@
       };
       data.qrUrl = document.getElementById('www-qr-url').value.trim();
       data.impressUrl = document.getElementById('impress-url').value.trim();
+      data.titleLinkUrl = document.getElementById('title-link-url').value.trim();
       data.matomoUrl = document.getElementById('matomo-url').value.trim();
       data.matomoSiteId = document.getElementById('matomo-site-id').value.trim();
       data.browserTranslationEnabled = document.getElementById('browser-translation-enabled').checked;
@@ -999,17 +1000,19 @@
           return;
         }
       }
-      try {
-        const playlist = new URL(data.soundcloudPlaylist);
-        if (
-          playlist.protocol !== 'https:' ||
-          !['soundcloud.com', 'www.soundcloud.com'].includes(playlist.hostname.toLowerCase()) ||
-          !/^\/[^/]+\/sets\/[^/]+\/?$/.test(playlist.pathname)
-        )
-          throw new Error('invalid');
-      } catch (_) {
-        say(window.AppI18n.t('soundcloudPlaylistInvalid'), true);
-        return;
+      if (data.soundcloudPlaylist) {
+        try {
+          const playlist = new URL(data.soundcloudPlaylist);
+          if (
+            playlist.protocol !== 'https:' ||
+            !['soundcloud.com', 'www.soundcloud.com'].includes(playlist.hostname.toLowerCase()) ||
+            !/^\/[^/]+\/sets\/[^/]+\/?$/.test(playlist.pathname)
+          )
+            throw new Error('invalid');
+        } catch (_) {
+          say(window.AppI18n.t('soundcloudPlaylistInvalid'), true);
+          return;
+        }
       }
       if (data.qrUrl) {
         try {
@@ -1017,6 +1020,15 @@
           if (!['http:', 'https:'].includes(qrUrl.protocol)) throw new Error('invalid');
         } catch (_) {
           say(window.AppI18n.t('qrUrlInvalid'), true);
+          return;
+        }
+      }
+      if (data.titleLinkUrl) {
+        try {
+          const titleLinkUrl = new URL(data.titleLinkUrl);
+          if (!['http:', 'https:'].includes(titleLinkUrl.protocol)) throw new Error('invalid');
+        } catch (_) {
+          say(window.AppI18n.t('titleLinkUrlInvalid'), true);
           return;
         }
       }
@@ -1347,6 +1359,7 @@
         height: data.height,
         qrUrl: document.getElementById('www-qr-url').value.trim(),
         impressUrl: document.getElementById('impress-url').value.trim(),
+        titleLinkUrl: document.getElementById('title-link-url').value.trim(),
         matomoUrl: document.getElementById('matomo-url').value.trim(),
         matomoSiteId: document.getElementById('matomo-site-id').value.trim(),
         browserTranslationEnabled: document.getElementById('browser-translation-enabled').checked,
@@ -1389,15 +1402,12 @@
           theme: window.BurnigatorTheme.normalize(imported.theme || data.theme),
           qrUrl: typeof imported.qrUrl === 'string' ? imported.qrUrl : '',
           impressUrl: typeof imported.impressUrl === 'string' ? imported.impressUrl : '',
-          matomoUrl:
-            typeof imported.matomoUrl === 'string'
-              ? imported.matomoUrl
-              : data.matomoUrl || 'https://www.minmon.de/piwik/',
-          matomoSiteId: String(imported.matomoSiteId || data.matomoSiteId || '7'),
+          titleLinkUrl: typeof imported.titleLinkUrl === 'string' ? imported.titleLinkUrl : '',
+          matomoUrl: typeof imported.matomoUrl === 'string' ? imported.matomoUrl : data.matomoUrl || '',
+          matomoSiteId: String(imported.matomoSiteId || data.matomoSiteId || ''),
           browserTranslationEnabled: imported.browserTranslationEnabled === true,
           soundcloudEnabled: imported.soundcloudEnabled !== false,
-          soundcloudPlaylist:
-            imported.soundcloudPlaylist || 'https://soundcloud.com/minmon_kollektiv/sets/minmon-podcast',
+          soundcloudPlaylist: imported.soundcloudPlaylist || '',
           iconMode: imported.iconMode === 'colored' ? 'colored' : 'monochrome',
           categories: imported.categories.slice(0, 100),
           pois: imported.pois.slice(0, 2000),
@@ -1413,8 +1423,9 @@
         setThemeFields(data.theme);
         document.getElementById('www-qr-url').value = data.qrUrl || '';
         document.getElementById('impress-url').value = data.impressUrl || '';
-        document.getElementById('matomo-url').value = data.matomoUrl ?? 'https://www.minmon.de/piwik/';
-        document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '7';
+        document.getElementById('title-link-url').value = data.titleLinkUrl || '';
+        document.getElementById('matomo-url').value = data.matomoUrl ?? '';
+        document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '';
         document.getElementById('browser-translation-enabled').checked =
           data.browserTranslationEnabled === true;
         document.getElementById('soundcloud-enabled').checked = data.soundcloudEnabled !== false;
@@ -1471,13 +1482,13 @@
         document.getElementById('custom-button-url').value = data.customButton?.url || '';
         document.getElementById('www-qr-url').value = data.qrUrl || '';
         document.getElementById('impress-url').value = data.impressUrl || '';
-        document.getElementById('matomo-url').value = data.matomoUrl ?? 'https://www.minmon.de/piwik/';
-        document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '7';
+        document.getElementById('title-link-url').value = data.titleLinkUrl || '';
+        document.getElementById('matomo-url').value = data.matomoUrl ?? '';
+        document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '';
         document.getElementById('browser-translation-enabled').checked =
           data.browserTranslationEnabled === true;
         document.getElementById('soundcloud-enabled').checked = data.soundcloudEnabled !== false;
-        document.getElementById('soundcloud-playlist').value =
-          data.soundcloudPlaylist || 'https://soundcloud.com/minmon_kollektiv/sets/minmon-podcast';
+        document.getElementById('soundcloud-playlist').value = data.soundcloudPlaylist || '';
         document.getElementById('icon-mode').value = data.iconMode || 'monochrome';
         renderCategories();
         renderPois();

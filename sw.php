@@ -2,7 +2,7 @@
 
 declare (strict_types=1);
 require_once __DIR__ . '/auth.php';
-$config = require __DIR__ . '/config.php';
+$config = require is_file(__DIR__ . '/config.php') ? __DIR__ . '/config.php' : __DIR__ . '/config.sample.php';
 $worker = file_get_contents(__DIR__ . '/sw.js');
 if ($worker === false) {
     http_response_code(500);

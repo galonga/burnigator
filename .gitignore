@@ -1,0 +1,11 @@
+# Installation-specific files created by setup.php. Never commit these.
+/config.php
+/data/*
+!/data/.htaccess
+/uploads/*
+!/uploads/.htaccess
+.reset-config-*.php
+
+# Local tooling and OS files
+.DS_Store
+node_modules/

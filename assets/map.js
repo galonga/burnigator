@@ -1983,10 +1983,9 @@
     controls.hidden = settings.soundcloudEnabled === false;
     iframe.hidden = settings.soundcloudEnabled === false;
     if (settings.soundcloudEnabled === false) return;
-    const defaultPlaylist = 'https://soundcloud.com/minmon_kollektiv/sets/minmon-podcast';
-    let playlistUrl = defaultPlaylist;
+    let playlistUrl = '';
     try {
-      const candidate = new URL(settings.soundcloudPlaylist || defaultPlaylist);
+      const candidate = new URL(settings.soundcloudPlaylist || '');
       if (
         candidate.protocol === 'https:' &&
         ['soundcloud.com', 'www.soundcloud.com'].includes(candidate.hostname.toLowerCase()) &&
@@ -1994,6 +1993,11 @@
       )
         playlistUrl = candidate.origin + candidate.pathname.replace(/\/$/, '');
     } catch (_) {}
+    if (!playlistUrl) {
+      controls.hidden = true;
+      iframe.hidden = true;
+      return;
+    }
     iframe.dataset.src =
       'https://w.soundcloud.com/player/?url=' +
       encodeURIComponent(playlistUrl) +
