@@ -1,0 +1,94 @@
+name: Release
+
+# Creates a draft GitHub Release with the installable zip when a version tag is pushed.
+# Tag format: v + the content of VERSION, for example v2026.11.1359 (see RELEASING.md).
+
+on:
+  push:
+    tags:
+      - 'v[0-9][0-9][0-9][0-9].[0-9][0-9].[0-9]*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build release zip
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tag, VERSION and changelog agree
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          file_version="$(tr -d '[:space:]' < VERSION)"
+          if [ "$version" != "$file_version" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match VERSION ($file_version)."
+            exit 1
+          fi
+          if ! grep -q "^## \[$version\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no section for $version."
+            exit 1
+          fi
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_sqlite
+          coverage: none
+
+      - name: Lint and test
+        run: |
+          find . -name '*.php' -not -path './assets/vendor/*' -print0 | xargs -0 -n1 php -l -q
+          for f in assets/*.js sw.js; do node --check "$f"; done
+          php tests/event_auth_test.php
+
+      - name: Build zip and checksum
+        run: |
+          mkdir dist
+          git archive --format=zip --output="dist/burnigator-${VERSION}.zip" HEAD
+          (cd dist && sha256sum "burnigator-${VERSION}.zip" > "burnigator-${VERSION}.zip.sha256")
+
+      - name: Verify zip contents
+        run: |
+          list="$(unzip -Z1 "dist/burnigator-${VERSION}.zip")"
+          for required in VERSION index.php admin.php setup.php api.php config.sample.php data/.htaccess uploads/.htaccess LICENSE README.md; do
+            printf '%s\n' "$list" | grep -qx "$required" || { echo "::error::$required is missing from the zip"; exit 1; }
+          done
+          for forbidden in config.php .github/ tests/ AGENTS.md; do
+            if printf '%s\n' "$list" | grep -qE "^${forbidden//./\\.}"; then
+              echo "::error::$forbidden must not be in the zip"; exit 1
+            fi
+          done
+          if printf '%s\n' "$list" | grep -vE '^(data|uploads)/\.htaccess$' | grep -qE '^(data|uploads)/.+'; then
+            echo "::error::runtime data must not be in the zip"; exit 1
+          fi
+          echo "$(printf '%s\n' "$list" | wc -l) files in the zip"
+
+      - name: Extract release notes
+        run: |
+          awk -v v="$VERSION" '
+            $0 ~ "^## \\[" v "\\]" { found = 1; next }
+            found && /^## \[/ { exit }
+            found { print }
+          ' CHANGELOG.md > notes.md
+          cat >> notes.md <<'NOTES'
+
+          ## Install or upgrade
+
+          Download the zip below, upload its contents (not the zip itself or a parent folder) to your PHP web directory, and follow the README. Upgrading? Keep your `config.php`, `data/` and `uploads/`, and read [UPGRADING.md](https://github.com/galonga/burnigator/blob/main/UPGRADING.md) first.
+
+          The zip's SHA-256 checksum is in the `.sha256` file.
+          NOTES
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --draft \
+            --verify-tag \
+            --title "Burnigator $VERSION" \
+            --notes-file notes.md

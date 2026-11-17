@@ -1,6 +1,7 @@
 const INSTANCE_ID = '__BURNIGATOR_INSTANCE_ID__';
 const CACHE_PREFIX = 'burnigator-' + INSTANCE_ID + '-offline-';
-const CACHE_NAME = CACHE_PREFIX + 'v69';
+const APP_VERSION = '__BURNIGATOR_APP_VERSION__';
+const CACHE_NAME = CACHE_PREFIX + 'v' + APP_VERSION.replace(/\./g, '-');
 async function clearUploadedAssets(cache) {
   for (const request of await cache.keys())
     if (new URL(request.url).pathname.includes('/uploads/')) await cache.delete(request);

@@ -187,6 +187,8 @@ Matomo tracking is off by default. It only runs when the owner enters a Matomo U
 | `sw.js` | Service-worker source template |
 | `docs/agents/` | Issue tracker, triage-label, and domain-doc guidance for engineering skills |
 | `DESIGN_SYSTEM.md` | Design-system guidance for interface changes |
+| `VERSION` | Current version (CalVer `YEAR.MONTH.BUILD`); single source for the footer, asset cache-busting and the service-worker cache |
+| `CHANGELOG.md`, `UPGRADING.md`, `RELEASING.md` | Release notes, upgrade guide and the maintainers' release process |
 | `docs/images/` | Logo and illustration used in this README (also used on burnigator.com) |
 | `CONTRIBUTING.md`, `SECURITY.md` | How to contribute and how to report vulnerabilities |
 | `THIRD_PARTY_NOTICES.md` | Licenses of bundled libraries |
@@ -196,7 +198,7 @@ Matomo tracking is off by default. It only runs when the owner enters a Matomo U
 - There is no compilation step or dependency installation. The local Leaflet, Font Awesome, and QR code assets are committed with the application.
 - See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full workflow. JS and CSS are formatted with Prettier (`.prettierrc.json`).
 - Follow [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) and `assets/design-system.css` when changing UI. Use the semantic color, typography, spacing, shape, and control-size tokens, and keep applicable interaction states consistent across visitor and admin screens.
-- When changing application code or the visitor shell, increment the build number shown in the visitor footer and update the cache version in `sw.js` so installed/offline clients receive the new version.
+- Versions use CalVer (`YEAR.MONTH.BUILD`, for example `2026.11.1359`) from the `VERSION` file. When changing application code or the visitor shell, increase the build number (the last number) in `VERSION`; the footer, asset cache-busting and the service-worker cache derive from it, so installed/offline clients receive the new version. See [`RELEASING.md`](RELEASING.md).
 - GitHub Issues for this project live at [galonga/burnigator](https://github.com/galonga/burnigator). Repository-specific issue, triage, and domain-doc conventions are in `docs/agents/`.
 
 ## License
