@@ -1,6 +1,6 @@
 # Third-party notices
 
-Burnigator bundles the following third-party libraries in `assets/vendor/` so that it runs without a build step or a package manager. Each library keeps its own license, and the full license text ships next to the library.
+Burnigator itself is licensed under the [GNU Affero General Public License v3.0](LICENSE). It bundles the following third-party libraries in `assets/vendor/` so that it runs without a build step or a package manager. Each library keeps its own license, and the full license text ships next to the library.
 
 | Library | Version | License | License file |
 | --- | --- | --- | --- |

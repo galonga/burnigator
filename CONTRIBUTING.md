@@ -53,7 +53,7 @@ CI runs the PHP and JavaScript syntax checks and the version-bump check.
 - Add screenshots for visible changes.
 - Do not include runtime data, passwords, or uploaded images.
 
-By contributing, you agree that your contribution is released under the project's license.
+By contributing, you agree that your contribution is released under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0), the same license as the rest of the project.
 
 ## Labels
 

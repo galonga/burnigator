@@ -167,3 +167,7 @@ Matomo tracking is off by default. It only runs when the owner enters a Matomo U
 - Follow [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) and `assets/design-system.css` when changing UI. Use the semantic color, typography, spacing, shape, and control-size tokens, and keep applicable interaction states consistent across visitor and admin screens.
 - When changing application code or the visitor shell, increment the build number shown in the visitor footer and update the cache version in `sw.js` so installed/offline clients receive the new version.
 - GitHub Issues for this project live at [galonga/burnigator](https://github.com/galonga/burnigator). Repository-specific issue, triage, and domain-doc conventions are in `docs/agents/`.
+
+## License
+
+Burnigator is free software, released under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0). You may use, study, modify and share it. If you run a modified version as a network service, the AGPL requires you to offer the source code of your modified version to its users. The bundled third-party libraries keep their own licenses; see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
