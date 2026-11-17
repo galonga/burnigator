@@ -47,4 +47,5 @@
     return theme;
   }
   window.BurnigatorTheme={defaults,normalize,apply};
+  if(window.BURNIGATOR_INITIAL_THEME)apply(window.BURNIGATOR_INITIAL_THEME);
 })();
