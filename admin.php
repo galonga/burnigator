@@ -3,6 +3,7 @@
 declare (strict_types=1);
 $config = require is_file(__DIR__ . '/config.php') ? __DIR__ . '/config.php' : __DIR__ . '/config.sample.php';
 require_once __DIR__ . '/auth.php';
+$appVersion = appVersion();
 require_once __DIR__ . '/theme_bootstrap.php';
 startAppSession($config);
 appSendSecurityHeaders();
@@ -49,8 +50,8 @@ if (empty($_SESSION['admin']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Burnigator — Administration</title>
     <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
-    <link rel="stylesheet" href="assets/style.css?v=build-1358">
-    <link rel="stylesheet" href="assets/design-system.css?v=build-1358"><script src="assets/matomo.js?v=admin-matomo-1"></script>
+    <link rel="stylesheet" href="assets/style.css?v=<?= $appVersion ?>">
+    <link rel="stylesheet" href="assets/design-system.css?v=<?= $appVersion ?>"><script src="assets/matomo.js?v=admin-matomo-1"></script>
   </head><body class="admin-page <?php 
 echo empty($_SESSION['admin']) ? 'admin-login-page' : 'admin-console-page';
 ?>">
@@ -277,9 +278,9 @@ XWDYD,canceled
     echo json_encode($_SESSION['csrf']);
     ?>;window.ADMIN_ROLE=<?php 
     echo json_encode($role);
-    ?>;</script><script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="assets/fa-icons.js"></script><script src="assets/i18n.js?v=build-1358"></script><?php 
+    ?>;</script><script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="assets/fa-icons.js"></script><script src="assets/i18n.js?v=<?= $appVersion ?>"></script><?php 
     echo appInitialThemeScript();
-    ?><script src="assets/theme.js?v=build-1358"></script><script src="assets/admin.js?v=build-1358"></script><script src="assets/backup-admin.js?v=build-1358"></script><?php 
+    ?><script src="assets/theme.js?v=<?= $appVersion ?>"></script><script src="assets/admin.js?v=<?= $appVersion ?>"></script><script src="assets/backup-admin.js?v=<?= $appVersion ?>"></script><?php 
 }
 ?></body>
 </html>

@@ -292,3 +292,17 @@ function appSendSecurityHeaders(): void
     header('Referrer-Policy: strict-origin-when-cross-origin');
     header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=()');
 }
+
+/**
+ * The application version from the VERSION file, in the form YEAR.MONTH.BUILD (for example 2026.11.1359).
+ * The last number is the build number. Returns "dev" when the file is missing or malformed.
+ */
+function appVersion(): string
+{
+    static $version = null;
+    if ($version === null) {
+        $raw = trim((string) @file_get_contents(__DIR__ . '/VERSION'));
+        $version = preg_match('/^[0-9]{4}\.(0[1-9]|1[0-2])\.[0-9]+$/D', $raw) ? $raw : 'dev';
+    }
+    return $version;
+}

@@ -11,4 +11,8 @@ if ($worker === false) {
 header('Content-Type: application/javascript; charset=utf-8');
 header('Cache-Control: no-cache, no-store, must-revalidate');
 header('X-Content-Type-Options: nosniff');
-echo str_replace('__BURNIGATOR_INSTANCE_ID__', appInstanceId($config), $worker);
+echo str_replace(
+    ['__BURNIGATOR_INSTANCE_ID__', '__BURNIGATOR_APP_VERSION__'],
+    [appInstanceId($config), appVersion()],
+    $worker
+);

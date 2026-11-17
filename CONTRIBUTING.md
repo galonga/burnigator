@@ -29,12 +29,9 @@ MariaDB is only needed for the event authentication and pinboard features.
 
 ## Version bump (required)
 
-When you change application code or the visitor page, increase both:
+Versions use CalVer, `YEAR.MONTH.BUILD` (for example `2026.11.1359`), stored in the `VERSION` file. When you change application code or the visitor page, increase the **build number** (the last number) in `VERSION`, and update year and month if they changed. The footer, the asset cache-busting and the service-worker cache all derive from `VERSION`, so there is nothing else to edit.
 
-1. the build number in the footer of `index.php` (`Build NNNN`), and
-2. the cache version in `sw.js` (`CACHE_PREFIX + 'vNN'`).
-
-This makes installed and offline copies pick up the change. CI fails the pull request if either number did not increase.
+This makes installed and offline copies pick up the change. CI fails the pull request if the build number did not increase. See [RELEASING.md](RELEASING.md).
 
 ## Checks
 
@@ -44,7 +41,7 @@ for f in assets/*.js sw.js; do node --check "$f"; done
 php tests/event_auth_test.php
 ```
 
-CI runs the PHP and JavaScript syntax checks and the version-bump check.
+CI runs the PHP and JavaScript syntax checks, the PHP tests, and the version check.
 
 ## Pull requests
 

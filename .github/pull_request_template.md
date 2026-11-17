@@ -9,7 +9,7 @@
 ## Checklist
 
 - [ ] The change is focused on one thing
-- [ ] If application code or the visitor page changed: the footer build number in `index.php` and the cache version in `sw.js` both increased
+- [ ] If application code or the visitor page changed: the build number (last number) in `VERSION` increased
 - [ ] New texts exist in German and English (`assets/i18n.js`)
 - [ ] I followed `DESIGN_SYSTEM.md` for UI changes
 - [ ] JS and CSS are formatted with Prettier
