@@ -774,13 +774,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array((string) ($_GET['action'] 
                 respond(400, ['error' => 'invalid_event_time']);
             }
             $description = cleanText($input['description'] ?? '', 1000);
+            $host = cleanText($input['host'] ?? '', 200);
             $categories = array_values(array_unique(array_filter(
                 is_array($input['categories'] ?? null) ? $input['categories'] : [],
                 static function ($category): bool {
                     return is_string($category) && in_array($category, eventCategoryKeys(), true);
                 }
             )));
-            $saved = withMapLock(function () use ($eventId, $start, $end, $description, $categories, $session) {
+            $saved = withMapLock(function () use ($eventId, $start, $end, $description, $host, $categories, $session) {
                 $m = readMap();
                 foreach (['pois', 'timelines'] as $group) {
                     foreach ((array) $m[$group] as $i => $item) {
@@ -796,6 +797,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array((string) ($_GET['action'] 
                                 $m[$group][$i]['program'][$day][$j]['start'] = $start;
                                 $m[$group][$i]['program'][$day][$j]['end'] = $end;
                                 $m[$group][$i]['program'][$day][$j]['description'] = $description;
+                                $m[$group][$i]['program'][$day][$j]['host'] = $host;
                                 $m[$group][$i]['program'][$day][$j]['categories'] = $categories;
                                 return saveMap($m) ? (string) ($event['text'] ?? '') : false;
                             }
@@ -814,7 +816,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array((string) ($_GET['action'] 
                 respond(500, ['error' => 'event_save_failed']);
             }
             recordHistory('event_owner_save', 1, (string) $saved . ' · ' . $start . ($end !== '' ? '–' . $end : ''), ['username' => (string) $session['pseudonym'], 'role' => 'event-owner']);
-            respond(200, ['ok' => true, 'event' => ['id' => $eventId, 'start' => $start, 'end' => $end, 'description' => $description, 'categories' => $categories]]);
+            respond(200, ['ok' => true, 'event' => ['id' => $eventId, 'start' => $start, 'end' => $end, 'host' => $host, 'description' => $description, 'categories' => $categories]]);
         }
         if ($action === 'pinboard-create') {
             $body = cleanText($input['body'] ?? '', 2000);

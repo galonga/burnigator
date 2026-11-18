@@ -13,6 +13,7 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ### Changed
 
+- **Event owner edit form:** the form now also edits the host, opens centred and scrollable so it fits on small screens, and uses compact category chips. Owners change host, time frame, description and categories.
 - **New events:** a newly added event shows its own **Save event** button directly below it (owner and place roles). It disappears once the event is saved.
 - **Event editor:** the event title now comes before the start and end time. A missing title or start time shows a hint and a red outline right in the event row, and saving is blocked with a message until every event has both. Before, such events were silently dropped on save.
 - **Moderate pinboard** has its own tab in the admin panel, to the right of Programme & places and Configuration. The post list scrolls inside the page instead of growing endlessly.

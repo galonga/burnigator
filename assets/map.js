@@ -1214,9 +1214,13 @@
     const times = document.createElement('div');
     times.className = 'program-owner-times';
     times.append(field('eventStart', start), field('eventEnd', end));
+    const host = document.createElement('input');
+    host.type = 'text';
+    host.maxLength = 200;
+    host.value = event.host || '';
     const description = document.createElement('textarea');
     description.maxLength = 1000;
-    description.rows = 5;
+    description.rows = 4;
     description.value = event.description || '';
     const fieldset = document.createElement('fieldset');
     fieldset.className = 'program-owner-categories';
@@ -1265,7 +1269,14 @@
       hideEventTooltip(trigger);
     });
     actions.append(save, cancel);
-    form.append(times, field('eventDescription', description), fieldset, status, actions);
+    form.append(
+      field('eventHost', host),
+      times,
+      field('eventDescription', description),
+      fieldset,
+      status,
+      actions
+    );
     form.addEventListener('submit', async (submit) => {
       submit.preventDefault();
       submit.stopPropagation();
@@ -1280,6 +1291,7 @@
         await saveOwnedEvent(event, {
           start: start.value,
           end: end.value,
+          host: host.value,
           description: description.value,
           categories: eventCategories.map(([key]) => key).filter((key) => selected.has(key)),
         });
@@ -1298,6 +1310,10 @@
       }
     });
     popup.appendChild(form);
+    popup.classList.add('is-editing');
+    popup.style.left = '50%';
+    popup.style.top = '50%';
+    popup.style.transform = 'translate(-50%, -50%)';
     start.focus();
   }
   document.addEventListener('click', (event) => {

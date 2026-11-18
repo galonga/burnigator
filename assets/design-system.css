@@ -2129,3 +2129,26 @@ select {
 .program-event-card .program-entry input[aria-invalid='true'] {
   border-color: var(--color-alert);
 }
+
+.program-event-popup.is-editing {
+  width: min(440px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  white-space: normal;
+}
+.program-event-popup.is-editing::before {
+  display: none;
+}
+.program-owner-categories {
+  gap: var(--space-1);
+}
+.program-owner-categories .chip-button {
+  min-height: 28px;
+  gap: 4px;
+  padding: 2px 8px;
+  font-size: var(--type-caption);
+  line-height: 1.2;
+}
+.program-owner-categories .chip-button i {
+  font-size: 0.75rem;
+}
