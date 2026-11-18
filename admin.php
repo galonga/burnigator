@@ -50,8 +50,8 @@ if (empty($_SESSION['admin']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Burnigator — Administration</title>
     <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
-    <link rel="stylesheet" href="assets/style.css?v=<?= $appVersion ?>">
-    <link rel="stylesheet" href="assets/design-system.css?v=<?= $appVersion ?>"><script src="assets/matomo.js?v=admin-matomo-1"></script>
+    <link rel="stylesheet" href="<?= assetUrl('assets/style.css') ?>">
+    <link rel="stylesheet" href="<?= assetUrl('assets/design-system.css') ?>"><script src="<?= assetUrl('assets/matomo.js') ?>"></script>
   </head><body class="admin-page <?php 
 echo empty($_SESSION['admin']) ? 'admin-login-page' : 'admin-console-page';
 ?>">
@@ -72,7 +72,7 @@ if (empty($_SESSION['admin'])) {
     }
     ?><label><span data-i18n="username">Benutzername</span><input type="text" name="username" required minlength="3" maxlength="32" autocomplete="username" value="owner"></label>
 <label><span data-i18n="password">Passwort</span><input type="password" name="password" required autocomplete="current-password"></label><button class="button button-primary" data-i18n="login">Anmelden</button>
-</form><script src="assets/i18n.js"></script>
+</form><script src="<?= assetUrl('assets/i18n.js') ?>"></script>
 <?php 
 } else {
     ?>
@@ -276,14 +276,14 @@ XWDYD,canceled
 <div id="map" aria-label="Karte bearbeiten" data-i18n-aria="mapLabel">
 </div>
 </main>
-<script src="assets/avatar.js?v=<?= $appVersion ?>"></script><script src="assets/config-tabs.js?v=3"></script><script src="assets/event-auth-admin.js?v=5"></script>
+<script src="<?= assetUrl('assets/avatar.js') ?>"></script><script src="<?= assetUrl('assets/config-tabs.js') ?>"></script><script src="<?= assetUrl('assets/event-auth-admin.js') ?>"></script>
 <script>window.MAP_CSRF=<?php 
     echo json_encode($_SESSION['csrf']);
     ?>;window.ADMIN_ROLE=<?php 
     echo json_encode($role);
-    ?>;</script><script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="assets/fa-icons.js"></script><script src="assets/i18n.js?v=<?= $appVersion ?>"></script><?php 
+    ?>;</script><script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="<?= assetUrl('assets/fa-icons.js') ?>"></script><script src="<?= assetUrl('assets/i18n.js') ?>"></script><?php 
     echo appInitialThemeScript();
-    ?><script src="assets/theme.js?v=<?= $appVersion ?>"></script><script src="assets/admin.js?v=<?= $appVersion ?>"></script><script src="assets/backup-admin.js?v=<?= $appVersion ?>"></script><?php 
+    ?><script src="<?= assetUrl('assets/theme.js') ?>"></script><script src="<?= assetUrl('assets/admin.js') ?>"></script><script src="<?= assetUrl('assets/backup-admin.js') ?>"></script><?php 
 }
 ?></body>
 </html>

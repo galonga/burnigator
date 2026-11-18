@@ -500,13 +500,15 @@
   }
   function apply() {
     document.documentElement.lang = lang();
-    document.querySelectorAll('[data-i18n]').forEach((el) => (el.textContent = t(el.dataset.i18n)));
-    document
-      .querySelectorAll('[data-i18n-placeholder]')
-      .forEach((el) => (el.placeholder = t(el.dataset.i18nPlaceholder)));
-    document
-      .querySelectorAll('[data-i18n-aria]')
-      .forEach((el) => el.setAttribute('aria-label', t(el.dataset.i18nAria)));
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      if (words[el.dataset.i18n]) el.textContent = t(el.dataset.i18n);
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
+      if (words[el.dataset.i18nPlaceholder]) el.placeholder = t(el.dataset.i18nPlaceholder);
+    });
+    document.querySelectorAll('[data-i18n-aria]').forEach((el) => {
+      if (words[el.dataset.i18nAria]) el.setAttribute('aria-label', t(el.dataset.i18nAria));
+    });
     const sel = document.getElementById('language-switch');
     if (sel) {
       sel.value = lang();
