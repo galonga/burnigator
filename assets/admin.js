@@ -768,6 +768,15 @@
               saveEvent.textContent = window.AppI18n.t('save');
               saveEvent.onclick = () => saveProgramEvent(p);
               eventCard.appendChild(saveEvent);
+            } else if (event.isNew) {
+              const saveEvent = document.createElement('button');
+              saveEvent.type = 'button';
+              saveEvent.className = 'button button-primary program-event-save';
+              saveEvent.textContent = window.AppI18n.t('saveEvent');
+              saveEvent.dataset.i18n = 'saveEvent';
+              saveEvent.onclick = () =>
+                document.getElementById(role === 'owner' ? 'save-map' : 'save-pois')?.click();
+              eventCard.appendChild(saveEvent);
             }
             entries.appendChild(eventCard);
           });
@@ -782,6 +791,7 @@
           window.trackAppEvent?.('Admin', 'event_add', day);
           p.program[day].push({
             id: newId(),
+            isNew: true,
             start: '12:00',
             end: '13:00',
             text: '',
