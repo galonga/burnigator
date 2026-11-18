@@ -6,6 +6,10 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ## [Unreleased]
 
+### Changed
+
+- **Event editor for places and timelines:** tidied up. Each day is a collapsible section with an event counter (open when it has events), and each event is a collapsed row showing time and title. An opened event has labelled fields in groups (title and time, details, link, categories), and the Save and Delete buttons sit together at the bottom. New events open automatically.
+
 ### Added
 
 - **Full week:** programme days now cover Monday to Sunday instead of Wednesday to Sunday, in the admin editor, the visitor timetable and the current-day detection. Existing programmes keep their days; days without events stay hidden for visitors.
