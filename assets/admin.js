@@ -1120,8 +1120,10 @@
         .forEach((button) => (button.disabled = true));
       window.trackAppEvent?.('Admin', 'program_event_save', p.name || p.id);
       try {
-        if (p.hasProgram === true) await persistProgramChanges(p);
-        else await saveTimelines(p.id);
+        if (p.hasProgram === true) {
+          if (p.unsaved) await persistPoiChanges(p);
+          else await persistProgramChanges(p);
+        } else await saveTimelines(p.id);
       } finally {
         roleSaveInProgress = false;
         document
@@ -1454,6 +1456,7 @@
           icon: 'fa-location-dot',
           hasProgram: false,
           program: normalizeProgram({}),
+          unsaved: true,
         };
         data.pois.push(p);
         renderPois();

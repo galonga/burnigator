@@ -1093,7 +1093,7 @@ if ($action === 'restore-backup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
     if (($src['image'] ?? '') !== '' && $paths['image'] === '') {
-        respond(400, ['error' => 'Die Sicherung enthält kein Kartenbild.']);
+        respond(400, ['error' => 'Die Sicherung enthält keine Veranstaltungskarte.']);
     }
     $categories = [];
     $catIds = [];
@@ -1457,7 +1457,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, [
         respond(200, ['ok' => true, 'accounts' => $accounts]);
     }
     if ($action === 'save-poi') {
-        $map = withMapLock(function () use ($in) {
+        $canEditProgram = $role === 'owner';
+        if ($canEditProgram && invalidProgramTimes($in['poi']['program'] ?? [])) {
+            respond(400, ['error' => 'invalid_event_time']);
+        }
+        $map = withMapLock(function () use ($in, $canEditProgram) {
             $m = readMap();
             $expected = (string) ($in['expectedUpdatedAt'] ?? '');
             if ($expected === '' || !hash_equals((string) ($m['updatedAt'] ?? ''), $expected)) {
@@ -1500,8 +1504,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, [
                 'description' => cleanText($p['description'] ?? $old['description'] ?? '', 1000),
                 'categoryId' => $cat,
                 'icon' => $icon,
-                'hasProgram' => (bool) ($old['hasProgram'] ?? false),
-                'program' => (array) ($old['program'] ?? cleanProgram([])),
+                'hasProgram' => $canEditProgram && array_key_exists('hasProgram', $p)
+                    ? !empty($p['hasProgram'])
+                    : (bool) ($old['hasProgram'] ?? false),
+                'program' => $canEditProgram && array_key_exists('program', $p)
+                    ? cleanProgram($p['program'])
+                    : (array) ($old['program'] ?? cleanProgram([])),
             ];
             if ($index === null) {
                 if (count((array) $m['pois']) >= 2000) {

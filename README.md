@@ -60,7 +60,7 @@ Leaflet, Font Awesome, and the QR code library are bundled locally. SoundCloud a
 3. Make sure PHP can write `config.php` (create it by copying `config.sample.php`, or make the directory writable), `data/`, and `uploads/` for the initial setup. The setup creates `data/map.json` and installs the owner account.
 4. Open `https://your-domain.example/burnigator/setup.php` and follow the wizard. Set a strong owner password of at least 12 characters. Setup chooses a random harmonious color palette and collects optional settings. You can optionally enter MariaDB credentials (the wizard tests the connection) and enable the pinboard. The database can also be configured later; the map itself does not require it. Setup generates the event-auth secret and stores it in the server-side `config.php`.
 5. Sign in at `https://your-domain.example/burnigator/admin.php` with username `owner` and the password you chose.
-6. Upload a PNG/JPG map image, create categories, and add places. Set each POI's name, icon, description, category, and position. Enable **Has programme** to add events.
+6. Upload your event map (PNG/JPG), create categories, and add places. Set each POI's name, icon, description, category, and position. Enable **Has programme** to add events.
 7. Use the Configuration categories to set appearance, integrations, event authentication and pinboard options, accounts, and the legal notice link.
 8. The festival stays private after setup. Sign in as the owner, check the visitor preview, then publish it from Configuration when it is ready.
 
@@ -78,13 +78,13 @@ Keep the `.htaccess` files in the application root, `data/`, and `uploads/`. If 
 
 ## Admin accounts and permissions
 
-The owner account has full access, including general configuration, categories, map image, backups, snapshots, and account management. The owner can change their password in the Security & History tab.
+The owner account has full access, including general configuration, categories, the event map, backups, snapshots, and account management. The owner can change their password in the Security & History tab.
 
 The owner can create two optional limited accounts:
 
 | Account | Permissions |
 | --- | --- |
-| POI editor | Add, move, edit, and delete POIs, including assigning them to existing categories. It cannot create or edit categories, change map images, or edit programme data. It cannot delete a POI that has programme events attached. |
+| POI editor | Add, move, edit, and delete POIs, including assigning them to existing categories. It cannot create or edit categories, change the event map, or edit programme data. It cannot delete a POI that has programme events attached. |
 | WWW account (legacy) | Read-only access. Event programme and timeline changes are Owner-only. |
 
 Each limited account has its own username and password. Passwords must be at least 12 characters. Leaving a password blank while saving keeps an existing password; clearing the username and saving removes that account.
@@ -131,7 +131,7 @@ Runtime files are stored as follows:
 | `data/history.json` | Recent admin changes by username and role |
 | `data/login-attempts.json` | Login throttling state |
 | `data/snapshots/` | Up to five recent map-data snapshots |
-| `uploads/` | Map image, title logo, and favicon |
+| `uploads/` | Event map, title logo, and favicon |
 
 Do not commit live runtime data, password hashes, or uploaded event/map images to a public repository. Back up `config.php`, `data/`, and `uploads/` separately from the application source.
 
@@ -144,7 +144,7 @@ Do not commit live runtime data, password hashes, or uploaded event/map images t
 - HTML pages send a Content-Security-Policy that allows only the site itself, the SoundCloud player, and the configured Matomo host, together with `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy` and `Permissions-Policy` headers. The `.htaccess` adds the same headers for static files when `mod_headers` is available.
 - Sessions use installation-specific, host-only cookies with `HttpOnly` and `SameSite=Lax`; cookies are marked `Secure` when HTTPS is active. Service-worker cache names also include the installation ID, and cleanup is limited to that installation's caches.
 - Unpublished map data is served only to signed-in festival accounts and is excluded from offline data caching. If a visitor saved a previously published version for offline use, taking the site offline cannot immediately erase that device's already downloaded copy.
-- Image uploads are validated by format and size. Map images may be up to 20 MB; branding PNGs may be up to 5 MB.
+- Image uploads are validated by format and size. The event map may be up to 20 MB; branding PNGs may be up to 5 MB.
 - The application uses file locks and revision checks to prevent concurrent saves from silently overwriting newer map data.
 - Older installations without a saved publication setting remain public after upgrade; only new setup runs default to unpublished.
 

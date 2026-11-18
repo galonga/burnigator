@@ -4,7 +4,7 @@ Always upgrade by uploading the new release files over your existing installatio
 
 - `config.php` (installation ID, owner password hash, secrets, database credentials)
 - `data/` (map data, programme, accounts, history, snapshots)
-- `uploads/` (map image, logo, favicon)
+- `uploads/` (event map, logo, favicon)
 
 Releases never contain a `config.php`, a `data/` or an `uploads/` with content, so uploading a release zip does not overwrite them as long as you upload the zip's contents into the existing folder and do not delete the folder first.
 
