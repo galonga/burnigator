@@ -646,19 +646,61 @@
       summary.classList.add('button-secondary');
       box.appendChild(summary);
       orderedProgramDays().forEach((day) => {
-        const group = document.createElement('div');
+        const group = document.createElement('details');
         group.className = 'program-day';
-        const heading = document.createElement('h4');
-        heading.textContent = window.AppI18n.t('day' + day[0].toUpperCase() + day.slice(1));
-        heading.dataset.i18n = 'day' + day[0].toUpperCase() + day.slice(1);
+        group.open = p.program[day].length > 0;
+        const heading = document.createElement('summary');
+        heading.className = 'program-day-summary';
+        const dayName = document.createElement('span');
+        dayName.textContent = window.AppI18n.t('day' + day[0].toUpperCase() + day.slice(1));
+        dayName.dataset.i18n = 'day' + day[0].toUpperCase() + day.slice(1);
+        const dayCount = document.createElement('span');
+        dayCount.className = 'program-day-count';
+        heading.append(dayName, dayCount);
         group.appendChild(heading);
         const entries = document.createElement('div');
         entries.className = 'program-day-entries';
         function drawEntries() {
           entries.replaceChildren();
+          dayCount.textContent = p.program[day].length ? String(p.program[day].length) : '';
+          dayCount.hidden = p.program[day].length === 0;
           p.program[day].forEach((event, index) => {
-            const eventCard = document.createElement('section');
+            const eventCard = document.createElement('details');
             eventCard.className = 'program-event-card';
+            eventCard.open = event.isNew === true || event.expanded === true;
+            eventCard.addEventListener('toggle', () => (event.expanded = eventCard.open));
+            const cardSummary = document.createElement('summary');
+            cardSummary.className = 'program-event-summary';
+            const summaryTime = document.createElement('span');
+            summaryTime.className = 'program-event-summary-time';
+            const summaryTitle = document.createElement('span');
+            summaryTitle.className = 'program-event-summary-title';
+            cardSummary.append(summaryTime, summaryTitle);
+            const syncSummary = () => {
+              summaryTime.textContent = event.start ? event.start + (event.end ? '–' + event.end : '') : '–';
+              const title = String(event.text || '').trim();
+              summaryTitle.textContent = title || window.AppI18n.t('eventHintTitle');
+              cardSummary.classList.toggle('is-incomplete', !title || !event.start);
+            };
+            const field = (key, control, className = '') => {
+              const label = document.createElement('label');
+              label.className = ('program-field ' + className).trim();
+              const caption = document.createElement('span');
+              caption.textContent = window.AppI18n.t(key);
+              caption.dataset.i18n = key;
+              label.append(caption, control);
+              return label;
+            };
+            const section = (key) => {
+              const wrap = document.createElement('div');
+              wrap.className = 'program-event-section';
+              const heading = document.createElement('p');
+              heading.className = 'program-event-section-title';
+              heading.textContent = window.AppI18n.t(key);
+              heading.dataset.i18n = key;
+              wrap.appendChild(heading);
+              return wrap;
+            };
             const row = document.createElement('div');
             row.className = 'program-entry';
             const start = document.createElement('input');
@@ -669,7 +711,10 @@
             end.type = 'time';
             end.value = event.end;
             end.setAttribute('aria-label', window.AppI18n.t('eventEnd'));
-            end.onchange = () => (event.end = end.value);
+            end.onchange = () => {
+              event.end = end.value;
+              syncSummary();
+            };
             const text = document.createElement('input');
             text.type = 'text';
             text.maxLength = 200;
@@ -688,6 +733,7 @@
               if (startMissing) missing.push(window.AppI18n.t('eventHintStart'));
               hint.textContent = missing.join(' ');
               hint.hidden = missing.length === 0;
+              syncSummary();
             };
             text.oninput = () => {
               event.text = text.value;
@@ -701,16 +747,20 @@
             syncHint();
             const del = document.createElement('button');
             del.type = 'button';
-            del.className = 'button button-primary button-danger danger';
-            del.textContent = '×';
-            del.setAttribute('aria-label', window.AppI18n.t('deleteEvent'));
+            del.className = 'button button-primary button-danger danger program-event-delete';
+            del.textContent = window.AppI18n.t('deleteEvent');
+            del.dataset.i18n = 'deleteEvent';
             del.onclick = () => {
               if (!confirm(window.AppI18n.t('confirmDeleteEvent'))) return;
               window.trackAppEvent?.('Admin', 'event_delete', day);
               p.program[day].splice(index, 1);
               drawEntries();
             };
-            row.append(text, start, end, del);
+            row.append(
+              field('eventTitle', text, 'program-field-title'),
+              field('eventStart', start),
+              field('eventEnd', end)
+            );
             const host = document.createElement('input');
             host.type = 'text';
             host.className = 'program-host';
@@ -742,7 +792,7 @@
             linkText.value = event.linkText || '';
             linkText.setAttribute('aria-label', window.AppI18n.t('eventLinkText'));
             linkText.oninput = () => (event.linkText = linkText.value);
-            linkFields.append(linkUrl, linkText);
+            linkFields.append(field('eventLinkUrl', linkUrl), field('eventLinkText', linkText));
             const picker = document.createElement('details');
             picker.className = 'event-category-picker';
             const pickerSummary = document.createElement('summary');
@@ -778,15 +828,21 @@
               options.appendChild(option);
             });
             picker.append(pickerSummary, options);
-            eventCard.append(row, hint, host, description, linkFields, picker);
-            if (role === 'owner') eventCard.appendChild(buildEventOwnerFields(event, drawEntries));
+            const detailsSection = section('eventSectionDetails');
+            detailsSection.append(field('eventHost', host), field('eventDescription', description));
+            const linkSection = section('eventSectionLink');
+            linkSection.appendChild(linkFields);
+            const categorySection = section('eventSectionCategories');
+            categorySection.appendChild(picker);
+            const actions = document.createElement('div');
+            actions.className = 'program-event-actions';
             if (role === 'www') {
               const saveEvent = document.createElement('button');
               saveEvent.type = 'button';
               saveEvent.className = 'button button-primary poi-save program-event-save';
               saveEvent.textContent = window.AppI18n.t('save');
               saveEvent.onclick = () => saveProgramEvent(p);
-              eventCard.appendChild(saveEvent);
+              actions.appendChild(saveEvent);
             } else if (event.isNew) {
               const saveEvent = document.createElement('button');
               saveEvent.type = 'button';
@@ -795,8 +851,12 @@
               saveEvent.dataset.i18n = 'saveEvent';
               saveEvent.onclick = () =>
                 document.getElementById(role === 'owner' ? 'save-map' : 'save-pois')?.click();
-              eventCard.appendChild(saveEvent);
+              actions.appendChild(saveEvent);
             }
+            actions.appendChild(del);
+            eventCard.append(cardSummary, row, hint, detailsSection, linkSection, categorySection);
+            if (role === 'owner') eventCard.appendChild(buildEventOwnerFields(event, drawEntries));
+            eventCard.appendChild(actions);
             entries.appendChild(eventCard);
           });
         }
@@ -808,6 +868,7 @@
         add.dataset.i18n = 'addEvent';
         add.onclick = () => {
           window.trackAppEvent?.('Admin', 'event_add', day);
+          group.open = true;
           p.program[day].push({
             id: newId(),
             isNew: true,
@@ -1064,7 +1125,8 @@
       if (!incomplete) return false;
       say(window.AppI18n.t('eventIncomplete'), true);
       const field = document.querySelector('.program-event-card [aria-invalid="true"]');
-      field?.closest('details')?.setAttribute('open', '');
+      for (let node = field?.closest('details'); node; node = node.parentElement?.closest('details'))
+        node.open = true;
       field?.scrollIntoView?.({ block: 'center' });
       field?.focus();
       return true;

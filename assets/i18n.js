@@ -445,6 +445,9 @@
     deletePlace: 'Ort löschen|Delete place',
     confirmDeletePlace:
       'Diesen Ort wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.|Delete this place? This action cannot be undone.',
+    eventSectionDetails: 'Details|Details',
+    eventSectionLink: 'Link (optional)|Link (optional)',
+    eventSectionCategories: 'Kategorien|Categories',
     deleteEvent: 'Veranstaltung löschen|Delete event',
     confirmDeleteEvent:
       'Diese Veranstaltung wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.|Delete this event? This action cannot be undone.',
