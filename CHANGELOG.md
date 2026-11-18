@@ -6,12 +6,19 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ## [Unreleased]
 
+### Added
+
+- **Avatars on the pinboard:** every pseudonym gets a generated avatar icon next to the name, in the visitor pinboard and in the moderation list. The animal in the name picks the icon (a cat, a fox, a feather, a fire for a phoenix, and so on). The colour is a random dark gradient: a colour word such as Amber or Scarlet steers the hue, everything else is random but fixed per name, so a name always looks the same. Colours are darkened until the white icon has a contrast of at least 5.7:1.
+
 ### Changed
 
+- **Moderate pinboard** has its own tab in the admin panel, to the right of Programme & places and Configuration. The post list scrolls inside the page instead of growing endlessly.
 - The map upload is now called **Veranstaltungskarte** (German) and **Event map** (English) everywhere in the admin panel, instead of "Hintergrundbild" / "Background image".
 
 ### Fixed
 
+- **Stale scripts after an update:** scripts and styles are now cache-busted by the file's change time as well as the version, so a browser never keeps using an old `admin.js` or `i18n.js` after the files were replaced (even if `VERSION` was not uploaded or updated). A missing translation no longer shows its raw key (for example `adminPinboardView`); the label keeps its default text instead.
+- **Download full backup** could produce a backup without the uploaded event map, logo and favicon, and restoring such a file failed. On slower connections the admin script that creates the full backup could finish loading after the admin panel was ready and never attach itself, so the button fell back to the old export that stores no images. The full backup is now the only export, it attaches reliably, and it refuses to create a file when an image is missing.
 - Enabling **Has programme** on a place was not saved: after saving, the place came back without it. Owners can now save the programme setting together with the place. Adding an event to a place that has not been saved yet also saves the place first.
 
 ## [2026.11.1359] - 2026-11-17

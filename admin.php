@@ -50,8 +50,8 @@ if (empty($_SESSION['admin']) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>Burnigator — Administration</title>
     <link rel="stylesheet" href="assets/vendor/leaflet/leaflet.css" crossorigin="">
     <link rel="stylesheet" href="assets/vendor/fontawesome/css/all.min.css">
-    <link rel="stylesheet" href="assets/style.css?v=<?= $appVersion ?>">
-    <link rel="stylesheet" href="assets/design-system.css?v=<?= $appVersion ?>"><script src="assets/matomo.js?v=admin-matomo-1"></script>
+    <link rel="stylesheet" href="<?= assetUrl('assets/style.css') ?>">
+    <link rel="stylesheet" href="<?= assetUrl('assets/design-system.css') ?>"><script src="<?= assetUrl('assets/matomo.js') ?>"></script>
   </head><body class="admin-page <?php 
 echo empty($_SESSION['admin']) ? 'admin-login-page' : 'admin-console-page';
 ?>">
@@ -72,7 +72,7 @@ if (empty($_SESSION['admin'])) {
     }
     ?><label><span data-i18n="username">Benutzername</span><input type="text" name="username" required minlength="3" maxlength="32" autocomplete="username" value="owner"></label>
 <label><span data-i18n="password">Passwort</span><input type="password" name="password" required autocomplete="current-password"></label><button class="button button-primary" data-i18n="login">Anmelden</button>
-</form><script src="assets/i18n.js"></script>
+</form><script src="<?= assetUrl('assets/i18n.js') ?>"></script>
 <?php 
 } else {
     ?>
@@ -91,6 +91,7 @@ if (empty($_SESSION['admin'])) {
     ?>>
 <button id="admin-edit-tab" class="admin-view-tab chip-button active" type="button" role="tab" aria-selected="true" aria-controls="admin-edit-view" data-i18n="adminEditView">Orte und Programm</button>
 <button id="admin-config-tab" class="admin-view-tab chip-button" type="button" role="tab" aria-selected="false" aria-controls="admin-config-view" data-i18n="adminConfigView">Konfiguration</button>
+<button id="admin-pinboard-tab" class="admin-view-tab chip-button" type="button" role="tab" aria-selected="false" aria-controls="admin-pinboard-view" data-i18n="adminPinboardView">Pinnwand moderieren</button>
 </nav>
 <div id="admin-edit-view" role="tabpanel" aria-labelledby="admin-edit-tab">
   <h2 data-i18n="poiHeading">Orte</h2>
@@ -215,13 +216,6 @@ XWDYD,canceled
     </div>
   </section>
 </section>
-<section class="config-card" aria-labelledby="pinboard-moderation-heading">
-  <h2 id="pinboard-moderation-heading" data-i18n="pinboardModeration">Pinnwand moderieren</h2>
-  <label class="setting-toggle"><input id="pinboard-enabled" type="checkbox"><span data-i18n="pinboardEnabledToggle">Pinnwand für Besucher aktivieren</span></label>
-  <p class="hint" data-i18n="pinboardEnabledHint">Die Aktivierung blendet den Pinnwand-Tab ein. Zum Speichern von Beiträgen wird eine eingerichtete Datenbank benötigt.</p>
-  <div id="admin-pinboard-posts">
-  </div>
-</section>
 <section class="config-card" aria-labelledby="config-data-heading">
   <h2 id="config-data-heading" data-i18n="dataTools">Datensicherung</h2>
   <div class="data-tools"><button id="export-map" type="button" class="button button-secondary" data-i18n="exportData">Exportieren</button>
@@ -268,19 +262,28 @@ XWDYD,canceled
 </section>
 </div>
 </section>
+<section id="admin-pinboard-view" role="tabpanel" aria-labelledby="admin-pinboard-tab" hidden>
+<section class="config-card" aria-labelledby="pinboard-moderation-heading">
+  <h2 id="pinboard-moderation-heading" data-i18n="pinboardModeration">Pinnwand moderieren</h2>
+  <label class="setting-toggle"><input id="pinboard-enabled" type="checkbox"><span data-i18n="pinboardEnabledToggle">Pinnwand für Besucher aktivieren</span></label>
+  <p class="hint" data-i18n="pinboardEnabledHint">Die Aktivierung blendet den Pinnwand-Tab ein. Zum Speichern von Beiträgen wird eine eingerichtete Datenbank benötigt.</p>
+  <div id="admin-pinboard-posts" class="scroll-list" role="region" tabindex="0" aria-labelledby="pinboard-moderation-heading">
+  </div>
+</section>
+</section>
 <p id="status" role="status"></p>
 </section>
 <div id="map" aria-label="Karte bearbeiten" data-i18n-aria="mapLabel">
 </div>
 </main>
-<script src="assets/config-tabs.js?v=3"></script><script src="assets/event-auth-admin.js?v=5"></script>
+<script src="<?= assetUrl('assets/avatar.js') ?>"></script><script src="<?= assetUrl('assets/config-tabs.js') ?>"></script><script src="<?= assetUrl('assets/event-auth-admin.js') ?>"></script>
 <script>window.MAP_CSRF=<?php 
     echo json_encode($_SESSION['csrf']);
     ?>;window.ADMIN_ROLE=<?php 
     echo json_encode($role);
-    ?>;</script><script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="assets/fa-icons.js"></script><script src="assets/i18n.js?v=<?= $appVersion ?>"></script><?php 
+    ?>;</script><script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="<?= assetUrl('assets/fa-icons.js') ?>"></script><script src="<?= assetUrl('assets/i18n.js') ?>"></script><?php 
     echo appInitialThemeScript();
-    ?><script src="assets/theme.js?v=<?= $appVersion ?>"></script><script src="assets/admin.js?v=<?= $appVersion ?>"></script><script src="assets/backup-admin.js?v=<?= $appVersion ?>"></script><?php 
+    ?><script src="<?= assetUrl('assets/theme.js') ?>"></script><script src="<?= assetUrl('assets/admin.js') ?>"></script><script src="<?= assetUrl('assets/backup-admin.js') ?>"></script><?php 
 }
 ?></body>
 </html>

@@ -20,7 +20,7 @@
       },
       {
         key: 'configTabEvent',
-        ids: ['config-categories-heading', 'pinboard-moderation-heading', 'publication-heading'],
+        ids: ['config-categories-heading', 'publication-heading'],
       },
       {
         key: 'configTabUsers',

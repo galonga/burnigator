@@ -36,7 +36,7 @@ Learn more, and see what Burnigator offers guests and organizers, at **[burnigat
 - **Print exports:** Export the map with a numbered place index or export the selected timetable day as a high-resolution JPEG. The exports target A2 printing and 300 DPI where browser canvas limits permit. A configured QR URL is included in the exports.
 - **Admin panel:** Manage POIs, categories, events, independent timelines, general configuration, accounts, backups, and change history. Configuration is split into four categories, with event authentication grouped under User management. Owners can fully reset an installation from Security & History after confirming the action. Places are grouped by category and can be collapsed for a more compact overview.
 - **Hosted pilot visibility:** New installations start unpublished. Signed-in festival editors can preview the map and timetable; only the owner can publish or unpublish the visitor view.
-- **Optional integrations:** Configure a SoundCloud playlist (the player stays hidden until you enter a public playlist URL), a Matomo tracking URL and site ID (tracking is off until you set them), and the browser's experimental translation API for event descriptions. The optional pinboard requires a paid Pretix order to post, gives each order a burner pseudonym, and can be switched on in setup or Configuration → Event & Pinboard. Pretix API sync and a two-column CSV fallback are available. The compact SoundCloud player offers play/pause, random next track, 30-second skip, volume control, and a link to the current track.
+- **Optional integrations:** Configure a SoundCloud playlist (the player stays hidden until you enter a public playlist URL), a Matomo tracking URL and site ID (tracking is off until you set them), and the browser's experimental translation API for event descriptions. The optional pinboard requires a paid Pretix order to post, gives each order a burner pseudonym (shown with a generated avatar icon), and can be switched on in setup or Configuration → Event & Pinboard. Pretix API sync and a two-column CSV fallback are available. The compact SoundCloud player offers play/pause, random next track, 30-second skip, volume control, and a link to the current track.
 - **Branding and navigation:** Upload a title logo and favicon, set a custom top-bar button, link the event title to a website of your choice, and configure an optional legal notice link. The favicon is also used to generate the installed web app icon.
 - **Responsive German and English interface:** The visitor and admin views adapt to mobile screens. Users can switch the UI language; the selection is kept in the browser.
 - **Installable and offline visitor view:** A service worker caches the visitor shell, map data, and current image assets. On app start, the app requests fresh data when online and falls back to its cached copy while offline.
@@ -91,7 +91,7 @@ Each limited account has its own username and password. Passwords must be at lea
 
 ## Configuration
 
-The owner-only Configuration area is split into four categories: General (general settings, appearance, SoundCloud, and Matomo), Event (categories, pinboard, and publication), User management (additional accounts, event authentication, and owner password), and Security & History (change history, backups, automatic snapshots, and application reset).
+The owner-only Configuration area is split into four categories: General (general settings, appearance, SoundCloud, and Matomo), Event (categories and publication), User management (additional accounts, event authentication, and owner password), and Security & History (change history, backups, automatic snapshots, and application reset).
 
 - General title, custom top-bar button, optional title link URL, optional legal notice URL, optional WWW-export QR URL, and browser translation toggle
 - SoundCloud player visibility and public playlist URL
@@ -99,7 +99,7 @@ The owner-only Configuration area is split into four categories: General (genera
 - Matomo base URL and site ID; an empty Matomo URL disables tracking
 - Limited account management and owner password change
 - Pretix authentication settings, manual synchronization, CSV fallback import, and a stored-order overview grouped by Pretix status, import source, posting eligibility, and count. Order numbers are not exposed in the admin page.
-- Pinboard activation and post moderation
+- Pinboard activation and post moderation (own **Moderate pinboard** tab next to Programme & places and Configuration; the post list scrolls)
 - Change history, data import/export, and snapshot restore
 - Full installation reset, including event data, uploads, accounts, and event-authentication records. The reset requires the current Owner password and an exact confirmation phrase, then returns the application to first-time setup.
 
@@ -152,7 +152,7 @@ If the host ignores `.htaccess`, do not expose the `data/` directory publicly. A
 
 ## Backups and recovery
 
-The Configuration area provides a full JSON backup and restore workflow. A full backup contains the map, categories, POIs, programmes, timelines, map configuration, and uploaded image assets. It does not include the MariaDB database, so back up that database separately when event authentication or the pinboard is enabled. Before data changes, the application also creates snapshots and retains the latest five; the owner can restore these in the admin panel. A full application reset deletes the current installation data rather than creating a recoverable snapshot, so download a backup first.
+The Configuration area provides a full JSON backup and restore workflow ("Download full backup" / "Restore full backup"). A full backup contains the map, categories, POIs, programmes, timelines, map configuration, and uploaded image assets. It does not include the MariaDB database, so back up that database separately when event authentication or the pinboard is enabled. Before data changes, the application also creates snapshots and retains the latest five; the owner can restore these in the admin panel. A full application reset deletes the current installation data rather than creating a recoverable snapshot, so download a backup first.
 
 Keep an independent FTP or hosting backup of `config.php`, `data/`, and `uploads/`, plus the MariaDB database when configured. A full backup downloaded from the admin panel is convenient for migration, but it should also be stored somewhere safe outside the web server.
 

@@ -306,3 +306,14 @@ function appVersion(): string
     }
     return $version;
 }
+
+/**
+ * URL of a local asset with a cache-busting parameter that changes whenever the file changes
+ * (its modification time) or the version changes, so updated scripts and styles are never served stale.
+ */
+function assetUrl(string $path): string
+{
+    $file = __DIR__ . '/' . $path;
+    $stamp = is_file($file) ? (string) filemtime($file) : '0';
+    return $path . '?v=' . appVersion() . '-' . $stamp;
+}
