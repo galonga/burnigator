@@ -150,7 +150,7 @@ if ($impressUrl !== '') {
 <div id="burnigator-easter-toast" class="burnigator-toast" role="status" aria-live="polite" hidden>
 </div>
 <script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="assets/i18n.js?v=<?= $appVersion ?>"></script><script src="assets/easter-egg.js?v=persistent-sparks-1"></script><script src="assets/pwa.js?v=install-2"></script><script src="https://w.soundcloud.com/player/api.js" async></script><script src="assets/vendor/qrcode.min.js"></script><script src="assets/map.js?v=<?= $appVersion ?>"></script>
-<script src="assets/pinboard.js?v=2"></script>
+<script src="assets/avatar.js?v=<?= $appVersion ?>"></script><script src="assets/pinboard.js?v=2"></script>
 </body>
 </html>
 

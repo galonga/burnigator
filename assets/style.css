@@ -2910,7 +2910,8 @@ small {
   padding-inline: 16px;
   border-right: 0;
 }
-.admin-layout.config-active #admin-config-view {
+.admin-layout.config-active #admin-config-view,
+.admin-layout.config-active #admin-pinboard-view {
   max-width: 1000px;
 }
 .setting-toggle {

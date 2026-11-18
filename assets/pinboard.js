@@ -99,7 +99,12 @@
     form.hidden = !attendee;
     if (attendee) {
       const label = document.createElement('span');
-      label.textContent = window.AppI18n.t('eventSignedIn') + ' ' + attendee.pseudonym;
+      label.className = 'pinboard-author';
+      label.append(
+        window.AppI18n.t('eventSignedIn') + ' ',
+        window.BurnigatorAvatar.create(attendee.pseudonym),
+        attendee.pseudonym
+      );
       const out = document.createElement('button');
       out.type = 'button';
       out.className = 'button button-outlined';
@@ -164,7 +169,8 @@
       if (post.hidden) article.classList.add('is-hidden');
       const head = document.createElement('header');
       const author = document.createElement('strong');
-      author.textContent = post.pseudonym;
+      author.className = 'pinboard-author';
+      author.append(window.BurnigatorAvatar.create(post.pseudonym), post.pseudonym);
       const time = document.createElement('time');
       time.dateTime = post.createdAt;
       time.textContent = new Date(post.createdAt.replace(' ', 'T') + 'Z').toLocaleString();

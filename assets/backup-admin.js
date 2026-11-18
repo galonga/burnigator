@@ -1,5 +1,7 @@
 (function () {
-  window.addEventListener('burnigator-admin-ready', initialize, { once: true });
+  // admin.js may finish before this script has loaded, so do not rely on the event alone.
+  if (window.BurnigatorAdminReady) initialize();
+  else window.addEventListener('burnigator-admin-ready', initialize, { once: true });
   function initialize() {
     const api = window.BurnigatorAdminBackup;
     if (!api || window.ADMIN_ROLE !== 'owner') return;
@@ -26,6 +28,9 @@
           logo: await assetData(map.logo, 'logo'),
           favicon: await assetData(map.favicon, 'favicon'),
         };
+        for (const kind of ['image', 'logo', 'favicon']) {
+          if (map[kind] && !assets[kind]) throw new Error(window.AppI18n.t('backupFailed'));
+        }
         const bundle = {
           format: 'burnigator-full-backup',
           version: 1,

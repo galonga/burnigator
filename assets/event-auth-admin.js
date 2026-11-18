@@ -152,7 +152,8 @@
           const card = document.createElement('article');
           card.className = 'pinboard-post' + (post.hidden ? ' is-hidden' : '');
           const head = document.createElement('strong');
-          head.textContent = post.pseudonym;
+          head.className = 'pinboard-author';
+          head.append(window.BurnigatorAvatar.create(post.pseudonym), post.pseudonym);
           const body = document.createElement('p');
           body.textContent = post.body;
           const controls = document.createElement('div');
@@ -185,6 +186,7 @@
         host.textContent = window.AppI18n.t('pinboardModerationUnavailable');
       }
     }
+    $('admin-pinboard-tab')?.addEventListener('click', loadModeration);
     $('save-event-auth')?.addEventListener('click', async () => {
       try {
         await jsonRequest('api.php?action=event-auth-settings', {

@@ -91,6 +91,7 @@ if (empty($_SESSION['admin'])) {
     ?>>
 <button id="admin-edit-tab" class="admin-view-tab chip-button active" type="button" role="tab" aria-selected="true" aria-controls="admin-edit-view" data-i18n="adminEditView">Orte und Programm</button>
 <button id="admin-config-tab" class="admin-view-tab chip-button" type="button" role="tab" aria-selected="false" aria-controls="admin-config-view" data-i18n="adminConfigView">Konfiguration</button>
+<button id="admin-pinboard-tab" class="admin-view-tab chip-button" type="button" role="tab" aria-selected="false" aria-controls="admin-pinboard-view" data-i18n="adminPinboardView">Pinnwand moderieren</button>
 </nav>
 <div id="admin-edit-view" role="tabpanel" aria-labelledby="admin-edit-tab">
   <h2 data-i18n="poiHeading">Orte</h2>
@@ -215,13 +216,6 @@ XWDYD,canceled
     </div>
   </section>
 </section>
-<section class="config-card" aria-labelledby="pinboard-moderation-heading">
-  <h2 id="pinboard-moderation-heading" data-i18n="pinboardModeration">Pinnwand moderieren</h2>
-  <label class="setting-toggle"><input id="pinboard-enabled" type="checkbox"><span data-i18n="pinboardEnabledToggle">Pinnwand für Besucher aktivieren</span></label>
-  <p class="hint" data-i18n="pinboardEnabledHint">Die Aktivierung blendet den Pinnwand-Tab ein. Zum Speichern von Beiträgen wird eine eingerichtete Datenbank benötigt.</p>
-  <div id="admin-pinboard-posts">
-  </div>
-</section>
 <section class="config-card" aria-labelledby="config-data-heading">
   <h2 id="config-data-heading" data-i18n="dataTools">Datensicherung</h2>
   <div class="data-tools"><button id="export-map" type="button" class="button button-secondary" data-i18n="exportData">Exportieren</button>
@@ -268,12 +262,21 @@ XWDYD,canceled
 </section>
 </div>
 </section>
+<section id="admin-pinboard-view" role="tabpanel" aria-labelledby="admin-pinboard-tab" hidden>
+<section class="config-card" aria-labelledby="pinboard-moderation-heading">
+  <h2 id="pinboard-moderation-heading" data-i18n="pinboardModeration">Pinnwand moderieren</h2>
+  <label class="setting-toggle"><input id="pinboard-enabled" type="checkbox"><span data-i18n="pinboardEnabledToggle">Pinnwand für Besucher aktivieren</span></label>
+  <p class="hint" data-i18n="pinboardEnabledHint">Die Aktivierung blendet den Pinnwand-Tab ein. Zum Speichern von Beiträgen wird eine eingerichtete Datenbank benötigt.</p>
+  <div id="admin-pinboard-posts" class="scroll-list" role="region" tabindex="0" aria-labelledby="pinboard-moderation-heading">
+  </div>
+</section>
+</section>
 <p id="status" role="status"></p>
 </section>
 <div id="map" aria-label="Karte bearbeiten" data-i18n-aria="mapLabel">
 </div>
 </main>
-<script src="assets/config-tabs.js?v=3"></script><script src="assets/event-auth-admin.js?v=5"></script>
+<script src="assets/avatar.js?v=<?= $appVersion ?>"></script><script src="assets/config-tabs.js?v=3"></script><script src="assets/event-auth-admin.js?v=5"></script>
 <script>window.MAP_CSRF=<?php 
     echo json_encode($_SESSION['csrf']);
     ?>;window.ADMIN_ROLE=<?php 

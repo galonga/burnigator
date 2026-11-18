@@ -129,21 +129,32 @@
     const adminLayout = document.querySelector('.admin-layout'),
       editView = document.getElementById('admin-edit-view'),
       configView = document.getElementById('admin-config-view'),
+      pinboardView = document.getElementById('admin-pinboard-view'),
       editTab = document.getElementById('admin-edit-tab'),
-      configTab = document.getElementById('admin-config-tab');
+      configTab = document.getElementById('admin-config-tab'),
+      pinboardTab = document.getElementById('admin-pinboard-tab');
     const showAdminView = (view) => {
-      const showConfig = view === 'config' && role === 'owner';
-      editView.hidden = showConfig;
+      const ownerView = role === 'owner' ? view : 'edit';
+      const showEdit = ownerView === 'edit';
+      const showConfig = ownerView === 'config';
+      const showPinboard = ownerView === 'pinboard';
+      editView.hidden = !showEdit;
       configView.hidden = !showConfig;
-      adminLayout.classList.toggle('config-active', showConfig);
-      editTab?.classList.toggle('active', !showConfig);
-      editTab?.setAttribute('aria-selected', String(!showConfig));
-      configTab?.classList.toggle('active', showConfig);
-      configTab?.setAttribute('aria-selected', String(showConfig));
-      if (!showConfig && map) setTimeout(() => map.invalidateSize(), 50);
+      if (pinboardView) pinboardView.hidden = !showPinboard;
+      adminLayout.classList.toggle('config-active', !showEdit);
+      [
+        [editTab, showEdit],
+        [configTab, showConfig],
+        [pinboardTab, showPinboard],
+      ].forEach(([tab, active]) => {
+        tab?.classList.toggle('active', active);
+        tab?.setAttribute('aria-selected', String(active));
+      });
+      if (showEdit && map) setTimeout(() => map.invalidateSize(), 50);
     };
     editTab?.addEventListener('click', () => showAdminView('edit'));
     configTab?.addEventListener('click', () => showAdminView('config'));
+    pinboardTab?.addEventListener('click', () => showAdminView('pinboard'));
     document.getElementById('save-map').hidden = role !== 'owner';
     document.getElementById('save-pois').hidden = role !== 'poi';
     document.getElementById('map').hidden = role === 'www';
@@ -1343,40 +1354,6 @@
         persistMap();
       };
     });
-    document.getElementById('export-map').onclick = () => {
-      window.trackAppEvent?.('Admin', 'data_export');
-      data.title = document.getElementById('title').value;
-      data.theme = readThemeFields();
-      const payload = {
-        format: 'image-map-export',
-        version: 1,
-        title: data.title,
-        theme: data.theme,
-        iconMode: data.iconMode,
-        categories: data.categories,
-        pois: data.pois,
-        timelines: data.timelines,
-        image: data.image,
-        width: data.width,
-        height: data.height,
-        qrUrl: document.getElementById('www-qr-url').value.trim(),
-        impressUrl: document.getElementById('impress-url').value.trim(),
-        titleLinkUrl: document.getElementById('title-link-url').value.trim(),
-        matomoUrl: document.getElementById('matomo-url').value.trim(),
-        matomoSiteId: document.getElementById('matomo-site-id').value.trim(),
-        browserTranslationEnabled: document.getElementById('browser-translation-enabled').checked,
-        soundcloudEnabled: document.getElementById('soundcloud-enabled').checked,
-        soundcloudPlaylist: document.getElementById('soundcloud-playlist').value.trim(),
-      };
-      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = window.AppI18n.t('exportFilename');
-      link.click();
-      URL.revokeObjectURL(url);
-      say(window.AppI18n.t('exportData'));
-    };
     document.getElementById('import-map').onchange = async (event) => {
       const file = event.target.files[0];
       event.target.value = '';
@@ -1512,6 +1489,7 @@
       console.error('Burnigator admin editor initialization failed', error);
       showDataLoadError(window.AppI18n.t('adminInitializationFailed'));
     }
+    window.BurnigatorAdminReady = true;
     window.dispatchEvent(new Event('burnigator-admin-ready'));
   } catch (error) {
     console.error('Burnigator admin initialization failed at ' + bootStage, error);

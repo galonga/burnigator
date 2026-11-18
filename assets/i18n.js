@@ -112,6 +112,7 @@
     adminViews: 'Admin-Ansichten|Admin views',
     adminEditView: 'Programm & Orte|Programme & places',
     adminConfigView: 'Konfiguration|Configuration',
+    adminPinboardView: 'Pinnwand moderieren|Moderate pinboard',
     AdminEditView: 'Orte und Programm|Places and program',
     AdminConfigView: 'Konfiguration|Configuration',
     generalSettings: 'Allgemeine Einstellungen|General settings',
@@ -309,7 +310,6 @@
     importSuccess: 'Daten importiert und gespeichert.|Data imported and saved.',
     importInvalid: 'Ungültige oder nicht unterstützte JSON-Datei.|Invalid or unsupported JSON file.',
     importFailed: 'Import fehlgeschlagen.|Import failed.',
-    exportFilename: 'event-export.json|event-export.json',
     backupFilename: 'burnigator-komplettsicherung.json|burnigator-full-backup.json',
     exportSuccess: 'Vollständige Sicherung heruntergeladen.|Full backup downloaded.',
     backupFailed:
