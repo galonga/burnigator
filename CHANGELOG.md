@@ -6,6 +6,8 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ## [Unreleased]
 
+## [2026.11.1367] - 2026-11-18
+
 ### Added
 
 - **Event owners:** an event can have an optional owner order code, set by the admin in the event editor (owner role only). A visitor who is signed in with that order code gets an edit button next to the favourite heart in the event details and can change the event time, description and categories. The code is stored only as an HMAC hash, never sent to visitors, and every change is checked on the server. Because sign-in is part of the pinboard, the pinboard has to be enabled. Downloaded full backups do not contain owner assignments; server-side snapshots keep them.
@@ -54,4 +56,6 @@ First public release.
 - Event authentication hardening: write rate limits, safer imports that guard against mass access revocation, installation reset, and HTTP Pretix support.
 - `config.php`, `data/` and `uploads/` are ignored by git and excluded from release zips.
 
+[Unreleased]: https://github.com/galonga/burnigator/compare/v2026.11.1367...HEAD
+[2026.11.1367]: https://github.com/galonga/burnigator/compare/v2026.11.1359...v2026.11.1367
 [2026.11.1359]: https://github.com/galonga/burnigator/releases/tag/v2026.11.1359

@@ -23,6 +23,13 @@ Restore your backup of the previous version's files. Restore `config.php`, `data
 
 ## Notes per version
 
+### 2026.11.1367
+
+- **Nothing is required.** No database change; existing data is kept.
+- **Event owners (optional).** In the event editor, an owner can give an event an owner order code. The visitor signed in with that order code can then edit the event. This needs the pinboard (and its database) to be enabled, because sign-in is part of it.
+- **Backups.** A downloaded full backup does not contain event owner assignments. Server-side snapshots do. After restoring a downloaded backup, set the owner codes again.
+- **Event editor.** Events without a title or start time are no longer silently dropped on save; the editor now asks for both.
+
 ### 2026.11.1359 (first public release)
 
 - **Matomo and SoundCloud are off by default.** Older builds used a built-in Matomo address (and site ID) and a built-in SoundCloud playlist when none was saved. If your event relied on that, open Configuration → General and enter your Matomo URL and site ID, and your public SoundCloud playlist URL. Until you do, tracking is off and the player is hidden.
