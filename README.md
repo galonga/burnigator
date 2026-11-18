@@ -119,7 +119,7 @@ At a high level, the map data contains:
 - **Independent timelines:** up to three named rows with the same event structure
 - **Configuration:** theme, branding paths, optional links, tracking, translation, SoundCloud settings, publication state, and pinboard activation
 
-POI coordinates are normalized from `0` to `1`, so marker positions scale with the uploaded image. Programme days use the keys `mon` through `sun`; event times use 24-hour `HH:MM` format. An event end time, when set, must be later than its start time on the same day.
+POI coordinates are normalized from `0` to `1`, so marker positions scale with the uploaded image. Programme days use the keys `mon` through `sun`; event times use 24-hour `HH:MM` format. An event end time, when set, must differ from its start time. An end time earlier than the start (for example 22:00–02:00) means the event ends the next day: the timeline shows it until midnight with an arrow and continues it on the next day, and an end of `00:00` simply ends it at midnight. The last day of the week continues into the first.
 
 Runtime files are stored as follows:
 

@@ -8,6 +8,7 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ### Changed
 
+- **Events past midnight:** an end time earlier than the start time (for example 22:00–02:00) now means the event ends the next day. The admin and event-owner forms show an "ends the next day" note, the timeline draws the event to midnight with an arrow and continues it on the next day, and the image export does the same. An end time of 00:00 is accepted as midnight. Equal start and end times are rejected. Existing events are unaffected.
 - **Event editor for places and timelines:** tidied up. Each day is a collapsible section with an event counter (open when it has events), and each event is a collapsed row showing time and title. An opened event has labelled fields in groups (title and time, details, link, categories), and the Save and Delete buttons sit together at the bottom. New events open automatically.
 
 ### Added
