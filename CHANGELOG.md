@@ -6,8 +6,13 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ## [Unreleased]
 
+### Added
+
+- **Preview mode:** a new switch in the Publication box, "Show timetable and pinboard to visitors". While it is off, visitors see only the map, without timetable, favourites and pinboard. Signed-in team members still see everything and get a notice. The views are hidden in the page only; the programme data is still part of the public data.
+
 ### Changed
 
+- The **Publication** box moved to the top of the General tab, and the publish button is now a switch.
 - The map upload is now called **Veranstaltungskarte** (German) and **Event map** (English) everywhere in the admin panel, instead of "Hintergrundbild" / "Background image".
 
 ### Fixed

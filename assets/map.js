@@ -29,6 +29,20 @@
     showMapLoadError();
     return;
   }
+  const viewerIsEditor = document.body.dataset.viewerEditor === 'true';
+  const mapOnly = data.previewMode === true && !viewerIsEditor;
+  document.body.classList.toggle('map-only', mapOnly);
+  if (data.previewMode === true && viewerIsEditor) {
+    const notice = document.createElement('p');
+    notice.className = 'preview-banner';
+    notice.dataset.i18n = 'previewModeNotice';
+    const updateNotice = () => {
+      notice.textContent = window.AppI18n.t('previewModeNotice');
+    };
+    updateNotice();
+    window.addEventListener('image-map-language-change', updateNotice);
+    document.querySelector('main')?.prepend(notice);
+  }
   if (data.published === false) {
     const banner = document.createElement('p');
     banner.className = 'preview-banner';
@@ -265,7 +279,7 @@
       d.textContent = p.description;
       body.appendChild(d);
     }
-    if (p.hasProgram) {
+    if (p.hasProgram && !mapOnly) {
       const programLink = document.createElement('a');
       programLink.href = '#timetable';
       programLink.className = 'program-tooltip-translate button-outlined';
@@ -314,7 +328,7 @@
       marker.openPopup();
     };
     entry.appendChild(item);
-    if (p.hasProgram) {
+    if (p.hasProgram && !mapOnly) {
       const link = document.createElement('a');
       link.className = 'poi-program-link button-outlined';
       link.href = '#timetable';
@@ -1206,7 +1220,7 @@
         ? urlTab
         : sessionStorage.getItem('burnigatorActiveTab') || '';
   } catch (_) {}
-  if (restoredTab === 'map') switchTab('map', false);
+  if (mapOnly || restoredTab === 'map') switchTab('map', false);
   else switchTab('timetable', false);
   document.getElementById('export-day-jpg').onclick = () => {
     window.trackAppEvent?.('Visitor', 'www_jpg_export', selectedDay);

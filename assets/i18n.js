@@ -121,8 +121,14 @@
     sitePublished: 'Die Festivalansicht ist öffentlich.|The festival view is public.',
     siteUnpublished:
       'Die Festivalansicht ist nur für angemeldete Teammitglieder sichtbar.|The festival view is visible only to signed-in team members.',
-    publishSite: 'Festival veröffentlichen|Publish festival',
-    unpublishSite: 'Veröffentlichung aufheben|Unpublish festival',
+    sitePreviewMode:
+      'Vorschaumodus: Besucher sehen nur die Karte, ohne Zeitplan und Pinnwand.|Preview mode: visitors see only the map, without timetable and pinboard.',
+    publicationSwitch: 'Festival veröffentlichen|Publish festival',
+    fullViewSwitch: 'Zeitplan und Pinnwand für Besucher anzeigen|Show timetable and pinboard to visitors',
+    fullViewHint:
+      'Ist dieser Schalter aus (Vorschaumodus), sehen Besucher nur die Karte. Angemeldete Teammitglieder sehen weiterhin alles.|When this switch is off (preview mode), visitors see only the map. Signed-in team members still see everything.',
+    previewModeNotice:
+      'Vorschaumodus: Besucher sehen nur die Karte. Du siehst als Teammitglied alles.|Preview mode: visitors see only the map. As a team member you see everything.',
     confirmUnpublish:
       'Festivalansicht für Besucher wirklich ausblenden?|Hide the festival view from visitors?',
     publicationSaved: 'Sichtbarkeit wurde aktualisiert.|Visibility updated.',

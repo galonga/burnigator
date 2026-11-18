@@ -12,6 +12,7 @@
       {
         key: 'configTabGeneral',
         ids: [
+          'publication-heading',
           'config-general-heading',
           'config-appearance-heading',
           'config-soundcloud-heading',
@@ -20,7 +21,7 @@
       },
       {
         key: 'configTabEvent',
-        ids: ['config-categories-heading', 'pinboard-moderation-heading', 'publication-heading'],
+        ids: ['config-categories-heading', 'pinboard-moderation-heading'],
       },
       {
         key: 'configTabUsers',

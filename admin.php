@@ -131,7 +131,9 @@ if (empty($_SESSION['admin'])) {
   <h2 id="publication-heading" data-i18n="publicationSettings">Veröffentlichung</h2>
   <p id="publication-status" class="publication-state" role="status"></p>
   <p class="hint" data-i18n="publicationHint">Unveröffentlichte Festivals sind nur für angemeldete Teammitglieder sichtbar. Nur der Owner kann die Sichtbarkeit ändern.</p>
-<button id="publication-toggle" type="button" class="button button-primary"></button>
+  <label class="setting-toggle"><input id="publication-toggle" type="checkbox"><span data-i18n="publicationSwitch">Festival veröffentlichen</span></label>
+  <label class="setting-toggle"><input id="full-view-toggle" type="checkbox"><span data-i18n="fullViewSwitch">Zeitplan und Pinnwand für Besucher anzeigen</span></label>
+  <p class="hint" data-i18n="fullViewHint">Ist dieser Schalter aus (Vorschaumodus), sehen Besucher nur die Karte. Angemeldete Teammitglieder sehen weiterhin alles.</p>
 </section>
 <section class="config-card" aria-labelledby="config-soundcloud-heading">
   <h2 id="config-soundcloud-heading" data-i18n="soundcloudSettings">SoundCloud-Player</h2>

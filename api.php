@@ -144,6 +144,7 @@ function readMap(): array
         'height' => 0,
         'updatedAt' => '',
         'published' => true,
+        'previewMode' => false,
         'pinboardEnabled' => false,
         'iconMode' => 'monochrome',
         'browserTranslationEnabled' => false,
@@ -166,6 +167,7 @@ function readMap(): array
     $m = json_decode((string) file_get_contents($p), true);
     $m = is_array($m) ? array_merge($fallback, $m) : $fallback;
     $m['published'] = ($m['published'] ?? true) === true;
+    $m['previewMode'] = ($m['previewMode'] ?? false) === true;
     $m['pinboardEnabled'] = ($m['pinboardEnabled'] ?? false) === true;
     $m['theme'] = cleanTheme($m['theme'] ?? null);
     $m['matomoUrl'] = cleanMatomoUrl($m['matomoUrl'] ?? $fallback['matomoUrl']);
@@ -1044,6 +1046,7 @@ if ($action === 'restore-snapshot' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             return 'conflict';
         }
         $m['published'] = $latest['published'];
+        $m['previewMode'] = $latest['previewMode'];
         $m['pinboardEnabled'] = $latest['pinboardEnabled'];
         return saveMap($m) ? $m : false;
     });
@@ -1188,6 +1191,7 @@ if ($action === 'restore-backup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
             return 'conflict';
         }
         $map['published'] = $latest['published'];
+        $map['previewMode'] = $latest['previewMode'];
         $map['pinboardEnabled'] = $latest['pinboardEnabled'];
         return saveMap($map) ? $map : false;
     });
@@ -1342,16 +1346,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, [
         respond(403, ['error' => 'Keine Berechtigung']);
     }
     if ($action === 'set-publication') {
-        if (!is_bool($in['published'] ?? null)) {
+        $setPublished = array_key_exists('published', $in);
+        $setPreviewMode = array_key_exists('previewMode', $in);
+        if (
+            (!$setPublished && !$setPreviewMode)
+            || ($setPublished && !is_bool($in['published']))
+            || ($setPreviewMode && !is_bool($in['previewMode']))
+        ) {
             respond(400, ['error' => 'invalid_publication_state']);
         }
         $expected = (string) ($in['expectedUpdatedAt'] ?? '');
-        $map = withMapLock(function () use ($in, $expected) {
+        $map = withMapLock(function () use ($in, $expected, $setPublished, $setPreviewMode) {
             $m = readMap();
             if ($expected === '' || !hash_equals((string) ($m['updatedAt'] ?? ''), $expected)) {
                 return 'conflict';
             }
-            $m['published'] = $in['published'];
+            if ($setPublished) {
+                $m['published'] = $in['published'];
+            }
+            if ($setPreviewMode) {
+                $m['previewMode'] = $in['previewMode'];
+            }
             return saveMap($m) ? $m : false;
         });
         if ($map === 'conflict') {
@@ -1360,7 +1375,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, [
         if (!is_array($map)) {
             respond(500, ['error' => 'publication_save_failed']);
         }
-        recordHistory('publication_change', 0, $map['published'] ? 'Published' : 'Unpublished');
+        $changed = $setPublished
+            ? ($map['published'] ? 'Published' : 'Unpublished')
+            : ($map['previewMode'] ? 'Preview mode on' : 'Preview mode off');
+        recordHistory('publication_change', 0, $changed);
         respond(200, ['ok' => true, 'map' => $map]);
     }
     if ($action === 'change-owner-password') {
@@ -1834,6 +1852,7 @@ $m = [
     'impressUrl' => cleanOptionalHttpUrl($in['impressUrl'] ?? $old['impressUrl'] ?? ''),
     'titleLinkUrl' => cleanOptionalHttpUrl($in['titleLinkUrl'] ?? $old['titleLinkUrl'] ?? ''),
     'published' => ($old['published'] ?? true) === true,
+    'previewMode' => ($old['previewMode'] ?? false) === true,
     'pinboardEnabled' => ($old['pinboardEnabled'] ?? false) === true,
     'categories' => $cats,
     'pois' => $pois,

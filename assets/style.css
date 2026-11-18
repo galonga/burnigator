@@ -3001,3 +3001,12 @@ small {
   background: var(--color-surface-container);
   font-weight: 700;
 }
+
+/* Preview mode: visitors see only the map (no timetable, no pinboard) */
+.map-only #timetable-tab,
+.map-only #timetable-view,
+.map-only #map-tab,
+.map-only #pinboard-tab,
+.map-only #pinboard-view {
+  display: none !important;
+}

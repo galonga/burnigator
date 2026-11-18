@@ -113,15 +113,17 @@
     bootStage = 'configuration';
     data.theme = window.BurnigatorTheme.apply(data.theme);
     const publicationStatus = document.getElementById('publication-status'),
-      publicationToggle = document.getElementById('publication-toggle');
+      publicationToggle = document.getElementById('publication-toggle'),
+      fullViewToggle = document.getElementById('full-view-toggle');
     function renderPublication() {
-      if (!publicationStatus || !publicationToggle) return;
+      if (!publicationStatus || !publicationToggle || !fullViewToggle) return;
       const published = data.published !== false;
-      publicationStatus.textContent = window.AppI18n.t(published ? 'sitePublished' : 'siteUnpublished');
-      publicationToggle.textContent = window.AppI18n.t(published ? 'unpublishSite' : 'publishSite');
-      publicationToggle.className = published
-        ? 'button button-outlined button-danger'
-        : 'button button-primary';
+      const previewMode = data.previewMode === true;
+      publicationStatus.textContent = window.AppI18n.t(
+        !published ? 'siteUnpublished' : previewMode ? 'sitePreviewMode' : 'sitePublished'
+      );
+      publicationToggle.checked = published;
+      fullViewToggle.checked = !previewMode;
     }
     renderPublication();
     document.getElementById('owner-settings').hidden = role !== 'owner';
@@ -1228,36 +1230,46 @@
         .catch(() => {});
       refreshHistory();
       setInterval(refreshHistory, 30000);
+      async function savePublication(change) {
+        publicationToggle.disabled = true;
+        fullViewToggle.disabled = true;
+        try {
+          const r = await fetch('api.php?action=set-publication', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.MAP_CSRF },
+            body: JSON.stringify({ ...change, expectedUpdatedAt: data.updatedAt || '' }),
+          });
+          const j = await r.json();
+          if (!r.ok) throw Error(j.error || 'publication_save_failed');
+          data.published = j.map.published;
+          data.previewMode = j.map.previewMode;
+          data.updatedAt = j.map.updatedAt;
+          say(window.AppI18n.t('publicationSaved'));
+          refreshHistory();
+        } catch (e) {
+          say(
+            e.message === 'map_conflict'
+              ? window.AppI18n.t('mapConflict')
+              : window.AppI18n.t('publicationFailed'),
+            true
+          );
+        } finally {
+          publicationToggle.disabled = false;
+          fullViewToggle.disabled = false;
+          renderPublication();
+        }
+      }
       if (publicationToggle)
-        publicationToggle.onclick = async () => {
-          const nextPublished = data.published === false;
-          if (!nextPublished && !confirm(window.AppI18n.t('confirmUnpublish'))) return;
-          publicationToggle.disabled = true;
-          try {
-            const r = await fetch('api.php?action=set-publication', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': window.MAP_CSRF },
-              body: JSON.stringify({ published: nextPublished, expectedUpdatedAt: data.updatedAt || '' }),
-            });
-            const j = await r.json();
-            if (!r.ok) throw Error(j.error || 'publication_save_failed');
-            data.published = j.map.published;
-            data.updatedAt = j.map.updatedAt;
+        publicationToggle.onchange = () => {
+          const nextPublished = publicationToggle.checked;
+          if (!nextPublished && !confirm(window.AppI18n.t('confirmUnpublish'))) {
             renderPublication();
-            say(window.AppI18n.t('publicationSaved'));
-            refreshHistory();
-          } catch (e) {
-            say(
-              e.message === 'map_conflict'
-                ? window.AppI18n.t('mapConflict')
-                : window.AppI18n.t('publicationFailed'),
-              true
-            );
-          } finally {
-            publicationToggle.disabled = false;
-            renderPublication();
+            return;
           }
+          savePublication({ published: nextPublished });
         };
+      if (fullViewToggle)
+        fullViewToggle.onchange = () => savePublication({ previewMode: !fullViewToggle.checked });
       document.getElementById('save-accounts').onclick = async () => {
         const poiPassword = document.getElementById('poi-account-password').value,
           poiConfirm = document.getElementById('poi-account-password-repeat').value,

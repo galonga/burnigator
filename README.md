@@ -35,7 +35,7 @@ Learn more, and see what Burnigator offers guests and organizers, at **[burnigat
 - **Event details and favourites:** Events can include a host, description, multiple categories, and an external link with a custom label. Visitors open the details card by selecting an event and can save favourites in their browser; favourites remain after a reload on that device.
 - **Print exports:** Export the map with a numbered place index or export the selected timetable day as a high-resolution JPEG. The exports target A2 printing and 300 DPI where browser canvas limits permit. A configured QR URL is included in the exports.
 - **Admin panel:** Manage POIs, categories, events, independent timelines, general configuration, accounts, backups, and change history. Configuration is split into four categories, with event authentication grouped under User management. Owners can fully reset an installation from Security & History after confirming the action. Places are grouped by category and can be collapsed for a more compact overview.
-- **Hosted pilot visibility:** New installations start unpublished. Signed-in festival editors can preview the map and timetable; only the owner can publish or unpublish the visitor view.
+- **Hosted pilot visibility:** New installations start unpublished. Signed-in festival editors can preview the map and timetable; only the owner can publish or unpublish the visitor view. A **preview mode** switch lets you publish early with just the map: while the "Show timetable and pinboard to visitors" switch is off, visitors see only the map, without timetable, favourites and pinboard, while signed-in team members still see everything. This hides the views in the page; the programme data is still part of the public data.
 - **Optional integrations:** Configure a SoundCloud playlist (the player stays hidden until you enter a public playlist URL), a Matomo tracking URL and site ID (tracking is off until you set them), and the browser's experimental translation API for event descriptions. The optional pinboard requires a paid Pretix order to post, gives each order a burner pseudonym, and can be switched on in setup or Configuration → Event & Pinboard. Pretix API sync and a two-column CSV fallback are available. The compact SoundCloud player offers play/pause, random next track, 30-second skip, volume control, and a link to the current track.
 - **Branding and navigation:** Upload a title logo and favicon, set a custom top-bar button, link the event title to a website of your choice, and configure an optional legal notice link. The favicon is also used to generate the installed web app icon.
 - **Responsive German and English interface:** The visitor and admin views adapt to mobile screens. Users can switch the UI language; the selection is kept in the browser.
@@ -91,7 +91,7 @@ Each limited account has its own username and password. Passwords must be at lea
 
 ## Configuration
 
-The owner-only Configuration area is split into four categories: General (general settings, appearance, SoundCloud, and Matomo), Event (categories, pinboard, and publication), User management (additional accounts, event authentication, and owner password), and Security & History (change history, backups, automatic snapshots, and application reset).
+The owner-only Configuration area is split into four categories: General (publication and preview mode, general settings, appearance, SoundCloud, and Matomo), Event (categories and pinboard), User management (additional accounts, event authentication, and owner password), and Security & History (change history, backups, automatic snapshots, and application reset).
 
 - General title, custom top-bar button, optional title link URL, optional legal notice URL, optional WWW-export QR URL, and browser translation toggle
 - SoundCloud player visibility and public playlist URL
@@ -117,7 +117,7 @@ At a high level, the map data contains:
 - **POIs:** a stable ID, normalized `x`/`y` coordinates, name, description, category, icon, and optional programme
 - **Events:** start/end time, title, host, description, selected event categories, and optional external link and link text
 - **Independent timelines:** up to three named rows with the same event structure
-- **Configuration:** theme, branding paths, optional links, tracking, translation, SoundCloud settings, publication state, and pinboard activation
+- **Configuration:** theme, branding paths, optional links, tracking, translation, SoundCloud settings, publication state, preview mode, and pinboard activation
 
 POI coordinates are normalized from `0` to `1`, so marker positions scale with the uploaded image. Programme days use the keys Wednesday through Sunday; event times use 24-hour `HH:MM` format. An event end time, when set, must be later than its start time on the same day.
 

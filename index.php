@@ -64,6 +64,8 @@ function publicSettingUrl($publicMap, string $key): string
     return $valid ? $url : '';
 }
 
+$viewerIsEditor = appCanPreviewUnpublished();
+$mapOnly = is_array($publicMap) && ($publicMap['previewMode'] ?? false) === true && !$viewerIsEditor;
 $impressUrl = publicSettingUrl($publicMap, 'impressUrl');
 $titleLinkUrl = publicSettingUrl($publicMap, 'titleLinkUrl');
 if ($titleLinkUrl !== '') {
@@ -92,7 +94,7 @@ if ($titleLinkUrl !== '') {
     <link rel="stylesheet" href="assets/design-system.css?v=<?= $appVersion ?>"><script src="assets/matomo.js?v=admin-matomo-1"></script><?php 
 echo appInitialThemeScript(is_array($publicMap) ? $publicMap : null);
 ?><script src="assets/theme.js?v=<?= $appVersion ?>"></script></head>
-<body class="public-page">
+<body class="public-page<?= $mapOnly ? ' map-only' : '' ?>" data-viewer-editor="<?= $viewerIsEditor ? 'true' : 'false' ?>">
   <header class="topbar">
     <div class="topbar-brand"><?= $brandOpen ?>
       <h1 id="map-title">Event</h1><img id="map-logo" alt="" hidden><?= $brandClose ?>
