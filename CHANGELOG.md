@@ -13,6 +13,7 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ### Changed
 
+- **Event editor:** the event title now comes before the start and end time. A missing title or start time shows a hint and a red outline right in the event row, and saving is blocked with a message until every event has both. Before, such events were silently dropped on save.
 - **Moderate pinboard** has its own tab in the admin panel, to the right of Programme & places and Configuration. The post list scrolls inside the page instead of growing endlessly.
 - The map upload is now called **Veranstaltungskarte** (German) and **Event map** (English) everywhere in the admin panel, instead of "Hintergrundbild" / "Background image".
 

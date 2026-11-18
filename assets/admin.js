@@ -646,7 +646,6 @@
             start.type = 'time';
             start.value = event.start;
             start.setAttribute('aria-label', window.AppI18n.t('eventStart'));
-            start.onchange = () => (event.start = start.value);
             const end = document.createElement('input');
             end.type = 'time';
             end.value = event.end;
@@ -657,7 +656,30 @@
             text.maxLength = 200;
             text.placeholder = window.AppI18n.t('eventTitle');
             text.value = event.text;
-            text.oninput = () => (event.text = text.value);
+            const hint = document.createElement('p');
+            hint.className = 'program-entry-hint';
+            hint.setAttribute('role', 'status');
+            const syncHint = () => {
+              const missing = [];
+              const titleMissing = !String(event.text || '').trim();
+              const startMissing = !event.start;
+              text.setAttribute('aria-invalid', String(titleMissing));
+              start.setAttribute('aria-invalid', String(startMissing));
+              if (titleMissing) missing.push(window.AppI18n.t('eventHintTitle'));
+              if (startMissing) missing.push(window.AppI18n.t('eventHintStart'));
+              hint.textContent = missing.join(' ');
+              hint.hidden = missing.length === 0;
+            };
+            text.oninput = () => {
+              event.text = text.value;
+              syncHint();
+            };
+            start.onchange = () => {
+              event.start = start.value;
+              syncHint();
+            };
+            start.oninput = start.onchange;
+            syncHint();
             const del = document.createElement('button');
             del.type = 'button';
             del.className = 'button button-primary button-danger danger';
@@ -669,7 +691,7 @@
               p.program[day].splice(index, 1);
               drawEntries();
             };
-            row.append(start, end, text, del);
+            row.append(text, start, end, del);
             const host = document.createElement('input');
             host.type = 'text';
             host.className = 'program-host';
@@ -737,7 +759,7 @@
               options.appendChild(option);
             });
             picker.append(pickerSummary, options);
-            eventCard.append(row, host, description, linkFields, picker);
+            eventCard.append(row, hint, host, description, linkFields, picker);
             if (role === 'owner') eventCard.appendChild(buildEventOwnerFields(event, drawEntries));
             if (role === 'www') {
               const saveEvent = document.createElement('button');
@@ -855,6 +877,7 @@
         document.querySelector('.independent-timeline-card .timeline-name-input')?.focus();
         return false;
       }
+      if (hasIncompleteEvent(data.timelines)) return false;
       if (hasInvalidEventTime(data.timelines)) {
         say(window.AppI18n.t('invalidEventTime'), true);
         return false;
@@ -1000,6 +1023,21 @@
     }
     document.getElementById('upload-logo').onclick = () => uploadBranding('logo');
     document.getElementById('upload-favicon').onclick = () => uploadBranding('favicon');
+    function hasIncompleteEvent(items) {
+      const incomplete = (items || []).some((p) =>
+        Object.values(p.program || {}).some(
+          (events) =>
+            Array.isArray(events) && events.some((e) => e && (!String(e.text || '').trim() || !e.start))
+        )
+      );
+      if (!incomplete) return false;
+      say(window.AppI18n.t('eventIncomplete'), true);
+      const field = document.querySelector('.program-event-card [aria-invalid="true"]');
+      field?.closest('details')?.setAttribute('open', '');
+      field?.scrollIntoView?.({ block: 'center' });
+      field?.focus();
+      return true;
+    }
     function hasInvalidEventTime(pois) {
       return (pois || []).some((p) =>
         Object.values(p.program || {}).some(
@@ -1016,6 +1054,7 @@
         say(window.AppI18n.t('timelineNameRequired'), true);
         return;
       }
+      if (hasIncompleteEvent([...data.pois, ...data.timelines])) return;
       if (hasInvalidEventTime([...data.pois, ...data.timelines])) {
         say(window.AppI18n.t('invalidEventTime'), true);
         return;
@@ -1120,6 +1159,12 @@
     }
     async function persistRolePayload(action, payload) {
       if (
+        hasIncompleteEvent(
+          [data.pois.find((p) => p.id === (payload.poi?.id || payload.program?.id))].filter(Boolean)
+        )
+      )
+        return;
+      if (
         hasInvalidEventTime(
           [data.pois.find((p) => p.id === (payload.poi?.id || payload.program?.id))].filter(Boolean)
         )
@@ -1156,6 +1201,7 @@
     }
     async function saveProgramEvent(p) {
       if (roleSaveInProgress) return;
+      if (hasIncompleteEvent([p])) return;
       if (hasInvalidEventTime([p])) {
         say(window.AppI18n.t('invalidEventTime'), true);
         return;
@@ -1219,6 +1265,7 @@
     }
     document.getElementById('save-pois').onclick = async () => {
       if (role !== 'poi') return;
+      if (hasIncompleteEvent([...data.pois, ...data.timelines])) return;
       if (hasInvalidEventTime([...data.pois, ...data.timelines])) {
         say(window.AppI18n.t('invalidEventTime'), true);
         return;

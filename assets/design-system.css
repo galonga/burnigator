@@ -724,7 +724,7 @@ input[type='search'] {
   gap: var(--space-2);
 }
 .program-event-card .program-entry {
-  grid-template-columns: minmax(92px, 120px) minmax(92px, 120px) minmax(0, 1fr) 40px;
+  grid-template-columns: minmax(0, 1fr) minmax(92px, 120px) minmax(92px, 120px) 40px;
 }
 @media (max-width: 760px) {
   .program-event-card .program-entry {
@@ -2119,4 +2119,13 @@ select {
 }
 .program-owner-fields .hint {
   margin: 0;
+}
+
+.program-entry-hint {
+  margin: 0;
+  color: var(--color-alert);
+  font-size: var(--type-label);
+}
+.program-event-card .program-entry input[aria-invalid='true'] {
+  border-color: var(--color-alert);
 }

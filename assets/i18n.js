@@ -402,6 +402,10 @@
       'Zu viele Versuche. Bitte 15 Minuten warten.|Too many attempts. Please wait 15 minutes.',
     mapConflict:
       'Die Karte wurde von jemand anderem geändert. Bitte lade die Seite neu und übertrage deine Änderungen erneut.|The map was changed by someone else. Reload the page and reapply your changes.',
+    eventHintTitle: 'Bitte einen Event-Titel eingeben.|Please enter an event title.',
+    eventHintStart: 'Bitte eine Startzeit festlegen.|Please set a start time.',
+    eventIncomplete:
+      'Mindestens ein Event ist unvollständig. Titel und Startzeit sind Pflichtfelder.|At least one event is incomplete. Title and start time are required.',
     invalidEventTime:
       'Die Endzeit muss nach der Startzeit liegen.|The end time must be later than the start time.',
     backToMap: 'Zur Besucherkarte|Visitor map',
