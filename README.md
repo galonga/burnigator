@@ -30,7 +30,7 @@ Learn more, and see what Burnigator offers guests and organizers, at **[burnigat
 ## Features
 
 - **Interactive image map:** The visitor view opens on the timetable by default. Visitors can switch to the image map, which fits the full image into view the first time it is opened, then pan and zoom. POIs have Font Awesome icons and categories. Visitors can search places, show or hide POI names, and hide categories; owners can choose monochrome or colored POI icons.
-- **Festival timetable:** Browse Wednesday through Sunday one day at a time. Each day spans 24 hours, places appear as rows, and event blocks are positioned at their start and end times. The current-time indicator, favourite filter, and event-category filters help visitors find programme items.
+- **Festival timetable:** Browse the programme one day at a time, Monday through Sunday; days without events are hidden. The first day of the week (for example Thursday to Wednesday) is set in Configuration → General. Individual days can be disabled there too; they then disappear from the programme editor. Each day spans 24 hours, places appear as rows, and event blocks are positioned at their start and end times. The current-time indicator, favourite filter, and event-category filters help visitors find programme items.
 - **Independent timelines:** Add up to three named programme rows that are not attached to a place.
 - **Event details and favourites:** Events can include a host, description, multiple categories, and an external link with a custom label. Visitors open the details card by selecting an event and can save favourites in their browser; favourites remain after a reload on that device.
 - **Print exports:** Export the map with a numbered place index or export the selected timetable day as a high-resolution JPEG. The exports target A2 printing and 300 DPI where browser canvas limits permit. A configured QR URL is included in the exports.
@@ -119,7 +119,7 @@ At a high level, the map data contains:
 - **Independent timelines:** up to three named rows with the same event structure
 - **Configuration:** theme, branding paths, optional links, tracking, translation, SoundCloud settings, publication state, and pinboard activation
 
-POI coordinates are normalized from `0` to `1`, so marker positions scale with the uploaded image. Programme days use the keys Wednesday through Sunday; event times use 24-hour `HH:MM` format. An event end time, when set, must be later than its start time on the same day.
+POI coordinates are normalized from `0` to `1`, so marker positions scale with the uploaded image. Programme days use the keys `mon` through `sun`; event times use 24-hour `HH:MM` format. An event end time, when set, must be later than its start time on the same day.
 
 Runtime files are stored as follows:
 
