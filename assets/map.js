@@ -491,7 +491,8 @@
       } else if (!isFavorite && indicator) indicator.remove();
     });
   }
-  function makeTimelineEvent(ownerId, ownerName, day, event, start, end, laneIndex) {
+  function makeTimelineEvent(ownerId, ownerName, item, laneIndex) {
+    const { day, event, start, end } = item;
     const wrap = document.createElement('div');
     wrap.className = 'timeline-event-wrap';
     wrap.style.left = (start / 1440) * 100 + '%';
@@ -505,7 +506,9 @@
     block.style.borderColor = eventBoxColor(event.categories);
     block.style.color = '#fff';
     const time = document.createElement('time');
-    time.textContent = formatTime(start) + (event.end ? '–' + event.end : '');
+    time.textContent = eventTimeLabel(event, item);
+    block.classList.toggle('is-overnight', item.overnight);
+    block.classList.toggle('is-continued', item.continued);
     const text = document.createElement('span');
     text.textContent = event.text;
     const selected = Array.isArray(event.categories) ? event.categories : [];
@@ -712,12 +715,8 @@
     const entries = (data.pois || []).filter((p) => p.hasProgram);
     const independentTimelines = (data.timelines || []).slice(0, 3);
     const hasEvents = (day) =>
-      entries.some(
-        (p) => Array.isArray(p.program?.[day]) && p.program[day].some((e) => eventShown(p.id, day, e))
-      ) ||
-      independentTimelines.some(
-        (t) => Array.isArray(t.program?.[day]) && t.program[day].some((e) => eventShown(t.id, day, e))
-      );
+      entries.some((p) => timelineItems(p.id, p.program, day).length) ||
+      independentTimelines.some((t) => timelineItems(t.id, t.program, day).length);
     const visibleDays = dayKeys.filter(hasEvents);
     document.querySelector('.timetable-day-section').hidden = !visibleDays.length;
     const today = festivalDay();
@@ -779,11 +778,7 @@
     head.appendChild(hr);
     const tbody = document.createElement('tbody');
     entries
-      .filter(
-        (p) =>
-          Array.isArray(p.program?.[selectedDay]) &&
-          p.program[selectedDay].some((e) => eventShown(p.id, selectedDay, e))
-      )
+      .filter((p) => timelineItems(p.id, p.program, selectedDay).length)
       .forEach((p) => {
         const tr = document.createElement('tr');
         tr.id = 'timetable-' + p.id;
@@ -809,24 +804,13 @@
           line.style.left = (hour / 24) * 100 + '%';
           cell.appendChild(line);
         }
-        const events = Array.isArray(p.program?.[selectedDay])
-          ? p.program[selectedDay]
-              .filter((e) => eventShown(p.id, selectedDay, e))
-              .slice()
-              .sort((a, b) => (a.start || a.time || '').localeCompare(b.start || b.time || ''))
-          : [];
         const lanes = [];
-        events.forEach((event) => {
-          const start = timeMinutes(event.start || event.time || '00:00');
-          let end = event.end ? timeMinutes(event.end) : Math.min(1440, start + 60);
-          if (end <= start) end = Math.min(1440, start + 60);
-          const lane = lanes.findIndex((laneEnd) => laneEnd <= start);
+        timelineItems(p.id, p.program, selectedDay).forEach((item) => {
+          const lane = lanes.findIndex((laneEnd) => laneEnd <= item.start);
           const laneIndex = lane < 0 ? lanes.length : lane;
-          if (lane < 0) lanes.push(end);
-          else lanes[laneIndex] = end;
-          cell.appendChild(
-            makeTimelineEvent(p.id, p.name || p.id, selectedDay, event, start, end, laneIndex)
-          );
+          if (lane < 0) lanes.push(item.end);
+          else lanes[laneIndex] = item.end;
+          cell.appendChild(makeTimelineEvent(p.id, p.name || p.id, item, laneIndex));
         });
         cell.style.height = Math.max(58, lanes.length * 56 + 16) + 'px';
         tr.appendChild(cell);
@@ -835,10 +819,7 @@
     const activeIndependent = independentTimelines
       .map((timeline) => ({
         ...timeline,
-        events: (timeline.program?.[selectedDay] || [])
-          .filter((event) => eventShown(timeline.id, selectedDay, event))
-          .slice()
-          .sort((a, b) => (a.start || a.time || '').localeCompare(b.start || b.time || '')),
+        events: timelineItems(timeline.id, timeline.program, selectedDay),
       }))
       .filter((timeline) => timeline.events.length);
     if (activeIndependent.length) {
@@ -869,17 +850,12 @@
         cell.appendChild(line);
       }
       const lanes = [];
-      timeline.events.forEach((event) => {
-        const start = timeMinutes(event.start || event.time || '00:00');
-        let end = event.end ? timeMinutes(event.end) : Math.min(1440, start + 60);
-        if (end <= start) end = Math.min(1440, start + 60);
-        const lane = lanes.findIndex((laneEnd) => laneEnd <= start);
+      timeline.events.forEach((item) => {
+        const lane = lanes.findIndex((laneEnd) => laneEnd <= item.start);
         const laneIndex = lane < 0 ? lanes.length : lane;
-        if (lane < 0) lanes.push(end);
-        else lanes[laneIndex] = end;
-        cell.appendChild(
-          makeTimelineEvent(timeline.id, timeline.name, selectedDay, event, start, end, laneIndex)
-        );
+        if (lane < 0) lanes.push(item.end);
+        else lanes[laneIndex] = item.end;
+        cell.appendChild(makeTimelineEvent(timeline.id, timeline.name, item, laneIndex));
       });
       cell.style.height = Math.max(58, lanes.length * 56 + 16) + 'px';
       tr.appendChild(cell);
@@ -930,6 +906,53 @@
     const match = /^(\d{1,2}):(\d{2})$/.exec(value || '');
     if (!match) return 0;
     return Math.max(0, Math.min(1439, Number(match[1]) * 60 + Number(match[2])));
+  }
+  function eventSpan(event) {
+    const start = timeMinutes(event.start || event.time || '00:00');
+    if (event.end) {
+      const endMinutes = timeMinutes(event.end);
+      if (endMinutes < start) return { start, end: 1440, overnight: endMinutes > 0, carryEnd: endMinutes };
+      if (endMinutes > start) return { start, end: endMinutes, overnight: false, carryEnd: 0 };
+    }
+    return { start, end: Math.min(1440, start + 60), overnight: false, carryEnd: 0 };
+  }
+  function previousDay(day) {
+    return allDayKeys[(allDayKeys.indexOf(day) + 6) % 7];
+  }
+  function timelineItems(ownerId, program, day, isVisible = (id, d, e) => eventShown(id, d, e)) {
+    const items = [];
+    const collect = (sourceDay, carried) => {
+      (Array.isArray(program?.[sourceDay]) ? program[sourceDay] : []).forEach((event) => {
+        if (!isVisible(ownerId, sourceDay, event)) return;
+        const span = eventSpan(event);
+        if (carried) {
+          if (span.overnight)
+            items.push({
+              event,
+              day: sourceDay,
+              start: 0,
+              end: span.carryEnd,
+              overnight: false,
+              continued: true,
+            });
+        } else
+          items.push({
+            event,
+            day: sourceDay,
+            start: span.start,
+            end: span.end,
+            overnight: span.overnight,
+            continued: false,
+          });
+      });
+    };
+    collect(day, false);
+    collect(previousDay(day), true);
+    return items.sort((a, b) => a.start - b.start);
+  }
+  function eventTimeLabel(event, item) {
+    const range = (event.start || event.time || formatTime(item.start)) + (event.end ? '–' + event.end : '');
+    return item.continued ? '← ' + range : item.overnight ? range + ' →' : range;
   }
   function formatTime(minutes) {
     return String(Math.floor(minutes / 60)).padStart(2, '0') + ':' + String(minutes % 60).padStart(2, '0');
@@ -1216,7 +1239,18 @@
     end.value = event.end || '';
     const times = document.createElement('div');
     times.className = 'program-owner-times';
-    times.append(field('eventStart', start), field('eventEnd', end));
+    const overnightNote = document.createElement('p');
+    overnightNote.className = 'program-entry-note';
+    overnightNote.setAttribute('role', 'status');
+    overnightNote.textContent = window.AppI18n.t('eventOvernight');
+    overnightNote.hidden = true;
+    const syncOvernight = () => {
+      overnightNote.hidden = !(start.value && end.value && end.value < start.value && end.value !== '00:00');
+    };
+    start.addEventListener('input', syncOvernight);
+    end.addEventListener('input', syncOvernight);
+    syncOvernight();
+    times.append(field('eventStart', start), field('eventEnd', end), overnightNote);
     const host = document.createElement('input');
     host.type = 'text';
     host.maxLength = 200;
@@ -1284,7 +1318,7 @@
       submit.preventDefault();
       submit.stopPropagation();
       status.textContent = '';
-      if (end.value && end.value <= start.value) {
+      if (end.value && end.value === start.value) {
         status.textContent = window.AppI18n.t('eventEditTimeInvalid');
         return;
       }
@@ -1713,18 +1747,28 @@
       host.remove();
     }
   }
+  const hasEventText = (id, day, event) => !!String(event?.text || '').trim();
   async function exportTimetableJpg() {
     const entries = [
       ...(data.pois || [])
         .filter((p) => p.hasProgram)
         .map((p) => ({
           name: p.name || window.AppI18n.t('locationName'),
+          id: p.id,
+          program: p.program,
           events: p.program?.[selectedDay] || [],
         })),
-      ...(data.timelines || [])
-        .slice(0, 3)
-        .map((timeline) => ({ name: timeline.name, events: timeline.program?.[selectedDay] || [] })),
-    ].filter((entry) => entry.events.some((event) => event && String(event.text || '').trim()));
+      ...(data.timelines || []).slice(0, 3).map((timeline) => ({
+        name: timeline.name,
+        id: timeline.id,
+        program: timeline.program,
+        events: timeline.program?.[selectedDay] || [],
+      })),
+    ].filter(
+      (entry) =>
+        entry.events.some((event) => event && String(event.text || '').trim()) ||
+        timelineItems(entry.id, entry.program, selectedDay, hasEventText).length
+    );
     if (!entries.length) {
       alert(window.AppI18n.t('noProgramPois'));
       return;
@@ -1735,6 +1779,9 @@
         .filter((e) => e && String(e.text || '').trim())
         .slice()
         .sort((a, b) => (a.start || a.time || '').localeCompare(b.start || b.time || ''))
+    );
+    const itemsByPoi = entries.map((entry) =>
+      timelineItems(entry.id, entry.program, selectedDay, hasEventText)
     );
     const usedCategoryKeys = [
       ...new Set(
@@ -1884,14 +1931,12 @@
       }
       return lines.slice(0, maxLines);
     };
-    const rowHeights = eventsByPoi.map((events) => {
+    const rowHeights = itemsByPoi.map((items) => {
       let lanes = [];
-      events.forEach((e) => {
-        const start = timeMinutes(e.start || e.time || '00:00'),
-          end = e.end ? timeMinutes(e.end) : Math.min(1440, start + 60),
-          lane = lanes.findIndex((v) => v <= start);
-        if (lane < 0) lanes.push(end || start + 60);
-        else lanes[lane] = end || start + 60;
+      items.forEach(({ start, end }) => {
+        const lane = lanes.findIndex((v) => v <= start);
+        if (lane < 0) lanes.push(end);
+        else lanes[lane] = end;
       });
       return Math.max(154, lanes.length * 160 + 24);
     });
@@ -1973,12 +2018,9 @@
       });
       if (line) lines.push(line);
       lines.slice(0, 3).forEach((text, i) => ctx.fillText(text, 24, y + 38 + i * 29));
-      const events = eventsByPoi[index],
-        lanes = [];
-      events.forEach((event) => {
-        const start = timeMinutes(event.start || event.time || '00:00');
-        let end = event.end ? timeMinutes(event.end) : Math.min(1440, start + 60);
-        if (end <= start) end = Math.min(1440, start + 60);
+      const lanes = [];
+      itemsByPoi[index].forEach((item) => {
+        const { event, start, end } = item;
         let lane = lanes.findIndex((v) => v <= start);
         if (lane < 0) {
           lane = lanes.length;
@@ -2003,7 +2045,7 @@
         ctx.fillStyle = '#fff';
         ctx.textAlign = 'left';
         ctx.font = 'bold 20px system-ui, sans-serif';
-        ctx.fillText(formatTime(start) + (event.end ? '–' + event.end : ''), bx + 10, by + 25);
+        ctx.fillText(eventTimeLabel(event, item), bx + 10, by + 25);
         ctx.font = 'bold 24px system-ui, sans-serif';
         titleLines.forEach((titleLine, lineIndex) =>
           ctx.fillText(titleLine, bx + 10, by + 50 + lineIndex * 26)
@@ -2027,7 +2069,7 @@
     eventsByPoi.forEach((events, index) =>
       events.forEach((event, eventIndex) => {
         const start = event.start || event.time || '00:00',
-          end = event.end ? `–${event.end}` : '',
+          end = event.end ? `–${event.end}${eventSpan(event).overnight ? ' (+1)' : ''}` : '',
           selected = (Array.isArray(event.categories) ? event.categories : [])
             .map((key) => eventCategories.find(([candidate]) => candidate === key))
             .filter(Boolean);

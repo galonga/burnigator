@@ -271,9 +271,10 @@
     eventEditForbidden:
       'Du bist nicht berechtigt, dieses Event zu bearbeiten.|You are not allowed to edit this event.',
     eventEditTimeInvalid:
-      'Die Endzeit muss nach der Startzeit liegen.|The end time must be after the start time.',
+      'Die Endzeit darf nicht gleich der Startzeit sein.|The end time must differ from the start time.',
     history_event_owner_save: 'Event vom Event-Owner geändert|Event changed by its event owner',
     eventStart: 'Startzeit|Start time',
+    eventOvernight: 'Endet am nächsten Tag|Ends the next day',
     eventEnd: 'Endzeit|End time',
     eventTitle: 'Veranstaltung|Event',
     eventDescription: 'Beschreibung (optional)|Description (optional)',
@@ -418,7 +419,7 @@
     eventIncomplete:
       'Mindestens ein Event ist unvollständig. Titel und Startzeit sind Pflichtfelder.|At least one event is incomplete. Title and start time are required.',
     invalidEventTime:
-      'Die Endzeit muss nach der Startzeit liegen.|The end time must be later than the start time.',
+      'Die Endzeit darf nicht gleich der Startzeit sein.|The end time must differ from the start time.',
     backToMap: 'Zur Besucherkarte|Visitor map',
     title: 'Event-Titel|Event title',
     iconMode: 'Symbolfarben|Icon color mode',

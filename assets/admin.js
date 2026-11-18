@@ -677,7 +677,16 @@
             summaryTitle.className = 'program-event-summary-title';
             cardSummary.append(summaryTime, summaryTitle);
             const syncSummary = () => {
-              summaryTime.textContent = event.start ? event.start + (event.end ? '–' + event.end : '') : '–';
+              const overnight = !!(
+                event.start &&
+                event.end &&
+                event.end < event.start &&
+                event.end !== '00:00'
+              );
+              summaryTime.textContent = event.start
+                ? event.start + (event.end ? '–' + event.end : '') + (overnight ? ' +1' : '')
+                : '–';
+              note.hidden = !overnight;
               const title = String(event.text || '').trim();
               summaryTitle.textContent = title || window.AppI18n.t('eventHintTitle');
               cardSummary.classList.toggle('is-incomplete', !title || !event.start);
@@ -715,6 +724,7 @@
               event.end = end.value;
               syncSummary();
             };
+            end.oninput = end.onchange;
             const text = document.createElement('input');
             text.type = 'text';
             text.maxLength = 200;
@@ -723,6 +733,12 @@
             const hint = document.createElement('p');
             hint.className = 'program-entry-hint';
             hint.setAttribute('role', 'status');
+            const note = document.createElement('p');
+            note.className = 'program-entry-note';
+            note.setAttribute('role', 'status');
+            note.textContent = window.AppI18n.t('eventOvernight');
+            note.dataset.i18n = 'eventOvernight';
+            note.hidden = true;
             const syncHint = () => {
               const missing = [];
               const titleMissing = !String(event.text || '').trim();
@@ -854,7 +870,7 @@
               actions.appendChild(saveEvent);
             }
             actions.appendChild(del);
-            eventCard.append(cardSummary, row, hint, detailsSection, linkSection, categorySection);
+            eventCard.append(cardSummary, row, hint, note, detailsSection, linkSection, categorySection);
             if (role === 'owner') eventCard.appendChild(buildEventOwnerFields(event, drawEntries));
             eventCard.appendChild(actions);
             entries.appendChild(eventCard);
@@ -1134,7 +1150,7 @@
     function hasInvalidEventTime(pois) {
       return (pois || []).some((p) =>
         Object.values(p.program || {}).some(
-          (events) => Array.isArray(events) && events.some((e) => e && e.end && e.start && e.end <= e.start)
+          (events) => Array.isArray(events) && events.some((e) => e && e.end && e.start && e.end === e.start)
         )
       );
     }

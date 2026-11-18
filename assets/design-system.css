@@ -1084,6 +1084,15 @@ input[type='search'] {
     box-shadow var(--motion-standard),
     transform var(--motion-standard);
 }
+.timeline-event.is-overnight {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+.timeline-event.is-continued {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  opacity: 0.85;
+}
 .timeline-event:hover {
   filter: brightness(0.92);
   box-shadow: var(--elevation-1);
@@ -2121,6 +2130,15 @@ select {
   margin: 0;
 }
 
+.program-entry-note {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--color-primary);
+  font-size: var(--type-label);
+}
+.program-entry-note[hidden] {
+  display: none;
+}
 .program-entry-hint {
   margin: 0;
   color: var(--color-alert);

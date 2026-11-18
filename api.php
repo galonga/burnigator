@@ -364,7 +364,7 @@ function invalidProgramTimes($value): bool
             }
             $start = (string) ($event['start'] ?? $event['time'] ?? '');
             $end = (string) ($event['end'] ?? '');
-            if ($end !== '' && preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $start) && preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $end) && $end <= $start) {
+            if ($end !== '' && preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $start) && preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $end) && $end === $start) {
                 return true;
             }
         }
@@ -791,7 +791,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array((string) ($_GET['action'] 
             $validTime = static function (string $time): bool {
                 return (bool) preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/D', $time);
             };
-            if (!preg_match('/^[a-f0-9-]{1,40}$/D', $eventId) || !$validTime($start) || ($end !== '' && (!$validTime($end) || $end <= $start))) {
+            if (!preg_match('/^[a-f0-9-]{1,40}$/D', $eventId) || !$validTime($start) || ($end !== '' && (!$validTime($end) || $end === $start))) {
                 respond(400, ['error' => 'invalid_event_time']);
             }
             $description = cleanText($input['description'] ?? '', 1000);
