@@ -1574,7 +1574,7 @@ small {
   display: grid;
 }
 .program-event-card .program-entry {
-  grid-template-columns: minmax(92px, 120px) minmax(92px, 120px) minmax(0, 1fr) 38px;
+  grid-template-columns: minmax(0, 1fr) minmax(92px, 120px) minmax(92px, 120px) 38px;
   gap: var(--space-2);
 }
 .program-event-card .program-entry input {
@@ -1633,7 +1633,7 @@ small {
   }
   .program-event-card .program-entry input[type='text'] {
     grid-column: 1/3;
-    grid-row: 2;
+    grid-row: 1;
   }
   .program-event-card .program-entry .button {
     grid-column: 3;

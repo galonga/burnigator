@@ -93,6 +93,7 @@
     csrfCookie = result.csrfCookie || '';
     attendee = result.authenticated ? result : null;
     renderAuth();
+    window.dispatchEvent(new Event('burnigator-event-auth-changed'));
   }
   function renderAuth() {
     auth.replaceChildren();
@@ -114,6 +115,7 @@
           await request('event-logout', {});
           attendee = null;
           renderAuth();
+          window.dispatchEvent(new Event('burnigator-event-auth-changed'));
           await refreshPosts();
         } catch (_) {
           status.textContent = window.AppI18n.t('eventFeatureUnavailable');

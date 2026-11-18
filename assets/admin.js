@@ -74,6 +74,8 @@
       if (message === 'poi_limit') return window.AppI18n.t('poiLimit');
       if (message === 'map_conflict') return window.AppI18n.t('mapConflict');
       if (message === 'invalid_event_time') return window.AppI18n.t('invalidEventTime');
+      if (message === 'event_owner_code_invalid') return window.AppI18n.t('eventOwnerCodeInvalid');
+      if (message === 'event_owner_unavailable') return window.AppI18n.t('eventOwnerUnavailable');
       if (message === 'soundcloud_playlist_invalid') return window.AppI18n.t('soundcloudPlaylistInvalid');
       if (message === 'timeline_name_required') return window.AppI18n.t('timelineNameRequired');
       if (message === 'invalid_timelines') return window.AppI18n.t('timelineLimit');
@@ -561,6 +563,7 @@
           .slice(0, 100)
           .map((e) => ({
             id: typeof e.id === 'string' && /^[a-f0-9-]{1,40}$/.test(e.id) ? e.id : newId(),
+            hasOwner: e.hasOwner === true,
             start: /^([01]\d|2[0-3]):[0-5]\d$/.test(e.start || e.time || '') ? e.start || e.time : '12:00',
             end: /^([01]\d|2[0-3]):[0-5]\d$/.test(e.end || '') ? e.end : '',
             text: typeof e.text === 'string' ? e.text.slice(0, 200) : '',
@@ -574,6 +577,46 @@
           }));
       });
       return out;
+    }
+    function buildEventOwnerFields(event, redraw) {
+      const box = document.createElement('div');
+      box.className = 'program-owner-fields';
+      const label = document.createElement('label');
+      const labelText = document.createElement('span');
+      labelText.textContent = window.AppI18n.t('eventOwnerCode');
+      labelText.dataset.i18n = 'eventOwnerCode';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.maxLength = 100;
+      input.autocomplete = 'off';
+      input.placeholder = window.AppI18n.t(
+        event.hasOwner ? 'eventOwnerCodeSet' : 'eventOwnerCodePlaceholder'
+      );
+      input.oninput = () => {
+        event.ownerCode = input.value.trim();
+        if (event.ownerCode) event.ownerClear = false;
+      };
+      label.append(labelText, input);
+      const hint = document.createElement('p');
+      hint.className = 'hint';
+      hint.textContent = window.AppI18n.t('eventOwnerHint');
+      hint.dataset.i18n = 'eventOwnerHint';
+      box.append(label, hint);
+      if (event.hasOwner) {
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'button button-outlined';
+        remove.textContent = window.AppI18n.t('eventOwnerRemove');
+        remove.onclick = () => {
+          window.trackAppEvent?.('Admin', 'event_owner_remove');
+          event.ownerClear = true;
+          event.hasOwner = false;
+          delete event.ownerCode;
+          redraw();
+        };
+        box.appendChild(remove);
+      }
+      return box;
     }
     function buildProgramEditor(p) {
       const box = document.createElement('details');
@@ -603,7 +646,6 @@
             start.type = 'time';
             start.value = event.start;
             start.setAttribute('aria-label', window.AppI18n.t('eventStart'));
-            start.onchange = () => (event.start = start.value);
             const end = document.createElement('input');
             end.type = 'time';
             end.value = event.end;
@@ -614,7 +656,30 @@
             text.maxLength = 200;
             text.placeholder = window.AppI18n.t('eventTitle');
             text.value = event.text;
-            text.oninput = () => (event.text = text.value);
+            const hint = document.createElement('p');
+            hint.className = 'program-entry-hint';
+            hint.setAttribute('role', 'status');
+            const syncHint = () => {
+              const missing = [];
+              const titleMissing = !String(event.text || '').trim();
+              const startMissing = !event.start;
+              text.setAttribute('aria-invalid', String(titleMissing));
+              start.setAttribute('aria-invalid', String(startMissing));
+              if (titleMissing) missing.push(window.AppI18n.t('eventHintTitle'));
+              if (startMissing) missing.push(window.AppI18n.t('eventHintStart'));
+              hint.textContent = missing.join(' ');
+              hint.hidden = missing.length === 0;
+            };
+            text.oninput = () => {
+              event.text = text.value;
+              syncHint();
+            };
+            start.onchange = () => {
+              event.start = start.value;
+              syncHint();
+            };
+            start.oninput = start.onchange;
+            syncHint();
             const del = document.createElement('button');
             del.type = 'button';
             del.className = 'button button-primary button-danger danger';
@@ -626,7 +691,7 @@
               p.program[day].splice(index, 1);
               drawEntries();
             };
-            row.append(start, end, text, del);
+            row.append(text, start, end, del);
             const host = document.createElement('input');
             host.type = 'text';
             host.className = 'program-host';
@@ -694,13 +759,23 @@
               options.appendChild(option);
             });
             picker.append(pickerSummary, options);
-            eventCard.append(row, host, description, linkFields, picker);
+            eventCard.append(row, hint, host, description, linkFields, picker);
+            if (role === 'owner') eventCard.appendChild(buildEventOwnerFields(event, drawEntries));
             if (role === 'www') {
               const saveEvent = document.createElement('button');
               saveEvent.type = 'button';
               saveEvent.className = 'button button-primary poi-save program-event-save';
               saveEvent.textContent = window.AppI18n.t('save');
               saveEvent.onclick = () => saveProgramEvent(p);
+              eventCard.appendChild(saveEvent);
+            } else if (event.isNew) {
+              const saveEvent = document.createElement('button');
+              saveEvent.type = 'button';
+              saveEvent.className = 'button button-primary program-event-save';
+              saveEvent.textContent = window.AppI18n.t('saveEvent');
+              saveEvent.dataset.i18n = 'saveEvent';
+              saveEvent.onclick = () =>
+                document.getElementById(role === 'owner' ? 'save-map' : 'save-pois')?.click();
               eventCard.appendChild(saveEvent);
             }
             entries.appendChild(eventCard);
@@ -716,6 +791,7 @@
           window.trackAppEvent?.('Admin', 'event_add', day);
           p.program[day].push({
             id: newId(),
+            isNew: true,
             start: '12:00',
             end: '13:00',
             text: '',
@@ -811,6 +887,7 @@
         document.querySelector('.independent-timeline-card .timeline-name-input')?.focus();
         return false;
       }
+      if (hasIncompleteEvent(data.timelines)) return false;
       if (hasInvalidEventTime(data.timelines)) {
         say(window.AppI18n.t('invalidEventTime'), true);
         return false;
@@ -956,6 +1033,21 @@
     }
     document.getElementById('upload-logo').onclick = () => uploadBranding('logo');
     document.getElementById('upload-favicon').onclick = () => uploadBranding('favicon');
+    function hasIncompleteEvent(items) {
+      const incomplete = (items || []).some((p) =>
+        Object.values(p.program || {}).some(
+          (events) =>
+            Array.isArray(events) && events.some((e) => e && (!String(e.text || '').trim() || !e.start))
+        )
+      );
+      if (!incomplete) return false;
+      say(window.AppI18n.t('eventIncomplete'), true);
+      const field = document.querySelector('.program-event-card [aria-invalid="true"]');
+      field?.closest('details')?.setAttribute('open', '');
+      field?.scrollIntoView?.({ block: 'center' });
+      field?.focus();
+      return true;
+    }
     function hasInvalidEventTime(pois) {
       return (pois || []).some((p) =>
         Object.values(p.program || {}).some(
@@ -972,6 +1064,7 @@
         say(window.AppI18n.t('timelineNameRequired'), true);
         return;
       }
+      if (hasIncompleteEvent([...data.pois, ...data.timelines])) return;
       if (hasInvalidEventTime([...data.pois, ...data.timelines])) {
         say(window.AppI18n.t('invalidEventTime'), true);
         return;
@@ -1076,6 +1169,12 @@
     }
     async function persistRolePayload(action, payload) {
       if (
+        hasIncompleteEvent(
+          [data.pois.find((p) => p.id === (payload.poi?.id || payload.program?.id))].filter(Boolean)
+        )
+      )
+        return;
+      if (
         hasInvalidEventTime(
           [data.pois.find((p) => p.id === (payload.poi?.id || payload.program?.id))].filter(Boolean)
         )
@@ -1112,6 +1211,7 @@
     }
     async function saveProgramEvent(p) {
       if (roleSaveInProgress) return;
+      if (hasIncompleteEvent([p])) return;
       if (hasInvalidEventTime([p])) {
         say(window.AppI18n.t('invalidEventTime'), true);
         return;
@@ -1175,6 +1275,7 @@
     }
     document.getElementById('save-pois').onclick = async () => {
       if (role !== 'poi') return;
+      if (hasIncompleteEvent([...data.pois, ...data.timelines])) return;
       if (hasInvalidEventTime([...data.pois, ...data.timelines])) {
         say(window.AppI18n.t('invalidEventTime'), true);
         return;
