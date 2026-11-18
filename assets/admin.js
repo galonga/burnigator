@@ -3,7 +3,7 @@
   try {
     const role = window.ADMIN_ROLE || 'owner';
     const ICON_OPTIONS = [...new Map((window.FA_ICON_OPTIONS || []).map((item) => [item[0], item])).values()];
-    const programDays = ['wed', 'thu', 'fri', 'sat', 'sun'];
+    const programDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
     const eventCategories = [
       ['performance', 'fa-masks-theater'],
       ['music', 'fa-music'],

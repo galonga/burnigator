@@ -119,7 +119,8 @@
   let mapHasBeenShown = false;
   const legend = document.getElementById('legend'),
     list = document.getElementById('place-list');
-  const dayKeys = ['wed', 'thu', 'fri', 'sat', 'sun'];
+  const dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  const weekdayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
   const eventCategories = [
     ['performance', 'fa-masks-theater', '#F08A24'],
     ['music', 'fa-music', '#305EAA'],
@@ -131,7 +132,7 @@
     ['loud', 'fa-volume-high', '#6B245B'],
     ['crafting', 'fa-scissors', '#3D806B'],
   ];
-  const festivalDay = () => ({ 0: 'sun', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat' })[new Date().getDay()] || '';
+  const festivalDay = () => weekdayKeys[new Date().getDay()];
   let selectedDay = festivalDay(),
     daySelectionTouched = false;
   const preferencesKey = 'imageMapCategoryPrefs';
@@ -719,7 +720,7 @@
     document.querySelector('.timetable-day-section').hidden = !visibleDays.length;
     const today = festivalDay();
     if (!daySelectionTouched && visibleDays.includes(today)) selectedDay = today;
-    else if (!visibleDays.includes(selectedDay)) selectedDay = visibleDays[0] || today || 'wed';
+    else if (!visibleDays.includes(selectedDay)) selectedDay = visibleDays[0] || today;
     visibleDays.forEach((day) => {
       const button = document.createElement('button');
       button.type = 'button';
@@ -890,7 +891,7 @@
   }
   function updateCurrentTimeIndicators() {
     document.querySelectorAll('.current-time-indicator').forEach((line) => line.remove());
-    const today = { 0: 'sun', 3: 'wed', 4: 'thu', 5: 'fri', 6: 'sat' }[new Date().getDay()];
+    const today = festivalDay();
     if (selectedDay !== today) return;
     const now = new Date(),
       minute = now.getHours() * 60 + now.getMinutes(),

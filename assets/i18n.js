@@ -355,6 +355,8 @@
     dataOffline: 'Offline – gespeicherte Daten|Offline – saved data',
     refreshingData: 'Aktualisiere…|Refreshing…',
     timeUnknown: 'unbekannt|unknown',
+    dayMon: 'Montag|Monday',
+    dayTue: 'Dienstag|Tuesday',
     dayWed: 'Mittwoch|Wednesday',
     dayThu: 'Donnerstag|Thursday',
     dayFri: 'Freitag|Friday',

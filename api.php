@@ -464,6 +464,8 @@ function cleanProgram($value): array
     $owners = eventOwners();
     $canAssignOwner = appRole() === 'owner';
     foreach ([
+        'mon',
+        'tue',
         'wed',
         'thu',
         'fri',
