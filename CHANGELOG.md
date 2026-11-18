@@ -6,6 +6,8 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ## [Unreleased]
 
+## [2026.11.1373] - 2026-11-18
+
 ### Changed
 
 - **Events past midnight:** an end time earlier than the start time (for example 22:00–02:00) now means the event ends the next day. The admin and event-owner forms show an "ends the next day" note, the timeline draws the event to midnight with an arrow and continues it on the next day, and the image export does the same. An end time of 00:00 is accepted as midnight. Equal start and end times are rejected. Existing events are unaffected.
@@ -67,6 +69,7 @@ First public release.
 - Event authentication hardening: write rate limits, safer imports that guard against mass access revocation, installation reset, and HTTP Pretix support.
 - `config.php`, `data/` and `uploads/` are ignored by git and excluded from release zips.
 
-[Unreleased]: https://github.com/galonga/burnigator/compare/v2026.11.1367...HEAD
+[Unreleased]: https://github.com/galonga/burnigator/compare/v2026.11.1373...HEAD
+[2026.11.1373]: https://github.com/galonga/burnigator/compare/v2026.11.1367...v2026.11.1373
 [2026.11.1367]: https://github.com/galonga/burnigator/compare/v2026.11.1359...v2026.11.1367
 [2026.11.1359]: https://github.com/galonga/burnigator/releases/tag/v2026.11.1359
