@@ -8,7 +8,7 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ### Added
 
-- **Avatars on the pinboard:** every pseudonym gets a generated avatar icon next to the name, in the visitor pinboard and in the moderation list. The animal in the name picks the icon (a cat, a fox, a feather, a fire for a phoenix, and so on), a colour word such as Amber or Scarlet picks the colour, and the rest comes from the name itself, so a name always looks the same.
+- **Avatars on the pinboard:** every pseudonym gets a generated avatar icon next to the name, in the visitor pinboard and in the moderation list. The animal in the name picks the icon (a cat, a fox, a feather, a fire for a phoenix, and so on). The colour is a random dark gradient: a colour word such as Amber or Scarlet steers the hue, everything else is random but fixed per name, so a name always looks the same. Colours are darkened until the white icon has a contrast of at least 5.7:1.
 
 ### Changed
 
