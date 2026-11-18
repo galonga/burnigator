@@ -255,6 +255,24 @@
     removeFavorite: 'Aus Favoriten entfernen|Remove from favorites',
     noFavoriteEvents: 'Für diesen Tag sind keine Favoriten vorhanden.|No favorite events for this day.',
     noProgramPois: 'Noch keine Orte im WWW.|No places are on WWW yet.',
+    eventOwnerCode: 'Event-Owner (Bestellcode, optional)|Event owner (order code, optional)',
+    eventOwnerCodePlaceholder: 'Bestellcode eintragen|Enter order code',
+    eventOwnerCodeSet: '•••••• Owner zugewiesen|•••••• Owner assigned',
+    eventOwnerRemove: 'Owner entfernen|Remove owner',
+    eventOwnerHint:
+      'Wer mit diesem Bestellcode angemeldet ist (Pinnwand-Tab), kann Zeit, Beschreibung und Kategorien dieses Events selbst ändern. Der Code wird nur als Hash gespeichert und nicht angezeigt.|Whoever is signed in with this order code (pinboard tab) can change the time, description and categories of this event. The code is stored only as a hash and is never shown.',
+    eventOwnerCodeInvalid:
+      'Der Bestellcode ist ungültig. Erlaubt sind Buchstaben, Ziffern und Bindestriche.|The order code is invalid. Letters, digits and hyphens are allowed.',
+    eventOwnerUnavailable:
+      'Event-Owner können erst gesetzt werden, wenn die Event-Authentifizierung eingerichtet ist.|Event owners can only be set once event authentication is set up.',
+    editEvent: 'Event bearbeiten|Edit event',
+    eventEditSaved: 'Event gespeichert.|Event saved.',
+    eventEditFailed: 'Das Event konnte nicht gespeichert werden.|The event could not be saved.',
+    eventEditForbidden:
+      'Du bist nicht berechtigt, dieses Event zu bearbeiten.|You are not allowed to edit this event.',
+    eventEditTimeInvalid:
+      'Die Endzeit muss nach der Startzeit liegen.|The end time must be after the start time.',
+    history_event_owner_save: 'Event vom Event-Owner geändert|Event changed by its event owner',
     eventStart: 'Startzeit|Start time',
     eventEnd: 'Endzeit|End time',
     eventTitle: 'Veranstaltung|Event',

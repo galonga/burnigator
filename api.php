@@ -10,6 +10,9 @@ header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 function respond(int $status, array $body): void
 {
+    if (isset($body['map']) && is_array($body['map'])) {
+        $body['map'] = publicEventMap($body['map']);
+    }
     http_response_code($status);
     echo json_encode($body, JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
     exit;
@@ -186,7 +189,7 @@ function cleanText($v, int $max): string
     return function_exists('mb_substr') ? mb_substr($v, 0, $max) : substr($v, 0, $max);
 }
 
-function recordHistory(string $action, int $count = 0, string $detail = ''): void
+function recordHistory(string $action, int $count = 0, string $detail = '', ?array $actor = null): void
 {
     $path = __DIR__ . '/data/history.json';
     $dir = dirname($path);
@@ -207,8 +210,8 @@ function recordHistory(string $action, int $count = 0, string $detail = ''): voi
     }
     array_unshift($items, [
         'at' => gmdate('c'),
-        'username' => (string) ($_SESSION['username'] ?? 'owner'),
-        'role' => appRole(),
+        'username' => (string) ($actor['username'] ?? $_SESSION['username'] ?? 'owner'),
+        'role' => (string) ($actor['role'] ?? appRole()),
         'action' => $action,
         'count' => $count,
         'detail' => cleanText($detail, 180),
@@ -377,10 +380,9 @@ function cleanIndependentTimelines($value): array
     return $out;
 }
 
-function cleanProgram($value): array
+function eventCategoryKeys(): array
 {
-    $program = [];
-    $allowed = [
+    return [
         'performance',
         'music',
         'kink',
@@ -391,6 +393,76 @@ function cleanProgram($value): array
         'loud',
         'crafting',
     ];
+}
+
+/**
+ * Event id => keyed hash of the owner's order code, for every event that has an owner.
+ */
+function eventOwnerMap(array $map): array
+{
+    $owners = [];
+    foreach (['pois', 'timelines'] as $group) {
+        foreach ((array) ($map[$group] ?? []) as $item) {
+            foreach ((array) (is_array($item) ? $item['program'] ?? [] : []) as $entries) {
+                foreach ((array) $entries as $event) {
+                    $id = is_array($event) ? (string) ($event['id'] ?? '') : '';
+                    $hash = is_array($event) ? (string) ($event['ownerOrderHash'] ?? '') : '';
+                    if ($id !== '' && preg_match('/^[a-f0-9]{64}$/D', $hash)) {
+                        $owners[$id] = $hash;
+                    }
+                }
+            }
+        }
+    }
+    return $owners;
+}
+
+/**
+ * The owners stored in the current map, read once per request (restore flows may preset it).
+ */
+function eventOwners(): array
+{
+    if (!isset($GLOBALS['burnigatorEventOwners'])) {
+        $GLOBALS['burnigatorEventOwners'] = eventOwnerMap(readMap());
+    }
+    return $GLOBALS['burnigatorEventOwners'];
+}
+
+/**
+ * Removes the owner hashes from a map before it is sent out. Signed-in programme editors only get a
+ * hasOwner flag, so they can see which events have an owner.
+ */
+function publicEventMap(array $map): array
+{
+    $showFlag = !empty($_SESSION['admin']) && in_array(appRole(), ['owner', 'www'], true);
+    foreach (['pois', 'timelines'] as $group) {
+        foreach ((array) ($map[$group] ?? []) as $i => $item) {
+            if (!is_array($item) || !is_array($item['program'] ?? null)) {
+                continue;
+            }
+            foreach ($item['program'] as $day => $entries) {
+                foreach ((array) $entries as $j => $event) {
+                    if (!is_array($event) || !array_key_exists('ownerOrderHash', $event)) {
+                        continue;
+                    }
+                    $has = (string) $event['ownerOrderHash'] !== '';
+                    unset($map[$group][$i]['program'][$day][$j]['ownerOrderHash']);
+                    if ($showFlag && $has) {
+                        $map[$group][$i]['program'][$day][$j]['hasOwner'] = true;
+                    }
+                }
+            }
+        }
+    }
+    return $map;
+}
+
+function cleanProgram($value): array
+{
+    $program = [];
+    $allowed = eventCategoryKeys();
+    $owners = eventOwners();
+    $canAssignOwner = appRole() === 'owner';
     foreach ([
         'wed',
         'thu',
@@ -432,7 +504,24 @@ function cleanProgram($value): array
             if (!$parts || !in_array(strtolower((string) ($parts['scheme'] ?? '')), ['http', 'https'], true) || !filter_var($linkUrl, FILTER_VALIDATE_URL)) {
                 $linkUrl = '';
             }
-            $program[$day][] = [
+            $ownerHash = $owners[$eventId] ?? '';
+            if ($canAssignOwner) {
+                if (!empty($event['ownerClear'])) {
+                    $ownerHash = '';
+                }
+                $ownerCode = trim((string) ($event['ownerCode'] ?? ''));
+                if ($ownerCode !== '') {
+                    if (!preg_match('/^[A-Z0-9\-\s]{3,100}$/iD', $ownerCode)) {
+                        respond(400, ['error' => 'event_owner_code_invalid']);
+                    }
+                    try {
+                        $ownerHash = eventOrderHash($ownerCode);
+                    } catch (Throwable $e) {
+                        respond(400, ['error' => 'event_owner_unavailable']);
+                    }
+                }
+            }
+            $entry = [
                 'id' => $eventId,
                 'start' => $start,
                 'end' => $end,
@@ -443,6 +532,10 @@ function cleanProgram($value): array
                 'linkText' => cleanText($event['linkText'] ?? '', 120),
                 'categories' => $selected,
             ];
+            if ($ownerHash !== '') {
+                $entry['ownerOrderHash'] = $ownerHash;
+            }
+            $program[$day][] = $entry;
         }
     }
     return $program;
@@ -496,6 +589,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'pinboar
         respond(404, ['error' => 'not_published']);
     }
     respond(200, ['enabled' => ($map['pinboardEnabled'] ?? false) === true]);
+}
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'event-owner-status') {
+    header('Cache-Control: private, no-store');
+    if (empty($config['installed'])) {
+        respond(404, ['error' => 'not_found']);
+    }
+    $map = readMap();
+    if (!($map['published'] ?? true) && !appCanPreviewUnpublished()) {
+        respond(404, ['error' => 'not_published']);
+    }
+    $none = ['authenticated' => false, 'ownedEventIds' => [], 'csrfCookie' => eventAuthCsrfCookieName($config)];
+    if (empty($_COOKIE[eventAuthCookieName($config)])) {
+        respond(200, $none);
+    }
+    try {
+        $session = eventAuthTokenHash($config) !== null ? eventAuthCurrentSession(eventAuthDb($config), $config) : null;
+    } catch (Throwable $e) {
+        $session = null;
+    }
+    if (!$session) {
+        respond(200, $none);
+    }
+    $owned = [];
+    foreach (eventOwnerMap($map) as $id => $hash) {
+        if (hash_equals($hash, (string) $session['order_hash'])) {
+            $owned[] = (string) $id;
+        }
+    }
+    respond(200, ['authenticated' => true, 'ownedEventIds' => $owned, 'csrfCookie' => eventAuthCsrfCookieName($config)]);
 }
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && in_array((string) ($_GET['action'] ?? ''), ['event-auth-status', 'pinboard'], true)) {
     header('Cache-Control: private, no-store');
@@ -559,6 +681,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && in_array((string) ($_GET['action'] ?
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array((string) ($_GET['action'] ?? ''), [
     'event-auth',
     'event-logout',
+    'event-owner-save',
     'pinboard-create',
     'pinboard-update',
     'pinboard-delete',
@@ -628,6 +751,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array((string) ($_GET['action'] 
             respond(401, ['error' => 'authentication_required']);
         }
         if (in_array($action, [
+            'event-owner-save',
             'pinboard-create',
             'pinboard-update',
             'pinboard-delete',
@@ -639,6 +763,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array((string) ($_GET['action'] 
             $input = [];
         }
         $now = gmdate('Y-m-d H:i:s');
+        if ($action === 'event-owner-save') {
+            $eventId = (string) ($input['eventId'] ?? '');
+            $start = (string) ($input['start'] ?? '');
+            $end = (string) ($input['end'] ?? '');
+            $validTime = static function (string $time): bool {
+                return (bool) preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/D', $time);
+            };
+            if (!preg_match('/^[a-f0-9-]{1,40}$/D', $eventId) || !$validTime($start) || ($end !== '' && (!$validTime($end) || $end <= $start))) {
+                respond(400, ['error' => 'invalid_event_time']);
+            }
+            $description = cleanText($input['description'] ?? '', 1000);
+            $categories = array_values(array_unique(array_filter(
+                is_array($input['categories'] ?? null) ? $input['categories'] : [],
+                static function ($category): bool {
+                    return is_string($category) && in_array($category, eventCategoryKeys(), true);
+                }
+            )));
+            $saved = withMapLock(function () use ($eventId, $start, $end, $description, $categories, $session) {
+                $m = readMap();
+                foreach (['pois', 'timelines'] as $group) {
+                    foreach ((array) $m[$group] as $i => $item) {
+                        foreach ((array) ($item['program'] ?? []) as $day => $entries) {
+                            foreach ((array) $entries as $j => $event) {
+                                if ((string) ($event['id'] ?? '') !== $eventId) {
+                                    continue;
+                                }
+                                $hash = (string) ($event['ownerOrderHash'] ?? '');
+                                if ($hash === '' || !hash_equals($hash, (string) $session['order_hash'])) {
+                                    return 'forbidden';
+                                }
+                                $m[$group][$i]['program'][$day][$j]['start'] = $start;
+                                $m[$group][$i]['program'][$day][$j]['end'] = $end;
+                                $m[$group][$i]['program'][$day][$j]['description'] = $description;
+                                $m[$group][$i]['program'][$day][$j]['categories'] = $categories;
+                                return saveMap($m) ? (string) ($event['text'] ?? '') : false;
+                            }
+                        }
+                    }
+                }
+                return 'not_found';
+            });
+            if ($saved === 'forbidden') {
+                respond(403, ['error' => 'event_owner_forbidden']);
+            }
+            if ($saved === 'not_found') {
+                respond(404, ['error' => 'event_not_found']);
+            }
+            if ($saved === false) {
+                respond(500, ['error' => 'event_save_failed']);
+            }
+            recordHistory('event_owner_save', 1, (string) $saved . ' · ' . $start . ($end !== '' ? '–' . $end : ''), ['username' => (string) $session['pseudonym'], 'role' => 'event-owner']);
+            respond(200, ['ok' => true, 'event' => ['id' => $eventId, 'start' => $start, 'end' => $end, 'description' => $description, 'categories' => $categories]]);
+        }
         if ($action === 'pinboard-create') {
             $body = cleanText($input['body'] ?? '', 2000);
             if ($body === '') {
@@ -791,7 +968,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     } else {
         header('X-Burnigator-Published: true');
     }
-    respond(200, $map);
+    respond(200, publicEventMap($map));
 }
 $role = appRole();
 if (empty($config['installed']) || empty($_SESSION['admin']) || !in_array($role, [
@@ -1019,6 +1196,7 @@ if ($action === 'restore-snapshot' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!is_array($m) || !is_array($m['categories'] ?? null) || !is_array($m['pois'] ?? null)) {
         respond(404, ['error' => 'Snapshot nicht gefunden.']);
     }
+    $GLOBALS['burnigatorEventOwners'] = eventOwnerMap($m);
     $m['timelines'] = cleanIndependentTimelines($m['timelines'] ?? []);
     $m['theme'] = cleanTheme($m['theme'] ?? null);
     $m['impressUrl'] = cleanOptionalHttpUrl($m['impressUrl'] ?? '');

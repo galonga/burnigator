@@ -8,6 +8,7 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ### Added
 
+- **Event owners:** an event can have an optional owner order code, set by the admin in the event editor (owner role only). A visitor who is signed in with that order code gets an edit button next to the favourite heart in the event details and can change the event time, description and categories. The code is stored only as an HMAC hash, never sent to visitors, and every change is checked on the server. Because sign-in is part of the pinboard, the pinboard has to be enabled. Downloaded full backups do not contain owner assignments; server-side snapshots keep them.
 - **Avatars on the pinboard:** every pseudonym gets a generated avatar icon next to the name, in the visitor pinboard and in the moderation list. The animal in the name picks the icon (a cat, a fox, a feather, a fire for a phoenix, and so on). The colour is a random dark gradient: a colour word such as Amber or Scarlet steers the hue, everything else is random but fixed per name, so a name always looks the same. Colours are darkened until the white icon has a contrast of at least 5.7:1.
 
 ### Changed

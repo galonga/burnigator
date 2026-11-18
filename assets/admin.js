@@ -74,6 +74,8 @@
       if (message === 'poi_limit') return window.AppI18n.t('poiLimit');
       if (message === 'map_conflict') return window.AppI18n.t('mapConflict');
       if (message === 'invalid_event_time') return window.AppI18n.t('invalidEventTime');
+      if (message === 'event_owner_code_invalid') return window.AppI18n.t('eventOwnerCodeInvalid');
+      if (message === 'event_owner_unavailable') return window.AppI18n.t('eventOwnerUnavailable');
       if (message === 'soundcloud_playlist_invalid') return window.AppI18n.t('soundcloudPlaylistInvalid');
       if (message === 'timeline_name_required') return window.AppI18n.t('timelineNameRequired');
       if (message === 'invalid_timelines') return window.AppI18n.t('timelineLimit');
@@ -561,6 +563,7 @@
           .slice(0, 100)
           .map((e) => ({
             id: typeof e.id === 'string' && /^[a-f0-9-]{1,40}$/.test(e.id) ? e.id : newId(),
+            hasOwner: e.hasOwner === true,
             start: /^([01]\d|2[0-3]):[0-5]\d$/.test(e.start || e.time || '') ? e.start || e.time : '12:00',
             end: /^([01]\d|2[0-3]):[0-5]\d$/.test(e.end || '') ? e.end : '',
             text: typeof e.text === 'string' ? e.text.slice(0, 200) : '',
@@ -574,6 +577,46 @@
           }));
       });
       return out;
+    }
+    function buildEventOwnerFields(event, redraw) {
+      const box = document.createElement('div');
+      box.className = 'program-owner-fields';
+      const label = document.createElement('label');
+      const labelText = document.createElement('span');
+      labelText.textContent = window.AppI18n.t('eventOwnerCode');
+      labelText.dataset.i18n = 'eventOwnerCode';
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.maxLength = 100;
+      input.autocomplete = 'off';
+      input.placeholder = window.AppI18n.t(
+        event.hasOwner ? 'eventOwnerCodeSet' : 'eventOwnerCodePlaceholder'
+      );
+      input.oninput = () => {
+        event.ownerCode = input.value.trim();
+        if (event.ownerCode) event.ownerClear = false;
+      };
+      label.append(labelText, input);
+      const hint = document.createElement('p');
+      hint.className = 'hint';
+      hint.textContent = window.AppI18n.t('eventOwnerHint');
+      hint.dataset.i18n = 'eventOwnerHint';
+      box.append(label, hint);
+      if (event.hasOwner) {
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'button button-outlined';
+        remove.textContent = window.AppI18n.t('eventOwnerRemove');
+        remove.onclick = () => {
+          window.trackAppEvent?.('Admin', 'event_owner_remove');
+          event.ownerClear = true;
+          event.hasOwner = false;
+          delete event.ownerCode;
+          redraw();
+        };
+        box.appendChild(remove);
+      }
+      return box;
     }
     function buildProgramEditor(p) {
       const box = document.createElement('details');
@@ -695,6 +738,7 @@
             });
             picker.append(pickerSummary, options);
             eventCard.append(row, host, description, linkFields, picker);
+            if (role === 'owner') eventCard.appendChild(buildEventOwnerFields(event, drawEntries));
             if (role === 'www') {
               const saveEvent = document.createElement('button');
               saveEvent.type = 'button';

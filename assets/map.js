@@ -395,6 +395,49 @@
       empty.textContent = window.AppI18n.t('noMatches');
     } else if (empty) empty.remove();
   });
+  const ownedEventIds = new Set();
+  let eventOwnerCsrfCookie = '';
+  async function loadEventOwnerStatus() {
+    try {
+      const response = await fetch('api.php?action=event-owner-status', {
+        cache: 'no-store',
+        credentials: 'same-origin',
+      });
+      if (!response.ok) throw new Error('http');
+      const status = await response.json();
+      ownedEventIds.clear();
+      if (status.authenticated && Array.isArray(status.ownedEventIds))
+        status.ownedEventIds.forEach((id) => ownedEventIds.add(id));
+      eventOwnerCsrfCookie = typeof status.csrfCookie === 'string' ? status.csrfCookie : '';
+    } catch (_) {
+      ownedEventIds.clear();
+    }
+    hideEventTooltip();
+  }
+  function readCookie(name) {
+    const match = document.cookie.split('; ').find((part) => part.startsWith(name + '='));
+    return match ? decodeURIComponent(match.slice(name.length + 1)) : '';
+  }
+  async function saveOwnedEvent(event, values) {
+    const response = await fetch('api.php?action=event-owner-save', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Event-CSRF': readCookie(eventOwnerCsrfCookie),
+      },
+      body: JSON.stringify({ eventId: event.id, ...values }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result.ok) {
+      const error = new Error(result.error || 'event_save_failed');
+      error.status = response.status;
+      throw error;
+    }
+    Object.assign(event, result.event);
+  }
+  loadEventOwnerStatus();
+  window.addEventListener('burnigator-event-auth-changed', loadEventOwnerStatus);
   renderTimetable();
   function legacyEventFavoriteKey(ownerId, day, event) {
     return JSON.stringify([ownerId, day, event.start || event.time || '', event.end || '', event.text || '']);
@@ -1011,7 +1054,26 @@
         click.stopPropagation();
         hideEventTooltip(trigger);
       });
-      header.append(eventTitle, favorite, close);
+      header.append(eventTitle, favorite);
+      if (event.id && ownedEventIds.has(event.id)) {
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.className = 'program-tooltip-edit button-light';
+        edit.setAttribute('aria-label', window.AppI18n.t('editEvent'));
+        edit.title = edit.getAttribute('aria-label');
+        const editIcon = document.createElement('i');
+        editIcon.className = 'fa-solid fa-pen';
+        editIcon.setAttribute('aria-hidden', 'true');
+        edit.appendChild(editIcon);
+        edit.addEventListener('click', (click) => {
+          click.preventDefault();
+          click.stopPropagation();
+          window.trackAppEvent?.('Visitor', 'event_owner_edit_open', ownerName + ' | ' + event.text);
+          showOwnerEditor(popup, header, event, trigger);
+        });
+        header.appendChild(edit);
+      }
+      header.appendChild(close);
       popup.appendChild(header);
       if (event.host) {
         const host = document.createElement('p');
@@ -1128,6 +1190,115 @@
       event.stopPropagation();
       show();
     });
+  }
+  function showOwnerEditor(popup, header, event, trigger) {
+    [...popup.children].forEach((child) => {
+      if (child !== header) child.remove();
+    });
+    const form = document.createElement('form');
+    form.className = 'program-owner-form';
+    const field = (labelKey, control) => {
+      const label = document.createElement('label');
+      const text = document.createElement('span');
+      text.textContent = window.AppI18n.t(labelKey);
+      label.append(text, control);
+      return label;
+    };
+    const start = document.createElement('input');
+    start.type = 'time';
+    start.required = true;
+    start.value = event.start || '';
+    const end = document.createElement('input');
+    end.type = 'time';
+    end.value = event.end || '';
+    const times = document.createElement('div');
+    times.className = 'program-owner-times';
+    times.append(field('eventStart', start), field('eventEnd', end));
+    const description = document.createElement('textarea');
+    description.maxLength = 1000;
+    description.rows = 5;
+    description.value = event.description || '';
+    const fieldset = document.createElement('fieldset');
+    fieldset.className = 'program-owner-categories';
+    const legend = document.createElement('legend');
+    legend.textContent = window.AppI18n.t('eventCategories');
+    fieldset.appendChild(legend);
+    const selected = new Set(Array.isArray(event.categories) ? event.categories : []);
+    eventCategories.forEach(([key, iconName]) => {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip-button';
+      const icon = document.createElement('i');
+      icon.className = 'fa-solid ' + iconName;
+      icon.setAttribute('aria-hidden', 'true');
+      const name = document.createElement('span');
+      name.textContent = window.AppI18n.t('eventCategory' + key[0].toUpperCase() + key.slice(1));
+      chip.append(icon, name);
+      const sync = () => {
+        chip.classList.toggle('active', selected.has(key));
+        chip.setAttribute('aria-pressed', String(selected.has(key)));
+      };
+      sync();
+      chip.addEventListener('click', () => {
+        if (selected.has(key)) selected.delete(key);
+        else selected.add(key);
+        sync();
+      });
+      fieldset.appendChild(chip);
+    });
+    const status = document.createElement('p');
+    status.className = 'program-owner-status';
+    status.setAttribute('role', 'status');
+    const actions = document.createElement('div');
+    actions.className = 'program-owner-actions';
+    const save = document.createElement('button');
+    save.type = 'submit';
+    save.className = 'button-primary';
+    save.textContent = window.AppI18n.t('save');
+    const cancel = document.createElement('button');
+    cancel.type = 'button';
+    cancel.className = 'button-outlined';
+    cancel.textContent = window.AppI18n.t('pinboardCancel');
+    cancel.addEventListener('click', (click) => {
+      click.preventDefault();
+      click.stopPropagation();
+      hideEventTooltip(trigger);
+    });
+    actions.append(save, cancel);
+    form.append(times, field('eventDescription', description), fieldset, status, actions);
+    form.addEventListener('submit', async (submit) => {
+      submit.preventDefault();
+      submit.stopPropagation();
+      status.textContent = '';
+      if (end.value && end.value <= start.value) {
+        status.textContent = window.AppI18n.t('eventEditTimeInvalid');
+        return;
+      }
+      save.disabled = true;
+      form.setAttribute('aria-busy', 'true');
+      try {
+        await saveOwnedEvent(event, {
+          start: start.value,
+          end: end.value,
+          description: description.value,
+          categories: eventCategories.map(([key]) => key).filter((key) => selected.has(key)),
+        });
+        window.trackAppEvent?.('Visitor', 'event_owner_edit_save', event.text);
+        hideEventTooltip(trigger);
+        renderTimetable();
+      } catch (error) {
+        if (error.status === 403) {
+          ownedEventIds.delete(event.id);
+          status.textContent = window.AppI18n.t('eventEditForbidden');
+        } else if (error.message === 'invalid_event_time') {
+          status.textContent = window.AppI18n.t('eventEditTimeInvalid');
+        } else status.textContent = window.AppI18n.t('eventEditFailed');
+        save.disabled = false;
+        form.removeAttribute('aria-busy');
+      }
+    });
+    popup.appendChild(form);
+    start.focus();
   }
   document.addEventListener('click', (event) => {
     if (activeEventTooltip && !activeEventTooltip.popup.contains(event.target)) hideEventTooltip();

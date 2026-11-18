@@ -209,14 +209,16 @@ button,
 }
 .button-light,
 .music-control,
-.program-tooltip-favorite {
+.program-tooltip-favorite,
+.program-tooltip-edit {
   background: var(--color-surface-timetable);
   color: var(--color-primary);
   border: 1px solid var(--color-surface-container-high);
 }
 .button-light:hover,
 .music-control:hover:not(:disabled),
-.program-tooltip-favorite:hover {
+.program-tooltip-favorite:hover,
+.program-tooltip-edit:hover {
   background: var(--color-white);
   color: var(--color-primary-hover);
   border-color: var(--color-divider);
@@ -409,7 +411,8 @@ button:disabled,
   margin: 8px 0 10px;
   border-radius: 999px;
 }
-.program-tooltip-favorite.button-light {
+.program-tooltip-favorite.button-light,
+.program-tooltip-edit.button-light {
   width: 40px;
   height: 40px;
   min-height: 40px;
@@ -2048,4 +2051,72 @@ select {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+.program-tooltip-edit {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.program-tooltip-edit:focus-visible {
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+.program-owner-form {
+  display: grid;
+  gap: var(--space-3);
+}
+.program-owner-form label {
+  display: grid;
+  gap: var(--space-1);
+  font-size: var(--type-label);
+  font-weight: 500;
+}
+.program-owner-times {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-2);
+}
+.program-owner-form input,
+.program-owner-form textarea {
+  width: 100%;
+  min-height: var(--control-height);
+  border: 1px solid var(--color-outline);
+  border-radius: var(--shape-control);
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  box-sizing: border-box;
+}
+.program-owner-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.program-owner-categories legend {
+  padding: 0;
+  margin-bottom: var(--space-1);
+  font-size: var(--type-label);
+  font-weight: 500;
+}
+.program-owner-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+.program-owner-status {
+  margin: 0;
+  min-height: 1em;
+  color: var(--color-alert);
+  font-size: var(--type-label);
+}
+.program-owner-fields {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.program-owner-fields .hint {
+  margin: 0;
 }
