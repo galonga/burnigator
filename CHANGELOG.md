@@ -9,6 +9,7 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 ### Added
 
 - **Full week:** programme days now cover Monday to Sunday instead of Wednesday to Sunday, in the admin editor, the visitor timetable and the current-day detection. Existing programmes keep their days; days without events stay hidden for visitors.
+- **Available event days:** Configuration → General lets the owner switch individual days off. Disabled days no longer appear in the programme editor for places and timelines; events already entered on them are kept. At least one day must stay enabled.
 - **First day of the event:** Configuration → General has a new setting for the first day of the event, for example Thursday to Wednesday. The programme editor and the visitor day tabs start on that day. The default is Monday.
 
 ## [2026.11.1367] - 2026-11-18

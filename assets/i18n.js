@@ -355,6 +355,11 @@
     dataOffline: 'Offline – gespeicherte Daten|Offline – saved data',
     refreshingData: 'Aktualisiere…|Refreshing…',
     timeUnknown: 'unbekannt|unknown',
+    enabledDays: 'Verfügbare Event-Tage|Available event days',
+    enabledDaysHint:
+      'Deaktivierte Tage erscheinen nicht im Programm-Editor für Orte. Bereits eingetragene Events bleiben gespeichert.|Disabled days do not appear in the programme editor for places. Events already entered are kept.',
+    enabledDaysRequired:
+      'Mindestens ein Event-Tag muss aktiviert bleiben.|At least one event day must stay enabled.',
     weekStart: 'Erster Tag des Events|First day of the event',
     weekStartHint:
       'Das Event dauert sieben Tage ab diesem Tag, zum Beispiel Donnerstag bis Mittwoch. Gilt für den Programm-Editor und die Besucheransicht.|The event runs for seven days from this day, for example Thursday to Wednesday. Applies to the programme editor and the visitor view.',

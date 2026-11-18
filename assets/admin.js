@@ -4,9 +4,20 @@
     const role = window.ADMIN_ROLE || 'owner';
     const ICON_OPTIONS = [...new Map((window.FA_ICON_OPTIONS || []).map((item) => [item[0], item])).values()];
     const programDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    const enabledProgramDays = () =>
+      Array.isArray(data.enabledDays) && data.enabledDays.some((day) => programDays.includes(day))
+        ? programDays.filter((day) => data.enabledDays.includes(day))
+        : programDays;
     const orderedProgramDays = () => {
       const first = Math.max(0, programDays.indexOf(data.weekStart));
-      return [...programDays.slice(first), ...programDays.slice(0, first)];
+      const enabled = enabledProgramDays();
+      return [...programDays.slice(first), ...programDays.slice(0, first)].filter((day) =>
+        enabled.includes(day)
+      );
+    };
+    const setEnabledDayFields = () => {
+      const enabled = enabledProgramDays();
+      document.querySelectorAll('.enabled-day').forEach((box) => (box.checked = enabled.includes(box.value)));
     };
     const eventCategories = [
       ['performance', 'fa-masks-theater'],
@@ -210,6 +221,7 @@
     document.getElementById('week-start').value = programDays.includes(data.weekStart)
       ? data.weekStart
       : 'mon';
+    setEnabledDayFields();
     document.getElementById('title-link-url').value = data.titleLinkUrl || '';
     document.getElementById('matomo-url').value = data.matomoUrl ?? '';
     document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '';
@@ -1042,9 +1054,11 @@
     document.getElementById('upload-favicon').onclick = () => uploadBranding('favicon');
     function hasIncompleteEvent(items) {
       const incomplete = (items || []).some((p) =>
-        Object.values(p.program || {}).some(
-          (events) =>
-            Array.isArray(events) && events.some((e) => e && (!String(e.text || '').trim() || !e.start))
+        Object.entries(p.program || {}).some(
+          ([day, events]) =>
+            enabledProgramDays().includes(day) &&
+            Array.isArray(events) &&
+            events.some((e) => e && (!String(e.text || '').trim() || !e.start))
         )
       );
       if (!incomplete) return false;
@@ -1084,6 +1098,13 @@
       data.qrUrl = document.getElementById('www-qr-url').value.trim();
       data.impressUrl = document.getElementById('impress-url').value.trim();
       data.weekStart = document.getElementById('week-start').value;
+      data.enabledDays = [...document.querySelectorAll('.enabled-day')]
+        .filter((box) => box.checked)
+        .map((box) => box.value);
+      if (!data.enabledDays.length) {
+        say(window.AppI18n.t('enabledDaysRequired'), true);
+        return;
+      }
       data.titleLinkUrl = document.getElementById('title-link-url').value.trim();
       data.matomoUrl = document.getElementById('matomo-url').value.trim();
       data.matomoSiteId = document.getElementById('matomo-site-id').value.trim();
@@ -1491,6 +1512,7 @@
           qrUrl: typeof imported.qrUrl === 'string' ? imported.qrUrl : '',
           impressUrl: typeof imported.impressUrl === 'string' ? imported.impressUrl : '',
           weekStart: programDays.includes(imported.weekStart) ? imported.weekStart : 'mon',
+          enabledDays: Array.isArray(imported.enabledDays) ? imported.enabledDays : programDays,
           titleLinkUrl: typeof imported.titleLinkUrl === 'string' ? imported.titleLinkUrl : '',
           matomoUrl: typeof imported.matomoUrl === 'string' ? imported.matomoUrl : data.matomoUrl || '',
           matomoSiteId: String(imported.matomoSiteId || data.matomoSiteId || ''),
@@ -1515,6 +1537,7 @@
         document.getElementById('week-start').value = programDays.includes(data.weekStart)
           ? data.weekStart
           : 'mon';
+        setEnabledDayFields();
         document.getElementById('title-link-url').value = data.titleLinkUrl || '';
         document.getElementById('matomo-url').value = data.matomoUrl ?? '';
         document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '';
@@ -1578,6 +1601,7 @@
         document.getElementById('week-start').value = programDays.includes(data.weekStart)
           ? data.weekStart
           : 'mon';
+        setEnabledDayFields();
         document.getElementById('title-link-url').value = data.titleLinkUrl || '';
         document.getElementById('matomo-url').value = data.matomoUrl ?? '';
         document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '';

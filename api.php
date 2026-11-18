@@ -95,6 +95,15 @@ function cleanMatomoUrl($value): string
     return rtrim($url, '/') . '/';
 }
 
+function cleanEnabledDays($value): array
+{
+    $days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    $enabled = is_array($value) ? array_values(array_filter($days, static function ($day) use ($value) {
+        return in_array($day, $value, true);
+    })) : [];
+    return $enabled ?: $days;
+}
+
 function cleanWeekStart($value): string
 {
     $days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
@@ -162,6 +171,7 @@ function readMap(): array
         'qrUrl' => '',
         'impressUrl' => '',
         'weekStart' => 'mon',
+        'enabledDays' => ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
         'titleLinkUrl' => '',
         'theme' => defaultTheme(),
         'matomoUrl' => '',
@@ -182,6 +192,7 @@ function readMap(): array
     $m['matomoSiteId'] = cleanMatomoSiteId($m['matomoSiteId'] ?? $fallback['matomoSiteId']);
     $m['impressUrl'] = cleanOptionalHttpUrl($m['impressUrl'] ?? '');
     $m['weekStart'] = cleanWeekStart($m['weekStart'] ?? 'mon');
+    $m['enabledDays'] = cleanEnabledDays($m['enabledDays'] ?? null);
     $m['titleLinkUrl'] = cleanOptionalHttpUrl($m['titleLinkUrl'] ?? '');
     $m['soundcloudEnabled'] = ($m['soundcloudEnabled'] ?? true) !== false;
     $m['soundcloudPlaylist'] = cleanSoundCloudPlaylist($m['soundcloudPlaylist'] ?? $fallback['soundcloudPlaylist']) ?? $fallback['soundcloudPlaylist'];
@@ -1213,6 +1224,7 @@ if ($action === 'restore-snapshot' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $m['theme'] = cleanTheme($m['theme'] ?? null);
     $m['impressUrl'] = cleanOptionalHttpUrl($m['impressUrl'] ?? '');
     $m['weekStart'] = cleanWeekStart($m['weekStart'] ?? 'mon');
+    $m['enabledDays'] = cleanEnabledDays($m['enabledDays'] ?? null);
     $m['titleLinkUrl'] = cleanOptionalHttpUrl($m['titleLinkUrl'] ?? '');
     $m['matomoUrl'] = cleanMatomoUrl($m['matomoUrl'] ?? readMap()['matomoUrl']);
     $m['matomoSiteId'] = cleanMatomoSiteId($m['matomoSiteId'] ?? readMap()['matomoSiteId']);
@@ -1360,6 +1372,7 @@ if ($action === 'restore-backup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         'qrUrl' => $qrUrl,
         'impressUrl' => cleanOptionalHttpUrl($src['impressUrl'] ?? ''),
         'weekStart' => cleanWeekStart($src['weekStart'] ?? 'mon'),
+        'enabledDays' => cleanEnabledDays($src['enabledDays'] ?? null),
         'titleLinkUrl' => cleanOptionalHttpUrl($src['titleLinkUrl'] ?? ''),
         'image' => $paths['image'],
         'logo' => $paths['logo'],
@@ -2025,6 +2038,7 @@ $m = [
     'qrUrl' => $qrUrl,
     'impressUrl' => cleanOptionalHttpUrl($in['impressUrl'] ?? $old['impressUrl'] ?? ''),
     'weekStart' => cleanWeekStart($in['weekStart'] ?? $old['weekStart'] ?? 'mon'),
+    'enabledDays' => cleanEnabledDays($in['enabledDays'] ?? $old['enabledDays'] ?? null),
     'titleLinkUrl' => cleanOptionalHttpUrl($in['titleLinkUrl'] ?? $old['titleLinkUrl'] ?? ''),
     'published' => ($old['published'] ?? true) === true,
     'pinboardEnabled' => ($old['pinboardEnabled'] ?? false) === true,
