@@ -4,6 +4,16 @@ All notable changes to Burnigator are documented here. The format follows [Keep 
 
 Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. The last number is the build number: it only ever increases and does not reset when the month changes. See [RELEASING.md](RELEASING.md).
 
+## [Unreleased]
+
+### Changed
+
+- The map upload is now called **Veranstaltungskarte** (German) and **Event map** (English) everywhere in the admin panel, instead of "Hintergrundbild" / "Background image".
+
+### Fixed
+
+- Enabling **Has programme** on a place was not saved: after saving, the place came back without it. Owners can now save the programme setting together with the place. Adding an event to a place that has not been saved yet also saves the place first.
+
 ## [2026.11.1359] - 2026-11-17
 
 First public release.

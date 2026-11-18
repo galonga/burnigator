@@ -163,7 +163,7 @@ if (empty($_SESSION['admin'])) {
   </div>
   <label><span data-i18n="iconMode">Symbolfarben</span>
   <select id="icon-mode"><option value="monochrome" data-i18n="mono">Monochrom (schwarz)</option><option value="colored" data-i18n="color">Farbig</option></select></label>
-  <label><span data-i18n="image">Hintergrundbild (PNG/JPG)</span><input id="image-file" type="file" accept="image/png,image/jpeg"></label>
+  <label><span data-i18n="image">Veranstaltungskarte (PNG/JPG)</span><input id="image-file" type="file" accept="image/png,image/jpeg"></label>
 <button id="upload-image" class="button button-secondary" data-i18n="upload">Bild hochladen</button>
 <button id="save-appearance" type="button" class="button button-primary" data-i18n="saveAppearance">Erscheinungsbild speichern</button>
 </section>
@@ -227,7 +227,7 @@ XWDYD,canceled
   <div class="data-tools"><button id="export-map" type="button" class="button button-secondary" data-i18n="exportData">Exportieren</button>
     <label class="import-file button-secondary"><span data-i18n="importData">Importieren</span><input id="import-map" type="file" accept="application/json,.json"></label>
   </div>
-  <p class="hint" data-i18n="importHint">Import überschreibt Titel, Kategorien, Orte und Symboleinstellungen. Das Hintergrundbild bleibt erhalten.</p>
+  <p class="hint" data-i18n="importHint">Import überschreibt Titel, Kategorien, Orte und Symboleinstellungen. Die Veranstaltungskarte bleibt erhalten.</p>
 </section>
 <section class="config-card" aria-labelledby="config-accounts-heading">
   <h2 id="config-accounts-heading" data-i18n="accountsHeading">Zusatzkonten</h2>

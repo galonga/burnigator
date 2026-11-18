@@ -208,8 +208,9 @@
     jpgExportFailed: 'Das JPG konnte nicht erstellt werden.|Could not create the JPG image.',
     poiIndex: 'POI-Index|POI index',
     mapPdfNoImage:
-      'Für den Kartenexport zuerst ein Hintergrundbild hochladen.|Upload a background image before exporting the map.',
-    mapPdfImageFailed: 'Das Kartenbild konnte nicht geladen werden.|The map image could not be loaded.',
+      'Für den Kartenexport zuerst eine Veranstaltungskarte hochladen.|Upload an event map before exporting the map.',
+    mapPdfImageFailed:
+      'Die Veranstaltungskarte konnte nicht geladen werden.|The event map could not be loaded.',
     eventCategories: 'Event-Kategorien auswählen|Select event categories',
     independentTimelines: 'Zusätzliche Timelines|Additional timelines',
     timetableRowHeading: 'Orte / Zeit|Places / Time',
@@ -302,7 +303,7 @@
     exportData: 'Komplettsicherung herunterladen|Download full backup',
     importData: 'Vollständige Sicherung wiederherstellen|Restore full backup',
     importHint:
-      'Die Sicherung enthält Kartendaten und alle hochgeladenen Kartenbilder. Login-Konten bleiben unverändert.|The backup includes map data and all uploaded map images. Login accounts stay unchanged.',
+      'Die Sicherung enthält Kartendaten und alle hochgeladenen Veranstaltungskarten. Login-Konten bleiben unverändert.|The backup includes map data and all uploaded event maps. Login accounts stay unchanged.',
     importConfirm:
       'Import überschreibt die aktuellen Kartendaten. Fortfahren?|Import will replace the current map data. Continue?',
     importSuccess: 'Daten importiert und gespeichert.|Data imported and saved.',
@@ -390,7 +391,7 @@
     iconMode: 'Symbolfarben|Icon color mode',
     mono: 'Monochrom (schwarz)|Monochrome (black)',
     color: 'Farbig|Colored',
-    image: 'Hintergrundbild (PNG/JPG)|Background image (PNG/JPG)',
+    image: 'Veranstaltungskarte (PNG/JPG)|Event map (PNG/JPG)',
     upload: 'Bild hochladen|Upload image',
     categories: 'Kategorien|Categories',
     newCategory: 'Neue Kategorie|New category',
@@ -423,7 +424,7 @@
     uploadSuccess: 'Bild hochgeladen.|Image uploaded.',
     selectImage: 'Bitte zuerst ein Bild auswählen.|Select an image first.',
     uploadFailed: 'Upload fehlgeschlagen.|Upload failed.',
-    needImage: 'Lade zuerst ein Hintergrundbild hoch.|Upload a background image first.',
+    needImage: 'Lade zuerst eine Veranstaltungskarte hoch.|Upload an event map first.',
     failedSave: 'Speichern fehlgeschlagen.|Could not save changes.',
     customButtonLabel: 'Zusatzbutton-Text (optional)|Custom button label (optional)',
     customButtonUrl: 'Zusatzbutton-Link (https://…)|Custom button URL (https://…)',
@@ -444,7 +445,7 @@
     history_poi_delete: 'POI gelöscht|POI deleted',
     history_program_save: 'WWW-Programm gespeichert|WWW timetable saved',
     history_accounts_save: 'Zusatzkonten geändert|Additional accounts updated',
-    history_map_image_upload: 'Kartenbild hochgeladen|Map image uploaded',
+    history_map_image_upload: 'Veranstaltungskarte hochgeladen|Event map uploaded',
     history_branding_logo: 'Titel-Logo geändert|Title logo updated',
     history_branding_favicon: 'Favicon geändert|Favicon updated',
     poiDeleteHasEvents:
