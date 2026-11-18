@@ -95,6 +95,12 @@ function cleanMatomoUrl($value): string
     return rtrim($url, '/') . '/';
 }
 
+function cleanWeekStart($value): string
+{
+    $days = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    return is_string($value) && in_array($value, $days, true) ? $value : 'mon';
+}
+
 function cleanOptionalHttpUrl($value): string
 {
     $url = is_string($value) ? trim($value) : '';
@@ -155,6 +161,7 @@ function readMap(): array
         'customButton' => ['label' => '', 'url' => ''],
         'qrUrl' => '',
         'impressUrl' => '',
+        'weekStart' => 'mon',
         'titleLinkUrl' => '',
         'theme' => defaultTheme(),
         'matomoUrl' => '',
@@ -174,6 +181,7 @@ function readMap(): array
     $m['matomoUrl'] = cleanMatomoUrl($m['matomoUrl'] ?? $fallback['matomoUrl']);
     $m['matomoSiteId'] = cleanMatomoSiteId($m['matomoSiteId'] ?? $fallback['matomoSiteId']);
     $m['impressUrl'] = cleanOptionalHttpUrl($m['impressUrl'] ?? '');
+    $m['weekStart'] = cleanWeekStart($m['weekStart'] ?? 'mon');
     $m['titleLinkUrl'] = cleanOptionalHttpUrl($m['titleLinkUrl'] ?? '');
     $m['soundcloudEnabled'] = ($m['soundcloudEnabled'] ?? true) !== false;
     $m['soundcloudPlaylist'] = cleanSoundCloudPlaylist($m['soundcloudPlaylist'] ?? $fallback['soundcloudPlaylist']) ?? $fallback['soundcloudPlaylist'];
@@ -1204,6 +1212,7 @@ if ($action === 'restore-snapshot' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $m['timelines'] = cleanIndependentTimelines($m['timelines'] ?? []);
     $m['theme'] = cleanTheme($m['theme'] ?? null);
     $m['impressUrl'] = cleanOptionalHttpUrl($m['impressUrl'] ?? '');
+    $m['weekStart'] = cleanWeekStart($m['weekStart'] ?? 'mon');
     $m['titleLinkUrl'] = cleanOptionalHttpUrl($m['titleLinkUrl'] ?? '');
     $m['matomoUrl'] = cleanMatomoUrl($m['matomoUrl'] ?? readMap()['matomoUrl']);
     $m['matomoSiteId'] = cleanMatomoSiteId($m['matomoSiteId'] ?? readMap()['matomoSiteId']);
@@ -1350,6 +1359,7 @@ if ($action === 'restore-backup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         'soundcloudPlaylist' => cleanSoundCloudPlaylist($src['soundcloudPlaylist'] ?? defaultSoundCloudPlaylist()) ?? defaultSoundCloudPlaylist(),
         'qrUrl' => $qrUrl,
         'impressUrl' => cleanOptionalHttpUrl($src['impressUrl'] ?? ''),
+        'weekStart' => cleanWeekStart($src['weekStart'] ?? 'mon'),
         'titleLinkUrl' => cleanOptionalHttpUrl($src['titleLinkUrl'] ?? ''),
         'image' => $paths['image'],
         'logo' => $paths['logo'],
@@ -2014,6 +2024,7 @@ $m = [
     'customButton' => ['label' => $customLabel, 'url' => $customUrl],
     'qrUrl' => $qrUrl,
     'impressUrl' => cleanOptionalHttpUrl($in['impressUrl'] ?? $old['impressUrl'] ?? ''),
+    'weekStart' => cleanWeekStart($in['weekStart'] ?? $old['weekStart'] ?? 'mon'),
     'titleLinkUrl' => cleanOptionalHttpUrl($in['titleLinkUrl'] ?? $old['titleLinkUrl'] ?? ''),
     'published' => ($old['published'] ?? true) === true,
     'pinboardEnabled' => ($old['pinboardEnabled'] ?? false) === true,

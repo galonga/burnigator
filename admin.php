@@ -123,6 +123,8 @@ if (empty($_SESSION['admin'])) {
   <label><span data-i18n="customButtonUrl">Zusatzbutton-Link (https://…)</span><input id="custom-button-url" type="url" maxlength="2048" placeholder="https://"></label>
   <label><span data-i18n="wwwQrUrl">QR-Code-URL für WWW-JPG (optional)</span><input id="www-qr-url" type="url" maxlength="2048" placeholder="https://"></label>
   <label><span data-i18n="titleLinkUrl">Titel-Link (optional)</span><input id="title-link-url" type="url" maxlength="2048" placeholder="https://"></label>
+  <label><span data-i18n="weekStart">Erster Tag des Events</span><select id="week-start"><option value="mon" data-i18n="dayMon">Montag</option><option value="tue" data-i18n="dayTue">Dienstag</option><option value="wed" data-i18n="dayWed">Mittwoch</option><option value="thu" data-i18n="dayThu">Donnerstag</option><option value="fri" data-i18n="dayFri">Freitag</option><option value="sat" data-i18n="daySat">Samstag</option><option value="sun" data-i18n="daySun">Sonntag</option></select></label>
+  <p class="hint" data-i18n="weekStartHint">Das Event dauert sieben Tage ab diesem Tag, zum Beispiel Donnerstag bis Mittwoch. Gilt für den Programm-Editor und die Besucheransicht.</p>
   <label><span data-i18n="impressUrl">Impress-Link (optional)</span><input id="impress-url" type="url" maxlength="2048" placeholder="https://"></label>
   <label class="setting-toggle"><input id="browser-translation-enabled" type="checkbox"><span data-i18n="enableBrowserTranslation">Browserübersetzung für WWW-Beschreibungen anbieten</span></label>
   <p class="hint" data-i18n="browserTranslationHint">Nutzt die experimentelle Übersetzungsfunktion des Browsers. Sie erscheint nur in Browsern, die sie unterstützen.</p>

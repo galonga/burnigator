@@ -119,7 +119,9 @@
   let mapHasBeenShown = false;
   const legend = document.getElementById('legend'),
     list = document.getElementById('place-list');
-  const dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  const allDayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  const firstDayIndex = Math.max(0, allDayKeys.indexOf(data.weekStart));
+  const dayKeys = [...allDayKeys.slice(firstDayIndex), ...allDayKeys.slice(0, firstDayIndex)];
   const weekdayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
   const eventCategories = [
     ['performance', 'fa-masks-theater', '#F08A24'],

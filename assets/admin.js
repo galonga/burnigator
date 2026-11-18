@@ -4,6 +4,10 @@
     const role = window.ADMIN_ROLE || 'owner';
     const ICON_OPTIONS = [...new Map((window.FA_ICON_OPTIONS || []).map((item) => [item[0], item])).values()];
     const programDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+    const orderedProgramDays = () => {
+      const first = Math.max(0, programDays.indexOf(data.weekStart));
+      return [...programDays.slice(first), ...programDays.slice(0, first)];
+    };
     const eventCategories = [
       ['performance', 'fa-masks-theater'],
       ['music', 'fa-music'],
@@ -203,6 +207,9 @@
     document.getElementById('custom-button-url').value = data.customButton?.url || '';
     document.getElementById('www-qr-url').value = data.qrUrl || '';
     document.getElementById('impress-url').value = data.impressUrl || '';
+    document.getElementById('week-start').value = programDays.includes(data.weekStart)
+      ? data.weekStart
+      : 'mon';
     document.getElementById('title-link-url').value = data.titleLinkUrl || '';
     document.getElementById('matomo-url').value = data.matomoUrl ?? '';
     document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '';
@@ -626,7 +633,7 @@
       summary.dataset.i18n = 'programHeading';
       summary.classList.add('button-secondary');
       box.appendChild(summary);
-      programDays.forEach((day) => {
+      orderedProgramDays().forEach((day) => {
         const group = document.createElement('div');
         group.className = 'program-day';
         const heading = document.createElement('h4');
@@ -1076,6 +1083,7 @@
       };
       data.qrUrl = document.getElementById('www-qr-url').value.trim();
       data.impressUrl = document.getElementById('impress-url').value.trim();
+      data.weekStart = document.getElementById('week-start').value;
       data.titleLinkUrl = document.getElementById('title-link-url').value.trim();
       data.matomoUrl = document.getElementById('matomo-url').value.trim();
       data.matomoSiteId = document.getElementById('matomo-site-id').value.trim();
@@ -1482,6 +1490,7 @@
           theme: window.BurnigatorTheme.normalize(imported.theme || data.theme),
           qrUrl: typeof imported.qrUrl === 'string' ? imported.qrUrl : '',
           impressUrl: typeof imported.impressUrl === 'string' ? imported.impressUrl : '',
+          weekStart: programDays.includes(imported.weekStart) ? imported.weekStart : 'mon',
           titleLinkUrl: typeof imported.titleLinkUrl === 'string' ? imported.titleLinkUrl : '',
           matomoUrl: typeof imported.matomoUrl === 'string' ? imported.matomoUrl : data.matomoUrl || '',
           matomoSiteId: String(imported.matomoSiteId || data.matomoSiteId || ''),
@@ -1503,6 +1512,9 @@
         setThemeFields(data.theme);
         document.getElementById('www-qr-url').value = data.qrUrl || '';
         document.getElementById('impress-url').value = data.impressUrl || '';
+        document.getElementById('week-start').value = programDays.includes(data.weekStart)
+          ? data.weekStart
+          : 'mon';
         document.getElementById('title-link-url').value = data.titleLinkUrl || '';
         document.getElementById('matomo-url').value = data.matomoUrl ?? '';
         document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '';
@@ -1563,6 +1575,9 @@
         document.getElementById('custom-button-url').value = data.customButton?.url || '';
         document.getElementById('www-qr-url').value = data.qrUrl || '';
         document.getElementById('impress-url').value = data.impressUrl || '';
+        document.getElementById('week-start').value = programDays.includes(data.weekStart)
+          ? data.weekStart
+          : 'mon';
         document.getElementById('title-link-url').value = data.titleLinkUrl || '';
         document.getElementById('matomo-url').value = data.matomoUrl ?? '';
         document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '';

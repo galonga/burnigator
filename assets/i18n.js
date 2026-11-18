@@ -355,6 +355,9 @@
     dataOffline: 'Offline – gespeicherte Daten|Offline – saved data',
     refreshingData: 'Aktualisiere…|Refreshing…',
     timeUnknown: 'unbekannt|unknown',
+    weekStart: 'Erster Tag des Events|First day of the event',
+    weekStartHint:
+      'Das Event dauert sieben Tage ab diesem Tag, zum Beispiel Donnerstag bis Mittwoch. Gilt für den Programm-Editor und die Besucheransicht.|The event runs for seven days from this day, for example Thursday to Wednesday. Applies to the programme editor and the visitor view.',
     dayMon: 'Montag|Monday',
     dayTue: 'Dienstag|Tuesday',
     dayWed: 'Mittwoch|Wednesday',
