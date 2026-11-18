@@ -23,6 +23,13 @@ Restore your backup of the previous version's files. Restore `config.php`, `data
 
 ## Notes per version
 
+### 2026.11.1373
+
+- **Nothing is required.** No database change; existing events and settings are kept.
+- **Full week and day settings.** The programme now covers Monday to Sunday. In Configuration → General you can set the first day of the event (for example Thursday to Wednesday) and switch individual days off. New installations and existing ones keep all seven days enabled and start on Monday, so nothing changes until you choose otherwise.
+- **Events past midnight.** An end time earlier than the start time (for example 22:00–02:00) now means the event ends the next day, and it continues on the next day's timeline. Events you saved earlier are unaffected.
+- **Event editor.** The editor for places and timelines is reorganised into collapsible days and events, with a Save event button under new events. Event owners get a fuller edit form (host, times, description, categories).
+
 ### 2026.11.1367
 
 - **Nothing is required.** No database change; existing data is kept.
