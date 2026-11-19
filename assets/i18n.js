@@ -4,6 +4,8 @@
     pinboardTitle: 'Pinnwand|Pinboard',
     pinboardIntro:
       'Teile Hinweise mit anderen Festivalgästen. Zum Schreiben brauchst du eine bezahlte Bestellung für dieses Event.|Share helpful notes with other festival visitors. A paid order for this event is required to post.',
+    pinboardUnlockInfo:
+      'Zum Schreiben auf der Pinnwand brauchst du deine Pretix-Bestellnummer. Du findest sie in der Bestätigungs-E-Mail deiner Bestellung. Lesen kannst du die Beiträge auch ohne Anmeldung.|You need your Pretix order number to post on the pinboard. You can find it in the confirmation email of your order. You can read the posts without signing in.',
     orderCodeLabel: 'Pretix-Bestellnummer|Pretix order number',
     eventSignIn: 'Freischalten|Unlock posting',
     eventSignOut: 'Abmelden|Sign out',
