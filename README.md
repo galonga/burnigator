@@ -44,7 +44,7 @@ Learn more, and see what Burnigator offers guests and organizers, at **[burnigat
 ## Requirements
 
 - PHP 7.4 or newer with JSON, sessions, file uploads, and filesystem locking
-- MariaDB/MySQL and PDO MySQL for event authentication and pinboard; OpenSSL and cURL are needed for Pretix API token storage and synchronization
+- MariaDB/MySQL and PDO MySQL for event authentication and pinboard (the connection can be added, changed or removed later in Configuration → User management → Database connection; the pinboard tab shows a hint while no database is connected); OpenSSL and cURL are needed for Pretix API token storage and synchronization
 - An Apache-compatible web server with `.htaccess` support
 - HTTPS for normal use and service-worker/PWA support (localhost is suitable for local development)
 - One complete application copy and writable data/upload directories per hosted festival instance

@@ -24,7 +24,12 @@
       },
       {
         key: 'configTabUsers',
-        ids: ['config-accounts-heading', 'event-auth-heading', 'config-owner-password-heading'],
+        ids: [
+          'config-accounts-heading',
+          'config-owner-password-heading',
+          'database-heading',
+          'event-auth-heading',
+        ],
       },
       {
         key: 'configTabSecurity',

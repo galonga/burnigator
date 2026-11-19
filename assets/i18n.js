@@ -25,6 +25,41 @@
     pinboardShow: 'Einblenden|Show',
     pinboardModerationUnavailable: 'Beiträge konnten nicht geladen werden.|Could not load posts.',
     eventAuthTitle: 'Event-Authentifizierung|Event authentication',
+    eventAuthIntro:
+      'Mit der Event-Authentifizierung melden sich Gäste mit ihrer Pretix-Bestellnummer an. Nur wer eine bezahlte Bestellung für dieses Event hat, kann auf der Pinnwand schreiben, und Event-Owner können damit ihr Event bearbeiten.|Event authentication lets guests sign in with their Pretix order number. Only guests with a paid order for this event can post on the pinboard, and event owners use it to edit their event.',
+    pretixHeading: 'Pretix-Anbindung|Pretix connection',
+    pretixExplain:
+      'Pretix ist ein Ticketsystem. Burnigator fragt über die Pretix-API die Bestellnummern und deren Status ab (nur lesend) und erlaubt nur bezahlten Bestellungen den Zugang. Namen, E-Mail-Adressen und Zahlungsdaten werden nicht abgerufen oder gespeichert. Den Abgleich startest du mit „Jetzt synchronisieren“.|Pretix is a ticketing system. Burnigator reads order numbers and their status through the Pretix API (read-only) and only lets paid orders in. Names, email addresses and payment details are not retrieved or stored. Start the comparison with “Sync now”.',
+    csvHeading: 'CSV-Import statt Pretix|CSV import instead of Pretix',
+    csvExplain:
+      'Ohne Pretix-Anbindung kannst du die Bestellungen als CSV-Datei hochladen, zum Beispiel aus einem anderen Ticketsystem.|Without a Pretix connection you can upload the orders as a CSV file, for example from another ticketing system.',
+    databaseRequiredNotice:
+      'Dafür ist eine Datenbankverbindung erforderlich.|This requires a database connection.',
+    databaseSetupLink: 'Datenbankverbindung einrichten|Set up database connection',
+    pinboardDatabaseRequired:
+      'Für die Pinnwand ist eine Datenbankverbindung erforderlich. Beiträge und Anmeldungen werden dort gespeichert.|The pinboard needs a database connection. Posts and sign-ins are stored there.',
+    databaseTitle: 'Datenbankverbindung|Database connection',
+    databaseIntro:
+      'Die Pinnwand und die Event-Authentifizierung speichern Bestellungen, Anmeldungen und Beiträge in einer MariaDB-/MySQL-Datenbank. Ohne Datenbankverbindung sind beide Funktionen nicht nutzbar. Die Karte und das Programm funktionieren auch ohne Datenbank.|The pinboard and event authentication store orders, sign-ins and posts in a MariaDB/MySQL database. Without a database connection neither works. The map and the programme work without a database.',
+    databaseStateNone: 'Keine Datenbank verbunden.|No database connected.',
+    databaseStateReady: 'Verbunden mit {name} auf {host}.|Connected to {name} on {host}.',
+    databaseStateConnected: 'Datenbank verbunden.|Database connected.',
+    databaseStateFailed:
+      'Die gespeicherte Datenbank ist nicht erreichbar. Prüfe die Zugangsdaten.|The saved database cannot be reached. Check the credentials.',
+    databaseManagedByEnvironment:
+      'Die Zugangsdaten werden über Servervariablen (BURNIGATOR_DB_*) gesetzt und können hier nicht geändert werden.|The credentials are set through server variables (BURNIGATOR_DB_*) and cannot be changed here.',
+    databasePasswordHint:
+      'Ein leeres Passwortfeld behält das gespeicherte Passwort bei. Die Verbindung wird vor dem Speichern getestet und die benötigten Tabellen werden angelegt.|Leave the password empty to keep the saved password. The connection is tested before saving and the required tables are created.',
+    databaseChangeHint:
+      'Wenn du eine andere Datenbank einträgst, bleiben bisherige Bestellungen und Beiträge in der alten Datenbank. Gäste müssen sich danach neu anmelden und die Bestellungen müssen neu synchronisiert werden.|If you enter a different database, existing orders and posts stay in the old one. Guests have to sign in again and orders need to be synchronised again.',
+    databaseSave: 'Verbindung testen und speichern|Test and save connection',
+    databaseRemove: 'Verbindung entfernen|Remove connection',
+    databaseRemoveConfirm:
+      'Datenbankverbindung entfernen? Pinnwand und Event-Authentifizierung sind dann nicht mehr nutzbar. Die Daten in der Datenbank werden nicht gelöscht.|Remove the database connection? The pinboard and event authentication will stop working. Data in the database is not deleted.',
+    databaseSaved: 'Datenbankverbindung gespeichert.|Database connection saved.',
+    databaseRemoved: 'Datenbankverbindung entfernt.|Database connection removed.',
+    databaseConfigNotWritable:
+      'config.php ist nicht beschreibbar. Prüfe die Dateirechte auf dem Server.|config.php is not writable. Check the file permissions on the server.',
     eventAuthPrivacy:
       'Bestellnummern werden nur beim Abgleich verwendet und als HMAC-Hash gespeichert.|Order numbers are only used for verification and stored as HMAC hashes.',
     pretixBaseUrl: 'Pretix-Basisadresse|Pretix base URL',
@@ -86,7 +121,7 @@
     csvFallback: 'CSV-Import (Fallback)|CSV import (fallback)',
     importCsv: 'CSV importieren|Import CSV',
     eventAuthSetupHelp:
-      'MariaDB und Event-Auth-Secret fehlen. Bitte die Servervariablen gemäß Dokumentation setzen.|MariaDB or the event-auth secret is not configured. Set the server variables as documented.',
+      'Die Datenbank oder das Event-Auth-Secret ist nicht eingerichtet. Trage unter „Datenbankverbindung“ die Zugangsdaten ein.|The database or the event-auth secret is not set up. Enter the credentials under “Database connection”.',
     eventAuthSaved: 'Authentifizierungseinstellungen gespeichert.|Authentication settings saved.',
     eventAuthSyncDone: 'Synchronisierung abgeschlossen.|Synchronization complete.',
     eventAuthImportDone: 'CSV-Import abgeschlossen.|CSV import complete.',

@@ -191,18 +191,43 @@ if (empty($_SESSION['admin'])) {
 <div id="owner-tools" <?php 
     echo $role === 'owner' ? '' : 'hidden';
     ?>>
+<section class="config-card" aria-labelledby="database-heading">
+  <h2 id="database-heading" data-i18n="databaseTitle">Datenbankverbindung</h2>
+  <p class="hint" data-i18n="databaseIntro">Die Pinnwand und die Event-Authentifizierung speichern Bestellungen, Anmeldungen und Beiträge in einer MariaDB-/MySQL-Datenbank. Ohne Datenbankverbindung sind beide Funktionen nicht nutzbar. Die Karte und das Programm funktionieren auch ohne Datenbank.</p>
+  <p id="database-status" class="database-status" role="status" aria-live="polite"></p>
+  <p id="database-managed-note" class="hint" hidden data-i18n="databaseManagedByEnvironment">Die Zugangsdaten werden über Servervariablen (BURNIGATOR_DB_*) gesetzt und können hier nicht geändert werden.</p>
+  <div id="database-form">
+    <label><span data-i18n="setupDatabaseHost">Datenbank-Host</span><input id="database-host" maxlength="255" placeholder="localhost" autocomplete="off"></label>
+    <label><span data-i18n="setupDatabaseName">Datenbankname</span><input id="database-name" maxlength="64" autocomplete="off"></label>
+    <label><span data-i18n="setupDatabaseUser">Datenbank-Benutzer</span><input id="database-user" maxlength="128" autocomplete="off"></label>
+    <label><span data-i18n="setupDatabasePassword">Datenbank-Passwort</span><input id="database-password" type="password" maxlength="256" autocomplete="new-password" placeholder="••••••••"></label>
+    <p class="hint" data-i18n="databasePasswordHint">Ein leeres Passwortfeld behält das gespeicherte Passwort bei. Die Verbindung wird vor dem Speichern getestet und die benötigten Tabellen werden angelegt.</p>
+    <p class="hint" data-i18n="databaseChangeHint">Wenn du eine andere Datenbank einträgst, bleiben bisherige Bestellungen und Beiträge in der alten Datenbank. Gäste müssen sich danach neu anmelden und die Bestellungen müssen neu synchronisiert werden.</p>
+    <button id="save-database" type="button" class="button button-primary" data-i18n="databaseSave">Verbindung testen und speichern</button>
+    <button id="remove-database" type="button" class="button button-outlined" data-i18n="databaseRemove" hidden>Verbindung entfernen</button>
+  </div>
+</section>
 <section class="config-card" aria-labelledby="event-auth-heading">
   <h2 id="event-auth-heading" data-i18n="eventAuthTitle">Event-Authentifizierung</h2>
+  <p class="hint" data-i18n="eventAuthIntro">Mit der Event-Authentifizierung melden sich Gäste mit ihrer Pretix-Bestellnummer an. Nur wer eine bezahlte Bestellung für dieses Event hat, kann auf der Pinnwand schreiben, und Event-Owner können damit ihr Event bearbeiten.</p>
   <p class="hint" data-i18n="eventAuthPrivacy">Bestellnummern werden nur beim Abgleich verwendet und als HMAC-Hash gespeichert.</p>
   <p id="event-auth-http-warning" class="error" role="alert" hidden data-i18n="eventAuthHttpWarning">Diese Seite wird ohne HTTPS ausgeliefert. Teilnehmer-Logins, Sitzungs-Cookies und der Pretix-Token werden dann unverschlüsselt übertragen. Bitte HTTPS aktivieren, sobald die Pinnwand live genutzt wird.</p>
-  <label><span data-i18n="pretixBaseUrl">Pretix-Basisadresse</span><input id="pretix-base-url" type="url" maxlength="300" placeholder="https://pretix.eu"></label>
-  <label><span data-i18n="pretixOrganizer">Organizer-Kennung</span><input id="pretix-organizer" maxlength="80"></label>
-  <label><span data-i18n="pretixEvent">Event-Kennung</span><input id="pretix-event" maxlength="80"></label>
-  <label><span data-i18n="pretixToken">Pretix API-Token</span><input id="pretix-token" type="password" maxlength="500" autocomplete="new-password" placeholder="••••••••"></label>
-  <p class="hint" data-i18n="pretixTokenHint">Der Token wird serverseitig gespeichert. Ein leeres Feld behält den bestehenden Token bei.</p>
-  <p class="hint"><span data-i18n="pretixTokenHelp">Du findest den Token in Pretix bei deinem Organizer-Team: Team öffnen und unterhalb der Teammitglieder einen API-Token mit Leserechten für Bestellungen anlegen. Den Token zeigt Pretix nur einmal an.</span> <a href="https://docs.pretix.eu/dev/api/tokenauth.html" target="_blank" rel="noopener noreferrer" data-i18n="pretixTokenDocs">Pretix-Anleitung öffnen</a></p>
-<button id="save-event-auth" type="button" class="button button-primary" data-i18n="save">Änderungen speichern</button>
-<button id="sync-pretix" type="button" class="button button-secondary" data-i18n="syncPretix">Jetzt synchronisieren</button>
+  <p id="event-auth-database-notice" class="error" role="status" hidden><span data-i18n="databaseRequiredNotice">Dafür ist eine Datenbankverbindung erforderlich.</span> <button type="button" class="button button-text" data-goto-database data-i18n="databaseSetupLink">Datenbankverbindung einrichten</button></p>
+  <section class="account-settings-group" aria-labelledby="pretix-heading">
+    <h3 id="pretix-heading" data-i18n="pretixHeading">Pretix-Anbindung</h3>
+    <p class="hint" data-i18n="pretixExplain">Pretix ist ein Ticketsystem. Burnigator fragt über die Pretix-API die Bestellnummern und deren Status ab (nur lesend) und erlaubt nur bezahlten Bestellungen den Zugang. Namen, E-Mail-Adressen und Zahlungsdaten werden nicht abgerufen oder gespeichert. Den Abgleich startest du mit „Jetzt synchronisieren“.</p>
+    <label><span data-i18n="pretixBaseUrl">Pretix-Basisadresse</span><input id="pretix-base-url" type="url" maxlength="300" placeholder="https://pretix.eu"></label>
+    <label><span data-i18n="pretixOrganizer">Organizer-Kennung</span><input id="pretix-organizer" maxlength="80"></label>
+    <label><span data-i18n="pretixEvent">Event-Kennung</span><input id="pretix-event" maxlength="80"></label>
+    <label><span data-i18n="pretixToken">Pretix API-Token</span><input id="pretix-token" type="password" maxlength="500" autocomplete="new-password" placeholder="••••••••"></label>
+    <p class="hint" data-i18n="pretixTokenHint">Der Token wird serverseitig gespeichert. Ein leeres Feld behält den bestehenden Token bei.</p>
+    <p class="hint"><span data-i18n="pretixTokenHelp">Du findest den Token in Pretix bei deinem Organizer-Team: Team öffnen und unterhalb der Teammitglieder einen API-Token mit Leserechten für Bestellungen anlegen. Den Token zeigt Pretix nur einmal an.</span> <a href="https://docs.pretix.eu/dev/api/tokenauth.html" target="_blank" rel="noopener noreferrer" data-i18n="pretixTokenDocs">Pretix-Anleitung öffnen</a></p>
+    <div class="event-auth-actions"><button id="save-event-auth" type="button" class="button button-primary" data-i18n="save">Änderungen speichern</button>
+<button id="sync-pretix" type="button" class="button button-secondary" data-i18n="syncPretix">Jetzt synchronisieren</button></div>
+  </section>
+  <section class="account-settings-group" aria-labelledby="csv-heading">
+    <h3 id="csv-heading" data-i18n="csvHeading">CSV-Import statt Pretix</h3>
+    <p class="hint" data-i18n="csvExplain">Ohne Pretix-Anbindung kannst du die Bestellungen als CSV-Datei hochladen, zum Beispiel aus einem anderen Ticketsystem.</p>
   <label><span data-i18n="csvFallback">CSV-Import (Fallback)</span><input id="orders-csv" type="file" accept=".csv,text/csv"></label>
   <div class="csv-format-help">
     <p class="hint" data-i18n="csvFormatHelp">UTF-8-CSV mit Kopfzeile und exakt zwei Spalten: Order code und Status. Eine Zeile je Bestellung.</p><pre>Order code,Status
@@ -212,6 +237,8 @@ XWDYD,canceled
     <p class="hint" data-i18n="csvFormatValues">paid erlaubt das Schreiben, canceled und expired sperren. Erstattete Bestellungen dürfen nicht als paid importiert werden.</p>
   </div>
 <button id="import-orders-csv" type="button" class="button button-secondary" data-i18n="importCsv">CSV importieren</button>
+
+  </section>
   <p id="event-auth-status" class="hint" role="status" aria-live="polite"></p>
   <section class="event-auth-order-overview" aria-labelledby="event-auth-order-overview-title">
     <h3 id="event-auth-order-overview-title" data-i18n="eventAuthOrderOverviewTitle">Gespeicherte Buchungsdaten</h3>
@@ -219,6 +246,22 @@ XWDYD,canceled
     <div id="event-auth-order-overview" class="table-scroll">
     </div>
   </section>
+</section>
+<section class="config-card" aria-labelledby="database-heading">
+  <h2 id="database-heading" data-i18n="databaseTitle">Datenbankverbindung</h2>
+  <p class="hint" data-i18n="databaseIntro">Die Pinnwand und die Event-Authentifizierung speichern Bestellungen, Anmeldungen und Beiträge in einer MariaDB-/MySQL-Datenbank. Ohne Datenbankverbindung sind beide Funktionen nicht nutzbar. Die Karte und das Programm funktionieren auch ohne Datenbank.</p>
+  <p id="database-status" class="database-status" role="status" aria-live="polite"></p>
+  <p id="database-managed-note" class="hint" hidden data-i18n="databaseManagedByEnvironment">Die Zugangsdaten werden über Servervariablen (BURNIGATOR_DB_*) gesetzt und können hier nicht geändert werden.</p>
+  <div id="database-form">
+    <label><span data-i18n="setupDatabaseHost">Datenbank-Host</span><input id="database-host" maxlength="255" placeholder="localhost" autocomplete="off"></label>
+    <label><span data-i18n="setupDatabaseName">Datenbankname</span><input id="database-name" maxlength="64" autocomplete="off"></label>
+    <label><span data-i18n="setupDatabaseUser">Datenbank-Benutzer</span><input id="database-user" maxlength="128" autocomplete="off"></label>
+    <label><span data-i18n="setupDatabasePassword">Datenbank-Passwort</span><input id="database-password" type="password" maxlength="256" autocomplete="new-password" placeholder="••••••••"></label>
+    <p class="hint" data-i18n="databasePasswordHint">Ein leeres Passwortfeld behält das gespeicherte Passwort bei. Die Verbindung wird vor dem Speichern getestet und die benötigten Tabellen werden angelegt.</p>
+    <p class="hint" data-i18n="databaseChangeHint">Wenn du eine andere Datenbank einträgst, bleiben bisherige Bestellungen und Beiträge in der alten Datenbank. Gäste müssen sich danach neu anmelden und die Bestellungen müssen neu synchronisiert werden.</p>
+    <button id="save-database" type="button" class="button button-primary" data-i18n="databaseSave">Verbindung testen und speichern</button>
+    <button id="remove-database" type="button" class="button button-outlined" data-i18n="databaseRemove" hidden>Verbindung entfernen</button>
+  </div>
 </section>
 <section class="config-card" aria-labelledby="config-data-heading">
   <h2 id="config-data-heading" data-i18n="dataTools">Datensicherung</h2>
@@ -269,6 +312,11 @@ XWDYD,canceled
 <section id="admin-pinboard-view" role="tabpanel" aria-labelledby="admin-pinboard-tab" hidden>
 <section class="config-card" aria-labelledby="pinboard-moderation-heading">
   <h2 id="pinboard-moderation-heading" data-i18n="pinboardModeration">Pinnwand moderieren</h2>
+  <div id="pinboard-database-notice" class="pinboard-database-notice" role="status">
+    <p class="hint" data-i18n="pinboardDatabaseRequired">Für die Pinnwand ist eine Datenbankverbindung erforderlich.</p>
+    <p id="pinboard-database-state" class="database-status"></p>
+    <button type="button" class="button button-secondary" data-goto-database data-i18n="databaseSetupLink">Datenbankverbindung einrichten</button>
+  </div>
   <label class="setting-toggle"><input id="pinboard-enabled" type="checkbox"><span data-i18n="pinboardEnabledToggle">Pinnwand für Besucher aktivieren</span></label>
   <p class="hint" data-i18n="pinboardEnabledHint">Die Aktivierung blendet den Pinnwand-Tab ein. Zum Speichern von Beiträgen wird eine eingerichtete Datenbank benötigt.</p>
   <div id="admin-pinboard-posts" class="scroll-list" role="region" tabindex="0" aria-labelledby="pinboard-moderation-heading">
