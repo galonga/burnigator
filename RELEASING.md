@@ -53,4 +53,4 @@ Fix on `main`, increase the build number, add a changelog entry, and release as 
 
 ## Vendored libraries
 
-Leaflet, Font Awesome and QRCode.js live in `assets/vendor/` and are not tracked by an update tool. Check them for new versions every few months and update `THIRD_PARTY_NOTICES.md` when they change.
+Leaflet, Font Awesome and QRCode.js live in `assets/vendor/` and are not tracked by an update tool. Check them for new versions every few months and update `THIRD_PARTY_NOTICES.md` when they change. When updating Leaflet, delete the trailing `//# sourceMappingURL=leaflet.js.map` comment from `leaflet.js`: the `.map` file is not shipped, so browsers log a 404 for it in the developer console.
