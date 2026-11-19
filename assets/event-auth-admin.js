@@ -114,6 +114,97 @@
         pinboardToggle.disabled = false;
       }
     });
+    function gotoDatabaseCard() {
+      const card = $('database-heading')?.closest('.config-card');
+      if (!card) return;
+      $('admin-config-tab')?.click();
+      const panel = card.closest('.config-section-panel');
+      if (panel) document.getElementById(panel.getAttribute('aria-labelledby'))?.click();
+      card.scrollIntoView?.({ block: 'start' });
+      $('database-host')?.focus({ preventScroll: true });
+    }
+    document
+      .querySelectorAll('[data-goto-database]')
+      .forEach((button) => button.addEventListener('click', gotoDatabaseCard));
+    async function loadDatabase() {
+      const t = window.AppI18n.t,
+        state = $('database-status'),
+        pinboardState = $('pinboard-database-state'),
+        notice = $('event-auth-database-notice');
+      try {
+        const response = await fetch('api.php?action=database-status', {
+          credentials: 'same-origin',
+          cache: 'no-store',
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error();
+        const text = !result.configured
+          ? t('databaseStateNone')
+          : result.ready
+            ? result.name
+              ? t('databaseStateReady')
+                  .replace('{name}', result.name)
+                  .replace('{host}', result.host || '')
+              : t('databaseStateConnected')
+            : t('databaseStateFailed');
+        [state, pinboardState].forEach((el) => {
+          if (!el) return;
+          el.textContent = text;
+          el.classList.toggle('is-ok', !!result.ready);
+          el.classList.toggle('is-error', !result.ready);
+        });
+        if (notice) notice.hidden = !!result.ready;
+        $('database-host').value = result.managedByEnvironment ? '' : result.host || '';
+        $('database-name').value = result.managedByEnvironment ? '' : result.name || '';
+        $('database-user').value = result.managedByEnvironment ? '' : result.user || '';
+        $('database-password').placeholder = result.passwordSet ? '••••••••' : '';
+        $('database-managed-note').hidden = !result.managedByEnvironment;
+        $('database-form').hidden = !!result.managedByEnvironment;
+        $('remove-database').hidden = !result.configured || !!result.managedByEnvironment;
+        if (!result.driverAvailable) state.textContent += ' ' + t('setupDatabaseUnavailable');
+      } catch (_) {
+        if (pinboardState) pinboardState.textContent = '';
+      }
+    }
+    async function saveDatabase(remove) {
+      const t = window.AppI18n.t,
+        state = $('database-status'),
+        buttons = [$('save-database'), $('remove-database')];
+      if (remove && !confirm(t('databaseRemoveConfirm'))) return;
+      buttons.forEach((button) => (button.disabled = true));
+      try {
+        await jsonRequest(
+          'api.php?action=database-settings',
+          remove
+            ? { remove: true }
+            : {
+                host: $('database-host').value,
+                name: $('database-name').value,
+                user: $('database-user').value,
+                password: $('database-password').value,
+              }
+        );
+        $('database-password').value = '';
+        await loadDatabase();
+        await load();
+        state.textContent = t(remove ? 'databaseRemoved' : 'databaseSaved') + ' ' + state.textContent;
+      } catch (error) {
+        const keys = {
+          database_incomplete: 'setupDatabaseIncomplete',
+          database_driver_missing: 'setupDatabaseUnavailable',
+          database_connection_failed: 'setupDatabaseConnection',
+          database_managed_by_environment: 'databaseManagedByEnvironment',
+          database_config_not_writable: 'databaseConfigNotWritable',
+        };
+        state.textContent = t(keys[error.message] || 'eventAuthActionFailed');
+        state.classList.remove('is-ok');
+        state.classList.add('is-error');
+      } finally {
+        buttons.forEach((button) => (button.disabled = false));
+      }
+    }
+    $('save-database')?.addEventListener('click', () => saveDatabase(false));
+    $('remove-database')?.addEventListener('click', () => saveDatabase(true));
     async function load() {
       try {
         const response = await fetch('api.php?action=event-auth-admin', {
@@ -285,6 +376,7 @@
         password.focus();
       }
     });
+    loadDatabase();
     load();
     loadPinboardSetting();
   });

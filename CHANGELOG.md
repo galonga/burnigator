@@ -6,6 +6,14 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ## [Unreleased]
 
+### Added
+
+- **Database connection in the admin panel:** Configuration → User management has a new **Database connection** card (owner role) to add, change or remove the MariaDB/MySQL credentials without editing files. The connection is tested and the tables are created before `config.php` is updated; a blank password keeps the saved one. If the credentials come from `BURNIGATOR_DB_*` server variables the card shows that and is read-only. The pinboard moderation tab and the event authentication card now say that a database connection is required, show whether one is connected, and link to the card.
+
+### Changed
+
+- **Event authentication card:** moved to the bottom of User management, below the new Database connection card. It now starts with what it does, and is split into a Pretix connection (what Pretix is and which data is read: order numbers and status only, read-only) and an alternative CSV import, followed by the stored order data.
+
 ## [2026.11.1373] - 2026-11-18
 
 ### Changed

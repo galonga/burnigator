@@ -921,6 +921,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_GET['action'] ?? '') === 'pinboa
         respond(503, ['error' => 'feature_unavailable']);
     }
 }
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'database-status') {
+    header('Cache-Control: private, no-store');
+    if (empty($_SESSION['admin']) || appRole() !== 'owner') {
+        respond(403, ['error' => 'forbidden']);
+    }
+    $environmentDsn = (string) getenv('BURNIGATOR_DB_DSN');
+    $dsn = $environmentDsn !== '' ? $environmentDsn : (string) ($config['event_auth_db_dsn'] ?? '');
+    $host = '';
+    $name = '';
+    if (preg_match('/(?:^|[:;])host=([^;]*)/', $dsn, $m)) {
+        $host = $m[1];
+    }
+    if (preg_match('/(?:^|;)dbname=([^;]*)/', $dsn, $m)) {
+        $name = $m[1];
+    }
+    $ready = false;
+    if ($dsn !== '') {
+        try {
+            eventAuthDb($config);
+            $ready = true;
+        } catch (Throwable $e) {
+            $ready = false;
+        }
+    }
+    respond(200, [
+        'configured' => $dsn !== '',
+        'ready' => $ready,
+        'managedByEnvironment' => $environmentDsn !== '',
+        'host' => $host,
+        'name' => $name,
+        'user' => (string) ($environmentDsn !== '' ? getenv('BURNIGATOR_DB_USER') : ($config['event_auth_db_user'] ?? '')),
+        'passwordSet' => (string) ($config['event_auth_db_password'] ?? '') !== '' || (string) getenv('BURNIGATOR_DB_PASSWORD') !== '',
+        'driverAvailable' => extension_loaded('pdo_mysql'),
+        'pinboardEnabled' => (readMap()['pinboardEnabled'] ?? false) === true,
+    ]);
+}
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'event-auth-admin') {
     header('Cache-Control: private, no-store');
     if (empty($_SESSION['admin']) || appRole() !== 'owner') {
@@ -1009,6 +1045,7 @@ if (in_array($action, [
     'event-auth-settings',
     'event-auth-sync',
     'event-auth-import',
+    'database-settings',
     'pinboard-settings',
     'reset-application',
 ], true) && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -1080,6 +1117,73 @@ if (in_array($action, [
         }
         recordHistory('pinboard_setting', 0, $enabled ? 'Pinboard enabled' : 'Pinboard disabled');
         respond(200, ['ok' => true, 'enabled' => $enabled]);
+    }
+    if ($action === 'database-settings') {
+        $input = json_decode((string) file_get_contents('php://input'), true);
+        if (!is_array($input)) {
+            respond(400, ['error' => 'database_incomplete']);
+        }
+        if ((string) getenv('BURNIGATOR_DB_DSN') !== '') {
+            respond(409, ['error' => 'database_managed_by_environment']);
+        }
+        $configPath = __DIR__ . '/config.php';
+        if (!is_file($configPath) || !is_writable($configPath) || !is_writable(__DIR__)) {
+            respond(500, ['error' => 'database_config_not_writable']);
+        }
+        $values = $config;
+        if (($input['remove'] ?? false) === true) {
+            unset($values['event_auth_db_dsn'], $values['event_auth_db_user'], $values['event_auth_db_password']);
+        } else {
+            $host = trim((string) ($input['host'] ?? ''));
+            $name = trim((string) ($input['name'] ?? ''));
+            $user = trim((string) ($input['user'] ?? ''));
+            $password = (string) ($input['password'] ?? '');
+            if ($password === '') {
+                $password = (string) ($config['event_auth_db_password'] ?? '');
+            }
+            if ($host === '' || $name === '' || $user === '' || !preg_match('/^[A-Za-z0-9.-]{1,255}$/D', $host) || !preg_match('/^[A-Za-z0-9_]{1,64}$/D', $name)) {
+                respond(400, ['error' => 'database_incomplete']);
+            }
+            if (!extension_loaded('pdo_mysql')) {
+                respond(400, ['error' => 'database_driver_missing']);
+            }
+            $dsn = 'mysql:host=' . $host . ';dbname=' . $name . ';charset=utf8mb4';
+            try {
+                $test = new PDO($dsn, $user, $password, [
+                    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                    PDO::ATTR_TIMEOUT => 5,
+                ]);
+                eventAuthMigrate($test);
+            } catch (Throwable $e) {
+                respond(400, ['error' => 'database_connection_failed']);
+            }
+            $values['event_auth_db_dsn'] = $dsn;
+            $values['event_auth_db_user'] = $user;
+            $values['event_auth_db_password'] = $password;
+        }
+        $tempConfig = __DIR__ . '/.config-' . bin2hex(random_bytes(8)) . '.php';
+        $contents = "<?php\ndeclare(strict_types=1);\nreturn " . var_export($values, true) . ";\n";
+        $mode = @fileperms($configPath);
+        if (file_put_contents($tempConfig, $contents, LOCK_EX) === false) {
+            respond(500, ['error' => 'database_config_not_writable']);
+        }
+        if ($mode !== false) {
+            @chmod($tempConfig, $mode & 0777);
+        }
+        if (!@rename($tempConfig, $configPath)) {
+            @unlink($tempConfig);
+            respond(500, ['error' => 'database_config_not_writable']);
+        }
+        if (function_exists('opcache_invalidate')) {
+            @opcache_invalidate($configPath, true);
+        }
+        $schemaFlag = __DIR__ . '/data/event-auth-schema';
+        if (isset($values['event_auth_db_dsn'])) {
+            @file_put_contents($schemaFlag, (string) EVENT_AUTH_SCHEMA_VERSION, LOCK_EX);
+        } else {
+            @unlink($schemaFlag);
+        }
+        respond(200, ['ok' => true]);
     }
     if ($action === 'event-auth-settings') {
         $input = json_decode((string) file_get_contents('php://input'), true);
