@@ -23,7 +23,7 @@ Restore your backup of the previous version's files. Restore `config.php`, `data
 
 ## Notes per version
 
-### 2026.11.1376
+### 2026.11.1377
 
 - **Nothing is required.** No database change; existing data is kept.
 - **Database connection (optional).** Configuration → User management has a new Database connection card where the owner can add, change or remove the MariaDB/MySQL credentials. It needs write access to `config.php`; if your credentials come from `BURNIGATOR_DB_*` server variables the card is read-only. Event authentication moved to the bottom of that tab.

@@ -6,10 +6,11 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ## [Unreleased]
 
-## [2026.11.1376] - 2026-11-19
+## [2026.11.1377] - 2026-11-19
 
 ### Added
 
+- **Pinboard sign-in hint:** the visitor pinboard now tells signed-out guests that the Pretix order number (from the order confirmation email) is needed to post, and that reading works without signing in.
 - **Database connection in the admin panel:** Configuration → User management has a new **Database connection** card (owner role) to add, change or remove the MariaDB/MySQL credentials without editing files. The connection is tested and the tables are created before `config.php` is updated; a blank password keeps the saved one. If the credentials come from `BURNIGATOR_DB_*` server variables the card shows that and is read-only. The pinboard moderation tab and the event authentication card now say that a database connection is required, show whether one is connected, and link to the card.
 
 ### Changed
@@ -84,8 +85,8 @@ First public release.
 - Event authentication hardening: write rate limits, safer imports that guard against mass access revocation, installation reset, and HTTP Pretix support.
 - `config.php`, `data/` and `uploads/` are ignored by git and excluded from release zips.
 
-[Unreleased]: https://github.com/galonga/burnigator/compare/v2026.11.1376...HEAD
-[2026.11.1376]: https://github.com/galonga/burnigator/compare/v2026.11.1373...v2026.11.1376
+[Unreleased]: https://github.com/galonga/burnigator/compare/v2026.11.1377...HEAD
+[2026.11.1377]: https://github.com/galonga/burnigator/compare/v2026.11.1373...v2026.11.1377
 [2026.11.1373]: https://github.com/galonga/burnigator/compare/v2026.11.1367...v2026.11.1373
 [2026.11.1367]: https://github.com/galonga/burnigator/compare/v2026.11.1359...v2026.11.1367
 [2026.11.1359]: https://github.com/galonga/burnigator/releases/tag/v2026.11.1359

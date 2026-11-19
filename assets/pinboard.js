@@ -154,7 +154,10 @@
         input.value = '';
       }
     };
-    auth.appendChild(login);
+    const info = document.createElement('p');
+    info.className = 'hint pinboard-unlock-info';
+    info.textContent = window.AppI18n.t('pinboardUnlockInfo');
+    auth.append(info, login);
   }
   function renderPosts(posts) {
     postsHost.replaceChildren();

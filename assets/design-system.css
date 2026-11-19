@@ -1935,6 +1935,10 @@ select {
   gap: var(--space-2);
   flex-wrap: wrap;
 }
+.pinboard-unlock-info {
+  flex: 1 1 100%;
+  margin: 0;
+}
 .pinboard-login input {
   min-width: 240px;
 }
