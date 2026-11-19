@@ -14,6 +14,10 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 - **Event authentication card:** moved to the bottom of User management, below the new Database connection card. It now starts with what it does, and is split into a Pretix connection (what Pretix is and which data is read: order numbers and status only, read-only) and an alternative CSV import, followed by the stored order data.
 
+### Fixed
+
+- **Restoring a full backup:** the restore no longer fails under the Content-Security-Policy (`connect-src 'self'` blocked reading the backup's embedded images via `fetch`). The images are now decoded directly in the browser.
+
 ## [2026.11.1373] - 2026-11-18
 
 ### Changed

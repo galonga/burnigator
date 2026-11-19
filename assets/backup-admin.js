@@ -1,4 +1,12 @@
 (function () {
+  function dataUrlToBlob(dataUrl) {
+    const comma = dataUrl.indexOf(','),
+      type = dataUrl.slice(5, dataUrl.indexOf(';')),
+      binary = atob(dataUrl.slice(comma + 1)),
+      bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index++) bytes[index] = binary.charCodeAt(index);
+    return new Blob([bytes], { type });
+  }
   // admin.js may finish before this script has loaded, so do not rely on the event alone.
   if (window.BurnigatorAdminReady) initialize();
   else window.addEventListener('burnigator-admin-ready', initialize, { once: true });
@@ -108,7 +116,7 @@
             !/^data:image\/(?:png|jpeg);base64,[A-Za-z0-9+/=]+$/.test(dataUrl)
           )
             throw new Error(window.AppI18n.t('backupInvalid'));
-          const blob = await fetch(dataUrl).then((response) => response.blob());
+          const blob = dataUrlToBlob(dataUrl);
           if (blob.size > (kind === 'image' ? 20 : 5) * 1024 * 1024)
             throw new Error(window.AppI18n.t('backupInvalid'));
           const form = new FormData();
