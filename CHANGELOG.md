@@ -28,6 +28,11 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ### Fixed
 
+- **Statistics are harder to inflate:** the anonymous counter endpoint now accepts at most 600 hits per minute in total, ignores requests that the browser marks as cross-site, and only counts a favourite removal that has a matching add (so removals can no longer push a favourite count down). The total per minute is stored as a minute and a number, nothing personal. Anonymous counters can still not be made tamper-proof; this limits how fast and how far they can be pushed.
+- **Statistics file size:** when `data/stats.json` reaches 1 MiB the oldest days are dropped. Before, an oversized file was treated as empty and could be replaced (losing all history), or no longer updated at all.
+- **Visits:** a visit is now counted once per browser session instead of on every page load, so reloads and the installed app reopening no longer inflate it. This uses a flag in `sessionStorage` that disappears when the tab closes; it is not an identifier.
+- **Announcement banner:** an announcement stored without a time (hand-edited data or an old backup) no longer gets a new time on every request, which made dismissed banners reappear.
+- **"Recently changed" marks:** restoring a snapshot or a full backup no longer marks every event that differs as changed; events whose id appears more than once are no longer matched to an unrelated earlier event.
 - **Duplicate translation keys:** removed sixteen identical, duplicated entries from `assets/i18n.js`.
 - **Event details dialog:** no longer shows a scrollbar for short text. The invisible pointer arrow under the dialog extended its scrollable area when it opened above the event; the arrow is removed. Long content still scrolls.
 

@@ -373,14 +373,33 @@ function eventScheduleSignature(string $ownerId, string $day, array $event): str
 function stampEventChanges(array $old, array $new, string $now): array
 {
     $known = [];
+    $ambiguous = [];
     foreach (['pois', 'timelines'] as $group) {
         foreach ((array) ($old[$group] ?? []) as $item) {
             foreach ((array) (is_array($item) ? $item['program'] ?? [] : []) as $day => $entries) {
                 foreach ((array) $entries as $event) {
                     $id = is_array($event) ? (string) ($event['id'] ?? '') : '';
                     if ($id !== '') {
+                        if (isset($known[$id])) {
+                            $ambiguous[$id] = true;
+                        }
                         $known[$id] = [eventScheduleSignature((string) ($item['id'] ?? ''), (string) $day, $event), (string) ($event['changedAt'] ?? '')];
                     }
+                }
+            }
+        }
+    }
+    // An id used by several events cannot be matched to one earlier event, so those are left alone.
+    $seen = [];
+    foreach (['pois', 'timelines'] as $group) {
+        foreach ((array) ($new[$group] ?? []) as $item) {
+            foreach ((array) (is_array($item) ? $item['program'] ?? [] : []) as $entries) {
+                foreach ((array) $entries as $event) {
+                    $id = is_array($event) ? (string) ($event['id'] ?? '') : '';
+                    if ($id !== '' && isset($seen[$id])) {
+                        $ambiguous[$id] = true;
+                    }
+                    $seen[$id] = true;
                 }
             }
         }
@@ -393,7 +412,7 @@ function stampEventChanges(array $old, array $new, string $now): array
             foreach ($item['program'] as $day => $entries) {
                 foreach ((array) $entries as $j => $event) {
                     $id = is_array($event) ? (string) ($event['id'] ?? '') : '';
-                    if ($id === '' || !isset($known[$id])) {
+                    if ($id === '' || !isset($known[$id]) || isset($ambiguous[$id])) {
                         continue;
                     }
                     $same = $known[$id][0] === eventScheduleSignature((string) ($item['id'] ?? ''), (string) $day, $event);

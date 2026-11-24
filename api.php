@@ -103,7 +103,9 @@ function readMap(): array
     $m['pinboardEnabled'] = ($m['pinboardEnabled'] ?? false) === true;
     $m['statsEnabled'] = ($m['statsEnabled'] ?? false) === true;
     $m['liveTimetableEnabled'] = ($m['liveTimetableEnabled'] ?? false) === true;
-    $m['announcement'] = cleanAnnouncement($m['announcement'] ?? null, $m['announcement'] ?? null, gmdate('c'));
+    // An announcement stored without a time gets the file's modification time, not "now", so the
+    // time (which dismissed banners are keyed on) stays the same from one request to the next.
+    $m['announcement'] = cleanAnnouncement($m['announcement'] ?? null, $m['announcement'] ?? null, gmdate('c', (int) @filemtime($p) ?: time()));
     $m['theme'] = cleanTheme($m['theme'] ?? null);
     $m['matomoUrl'] = cleanMatomoUrl($m['matomoUrl'] ?? $fallback['matomoUrl']);
     $m['matomoSiteId'] = cleanMatomoSiteId($m['matomoSiteId'] ?? $fallback['matomoSiteId']);
@@ -769,7 +771,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_GET['action'] ?? '') === 'stat')
     // Anonymous counter hit from the visitor page. Always answers 204 so it reveals nothing.
     header('Cache-Control: no-store');
     $map = !empty($config['installed']) && empty($_SESSION['admin']) ? readMap() : [];
-    if (($map['statsEnabled'] ?? false) === true && ($map['published'] ?? true) === true) {
+    // Browsers label cross-site requests; a counter hit from another site is never a real visitor.
+    $crossSite = strtolower((string) ($_SERVER['HTTP_SEC_FETCH_SITE'] ?? '')) === 'cross-site';
+    if (!$crossSite && ($map['statsEnabled'] ?? false) === true && ($map['published'] ?? true) === true) {
         $in = json_decode((string) file_get_contents('php://input', false, null, 0, 512), true);
         $type = is_array($in) && is_string($in['type'] ?? null) ? $in['type'] : '';
         $id = is_array($in) && is_string($in['id'] ?? null) ? substr($in['id'], 0, 64) : '';
@@ -1149,7 +1153,7 @@ if ($action === 'restore-snapshot' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $m['published'] = $latest['published'];
         $m['pinboardEnabled'] = $latest['pinboardEnabled'];
-        return saveMap($m) ? $m : false;
+        return saveMap($m, false) ? $m : false;
     });
     if ($saved === 'conflict') {
         respond(409, ['error' => 'map_conflict']);
@@ -1298,7 +1302,7 @@ if ($action === 'restore-backup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $map['published'] = $latest['published'];
         $map['pinboardEnabled'] = $latest['pinboardEnabled'];
-        return saveMap($map) ? $map : false;
+        return saveMap($map, false) ? $map : false;
     });
     if ($saved === 'conflict') {
         respond(409, ['error' => 'map_conflict']);
@@ -1395,7 +1399,8 @@ if ($action === 'upload' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     respond(200, ['ok' => true, 'map' => $m]);
 }
 
-function saveMap(array &$m): bool
+/** $markChanges is false for restores: a restored map is not a fresh schedule change for visitors. */
+function saveMap(array &$m, bool $markChanges = true): bool
 {
     createMapSnapshot();
     $path = __DIR__ . '/data/map.json';
@@ -1404,7 +1409,9 @@ function saveMap(array &$m): bool
         return false;
     }
     $m['updatedAt'] = gmdate('c');
-    $m = stampEventChanges(readMap(), $m, $m['updatedAt']);
+    if ($markChanges) {
+        $m = stampEventChanges(readMap(), $m, $m['updatedAt']);
+    }
     $tmp = $path . '.' . bin2hex(random_bytes(5)) . '.tmp';
     $json = json_encode($m, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
     if ($json === false || file_put_contents($tmp, $json, LOCK_EX) === false) {
