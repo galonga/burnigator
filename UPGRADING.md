@@ -23,9 +23,10 @@ Restore your backup of the previous version's files. Restore `config.php`, `data
 
 ## Notes per version
 
-### Unreleased
+### 2026.11.1389
 
 - **Admin dashboard.** Nothing is required; there are no settings and no data changes. Upload the new `lib/dashboard.php` and `assets/dashboard-admin.js` together with the other files (`api.php` now loads `lib/dashboard.php`).
+- **Statistics and change-mark fixes.** Nothing is required. Visits are now counted once per browser session, and the oldest days of `data/stats.json` are dropped when it reaches 1 MiB. Upload the updated `lib/stats.php`, `lib/map_clean.php` and `assets/stats.js`.
 - **Deep links and Share button.** Nothing is required. Upload the new `assets/deeplink.js` with the other files. Existing events and places already have ids, so their links work right away; events saved long ago without an id simply have no Share button until they are saved again.
 - **Announcement and "recently changed" marks.** Nothing is required; existing data is kept and nothing is marked until an event is changed. Events are marked from the first save after the upgrade.
 - **Statistics (optional).** Off by default. Turn it on in Configuration → General → Statistics. Counters are stored in `data/stats.json` (keep `data/`, as always). Also upload the new `lib/stats.php` and `assets/stats.js`, `assets/stats-admin.js`.
