@@ -216,6 +216,10 @@
       'Browserübersetzung für WWW-Beschreibungen anbieten|Offer browser translation for WWW descriptions',
     browserTranslationHint:
       'Nutzt die experimentelle Übersetzungsfunktion des Browsers. Sie erscheint nur in Browsern, die sie unterstützen.|Uses the browser’s experimental translation feature. It appears only in browsers that support it.',
+    enableLiveTimetable:
+      '„Jetzt und gleich“-Leiste und Überschneidungs-Hinweise anzeigen|Show the “now and next” strip and clash warnings',
+    liveTimetableHint:
+      'Zeigt Besuchern im Programm, was gerade läuft und was als Nächstes beginnt, und markiert überlappende Favoriten.|Shows visitors what is on now and what starts next, and marks overlapping favourites.',
     translateDescription: 'Übersetzen|Translate',
     translationLoading: 'Übersetzung wird geladen…|Translating…',
     translationShowOriginal: 'Original anzeigen|Show original',

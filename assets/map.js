@@ -705,7 +705,12 @@
   function clashHint(titles) {
     return window.AppI18n.t('clashHint').replace('{names}', titles.join(', '));
   }
+  // Optional feature: owners switch it on in the settings (liveTimetableEnabled, off by default).
+  function liveTimetableOn() {
+    return data.liveTimetableEnabled === true;
+  }
   function computeClashes() {
+    if (!liveTimetableOn()) return new Map();
     const items = [],
       titles = new Map();
     const owners = [...(data.pois || []).filter((p) => p.hasProgram), ...(data.timelines || []).slice(0, 3)];
@@ -771,6 +776,10 @@
   function renderNowNext() {
     const dayHost = document.getElementById('timetable-days');
     if (!dayHost) return;
+    if (!liveTimetableOn()) {
+      document.getElementById('now-next')?.remove();
+      return;
+    }
     let strip = document.getElementById('now-next');
     if (!strip) {
       strip = document.createElement('section');

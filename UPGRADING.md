@@ -28,7 +28,7 @@ Restore your backup of the previous version's files. Restore `config.php`, `data
 - **Deep links and Share button.** Nothing is required. Upload the new `assets/deeplink.js` with the other files. Existing events and places already have ids, so their links work right away; events saved long ago without an id simply have no Share button until they are saved again.
 - **Announcement and "recently changed" marks.** Nothing is required; existing data is kept and nothing is marked until an event is changed. Events are marked from the first save after the upgrade.
 - **Statistics (optional).** Off by default. Turn it on in Configuration → General → Statistics. Counters are stored in `data/stats.json` (keep `data/`, as always). Also upload the new `lib/stats.php` and `assets/stats.js`, `assets/stats-admin.js`.
-- **Now / next strip and clashing favourites.** Nothing is required; there are no settings and no data changes.
+- **Now / next strip and clashing favourites.** Off by default. Turn it on in Configuration → General → “Show the ‘now and next’ strip and clash warnings”. No data changes.
 
 - **Nothing is required**, but upload the new `lib/` folder (including its `.htaccess`) together with the other files: `api.php` now loads `lib/map_clean.php`, and the visitor page loads the new `assets/timetable-core.js`. Keep the `.htaccess` in `lib/`.
 
