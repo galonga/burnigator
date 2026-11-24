@@ -228,22 +228,6 @@ if (empty($_SESSION['admin'])) {
 <div id="owner-tools" <?php 
     echo $role === 'owner' ? '' : 'hidden';
     ?>>
-<section class="config-card" aria-labelledby="database-heading">
-  <h2 id="database-heading" data-i18n="databaseTitle">Datenbankverbindung</h2>
-  <p class="hint" data-i18n="databaseIntro">Die Pinnwand und die Event-Authentifizierung speichern Bestellungen, Anmeldungen und Beiträge in einer MariaDB-/MySQL-Datenbank. Ohne Datenbankverbindung sind beide Funktionen nicht nutzbar. Die Karte und das Programm funktionieren auch ohne Datenbank.</p>
-  <p id="database-status" class="database-status" role="status" aria-live="polite"></p>
-  <p id="database-managed-note" class="hint" hidden data-i18n="databaseManagedByEnvironment">Die Zugangsdaten werden über Servervariablen (BURNIGATOR_DB_*) gesetzt und können hier nicht geändert werden.</p>
-  <div id="database-form">
-    <label><span data-i18n="setupDatabaseHost">Datenbank-Host</span><input id="database-host" maxlength="255" placeholder="localhost" autocomplete="off"></label>
-    <label><span data-i18n="setupDatabaseName">Datenbankname</span><input id="database-name" maxlength="64" autocomplete="off"></label>
-    <label><span data-i18n="setupDatabaseUser">Datenbank-Benutzer</span><input id="database-user" maxlength="128" autocomplete="off"></label>
-    <label><span data-i18n="setupDatabasePassword">Datenbank-Passwort</span><input id="database-password" type="password" maxlength="256" autocomplete="new-password" placeholder="••••••••"></label>
-    <p class="hint" data-i18n="databasePasswordHint">Ein leeres Passwortfeld behält das gespeicherte Passwort bei. Die Verbindung wird vor dem Speichern getestet und die benötigten Tabellen werden angelegt.</p>
-    <p class="hint" data-i18n="databaseChangeHint">Wenn du eine andere Datenbank einträgst, bleiben bisherige Bestellungen und Beiträge in der alten Datenbank. Gäste müssen sich danach neu anmelden und die Bestellungen müssen neu synchronisiert werden.</p>
-    <button id="save-database" type="button" class="button button-primary" data-i18n="databaseSave">Verbindung testen und speichern</button>
-    <button id="remove-database" type="button" class="button button-outlined" data-i18n="databaseRemove" hidden>Verbindung entfernen</button>
-  </div>
-</section>
 <section class="config-card" aria-labelledby="event-auth-heading">
   <h2 id="event-auth-heading" data-i18n="eventAuthTitle">Event-Authentifizierung</h2>
   <p class="hint" data-i18n="eventAuthIntro">Mit der Event-Authentifizierung melden sich Gäste mit ihrer Pretix-Bestellnummer an. Nur wer eine bezahlte Bestellung für dieses Event hat, kann auf der Pinnwand schreiben, und Event-Owner können damit ihr Event bearbeiten.</p>
