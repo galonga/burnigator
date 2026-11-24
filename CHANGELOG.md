@@ -6,6 +6,10 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ## [Unreleased]
 
+### Fixed
+
+- **Event details dialog:** no longer shows a scrollbar for short text. The invisible pointer arrow under the dialog extended its scrollable area when it opened above the event; the arrow is removed. Long content still scrolls.
+
 ## [2026.11.1377] - 2026-11-19
 
 ### Added

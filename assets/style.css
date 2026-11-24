@@ -2438,22 +2438,10 @@ small {
   color: var(--color-on-surface);
   box-shadow: 0 3px 14px #0003;
 }
+/* No pointer arrow: it sat outside the box, was clipped by the popup's overflow, and its overhang
+   (bottom: -7px when the popup opens above) created a scrollbar even for short text. */
 .program-event-popup::before {
-  position: absolute;
-  top: -7px;
-  left: 18px;
-  width: 14px;
-  height: 8px;
-  background: var(--color-white);
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
-  content: '';
-  filter: drop-shadow(0 -1px 1px #0002);
-}
-.program-event-popup.is-above::before {
-  top: auto;
-  bottom: -7px;
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  filter: drop-shadow(0 1px 1px #0002);
+  display: none;
 }
 .popup > strong,
 .program-tooltip-title {
