@@ -3,6 +3,8 @@
 const assert = require('node:assert/strict');
 const {
   isRecentlyChanged,
+  currentAndUpcoming,
+  findClashes,
   timeMinutes,
   eventSpan,
   previousDay,
@@ -139,6 +141,95 @@ test('isRecentlyChanged is true for 24 hours after the change only', () => {
   assert.equal(isRecentlyChanged({}, now), false);
   assert.equal(isRecentlyChanged(at('garbage'), now), false);
   assert.equal(isRecentlyChanged(undefined, now), false);
+});
+
+const entry = (id, start, end) => ({ id, item: { start, end } });
+
+test('currentAndUpcoming splits running and upcoming events', () => {
+  const entries = [
+    entry('a', 600, 660),
+    entry('b', 630, 720),
+    entry('c', 700, 760),
+    entry('d', 800, 900),
+    entry('e', 900, 960),
+    entry('f', 1000, 1060),
+    entry('g', 300, 400),
+  ];
+  const { now, next } = currentAndUpcoming(entries, 640);
+  assert.deepEqual(
+    now.map((e) => e.id),
+    ['a', 'b'],
+    'running events, earliest end first'
+  );
+  assert.deepEqual(
+    next.map((e) => e.id),
+    ['c', 'd', 'e'],
+    'next three by start time, past events excluded'
+  );
+  assert.equal(currentAndUpcoming(entries, 640, 1).next.length, 1);
+});
+
+test('currentAndUpcoming: boundaries and empty days', () => {
+  const entries = [entry('a', 600, 660)];
+  assert.equal(currentAndUpcoming(entries, 600).now.length, 1, 'an event is running from its start minute');
+  assert.equal(currentAndUpcoming(entries, 660).now.length, 0, 'and no longer at its end minute');
+  assert.deepEqual(currentAndUpcoming([], 100), { now: [], next: [] });
+});
+
+test('currentAndUpcoming counts an event carried over from the previous day', () => {
+  const carried = { id: 'late', item: { start: 0, end: 120, continued: true } };
+  assert.equal(currentAndUpcoming([carried], 30).now.length, 1);
+  assert.equal(currentAndUpcoming([carried], 130).now.length, 0);
+});
+
+test('findClashes finds overlaps in both directions', () => {
+  const clashes = findClashes([
+    { key: 'a', start: 600, end: 700 },
+    { key: 'b', start: 650, end: 750 },
+    { key: 'c', start: 900, end: 960 },
+  ]);
+  assert.deepEqual(clashes.get('a'), ['b']);
+  assert.deepEqual(clashes.get('b'), ['a']);
+  assert.equal(clashes.has('c'), false);
+});
+
+test('findClashes: touching events and a single event do not clash', () => {
+  assert.equal(
+    findClashes([
+      { key: 'a', start: 600, end: 660 },
+      { key: 'b', start: 660, end: 720 },
+    ]).size,
+    0
+  );
+  assert.equal(findClashes([{ key: 'a', start: 600, end: 660 }]).size, 0);
+  assert.equal(findClashes([]).size, 0);
+});
+
+test('findClashes: one event can clash with several, and an event inside another clashes', () => {
+  const clashes = findClashes([
+    { key: 'long', start: 600, end: 900 },
+    { key: 'x', start: 620, end: 640 },
+    { key: 'y', start: 700, end: 720 },
+  ]);
+  assert.deepEqual(clashes.get('long').sort(), ['x', 'y']);
+  assert.equal(clashes.has('x') && clashes.get('x').length === 1, true);
+  assert.equal(
+    findClashes([
+      { key: 'x', start: 1, end: 5 },
+      { key: 'y', start: 6, end: 9 },
+    ]).size,
+    0
+  );
+});
+
+test('findClashes ignores the same key twice', () => {
+  assert.equal(
+    findClashes([
+      { key: 'a', start: 1, end: 5 },
+      { key: 'a', start: 2, end: 6 },
+    ]).size,
+    0
+  );
 });
 
 let failed = 0;

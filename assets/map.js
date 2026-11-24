@@ -1,7 +1,16 @@
 (async function () {
-  const { timeMinutes, eventSpan, eventTimeLabel, formatTime, isRecentlyChanged } =
-    window.BurnigatorTimetable;
+  const {
+    timeMinutes,
+    eventSpan,
+    eventTimeLabel,
+    formatTime,
+    isRecentlyChanged,
+    currentAndUpcoming,
+    findClashes,
+  } = window.BurnigatorTimetable;
   const { buildLink, parseLink, stripLink, findEvent } = window.BurnigatorDeepLink;
+  // Favourite events that overlap on the selected day: key -> titles of the events they overlap with.
+  let currentClashes = new Map();
   if ('serviceWorker' in navigator)
     navigator.serviceWorker
       .register('./sw.php', { updateViaCache: 'none' })
@@ -686,9 +695,169 @@
         (event.host ? '. ' + window.AppI18n.t('eventHostLabel') + ': ' + event.host : '') +
         (event.description ? '. ' + event.description : '')
     );
+    block.dataset.baseLabel = block.getAttribute('aria-label');
+    applyClash(block);
     bindEventTooltip(block, event, ownerId, ownerName, day);
     wrap.appendChild(block);
     return wrap;
+  }
+  const clashHint = (titles) => window.AppI18n.t('clashHint').replace('{names}', titles.join(', '));
+  function computeClashes() {
+    const items = [],
+      titles = new Map();
+    const owners = [...(data.pois || []).filter((p) => p.hasProgram), ...(data.timelines || []).slice(0, 3)];
+    owners.forEach((owner) =>
+      timelineItems(owner.id, owner.program, selectedDay, (id, d, e) => eventIsFavorite(id, d, e)).forEach(
+        (item) => {
+          const key = eventFavoriteKey(owner.id, item.day, item.event);
+          items.push({ key, start: item.start, end: item.end });
+          titles.set(key, item.event.text || '');
+        }
+      )
+    );
+    const result = new Map();
+    findClashes(items).forEach((others, key) =>
+      result.set(
+        key,
+        others.map((other) => titles.get(other))
+      )
+    );
+    return result;
+  }
+  function applyClash(block) {
+    const titles = currentClashes.get(block.dataset.favoriteKey) || [];
+    block.classList.toggle('is-clash', titles.length > 0);
+    let badge = block.querySelector('.timeline-clash-badge');
+    if (titles.length && !badge) {
+      badge = document.createElement('i');
+      badge.className = 'timeline-clash-badge fa-solid fa-triangle-exclamation';
+      badge.setAttribute('aria-hidden', 'true');
+      block.appendChild(badge);
+    } else if (!titles.length && badge) badge.remove();
+    const base = block.dataset.baseLabel || '';
+    block.setAttribute('aria-label', titles.length ? base + '. ' + clashHint(titles) : base);
+  }
+  function renderClashSummary() {
+    const host = document.getElementById('timetable-content');
+    let note = document.getElementById('clash-summary');
+    if (!currentClashes.size) {
+      note?.remove();
+      return;
+    }
+    if (!note) {
+      note = document.createElement('p');
+      note.id = 'clash-summary';
+      note.className = 'clash-summary';
+      note.setAttribute('role', 'status');
+      host.prepend(note);
+    }
+    const icon = document.createElement('i');
+    icon.className = 'fa-solid fa-triangle-exclamation';
+    icon.setAttribute('aria-hidden', 'true');
+    note.replaceChildren(
+      icon,
+      ' ' + window.AppI18n.t('clashSummary').replace('{n}', String(currentClashes.size))
+    );
+  }
+  // Recomputes the overlaps after a favourite was added or removed, without re-rendering the table.
+  function refreshClashes() {
+    currentClashes = computeClashes();
+    document.querySelectorAll('#timetable-content .timeline-event').forEach(applyClash);
+    renderClashSummary();
+  }
+  function renderNowNext() {
+    const dayHost = document.getElementById('timetable-days');
+    if (!dayHost) return;
+    let strip = document.getElementById('now-next');
+    if (!strip) {
+      strip = document.createElement('section');
+      strip.id = 'now-next';
+      strip.className = 'now-next';
+      strip.hidden = true;
+      dayHost.parentNode.insertBefore(strip, document.getElementById('timetable-filters') || dayHost);
+      window.addEventListener('image-map-language-change', () => {
+        strip.dataset.signature = '';
+        renderNowNext();
+      });
+    }
+    const today = festivalDay(),
+      entries = [];
+    [...(data.pois || []).filter((p) => p.hasProgram), ...(data.timelines || []).slice(0, 3)].forEach(
+      (owner) =>
+        timelineItems(owner.id, owner.program, today, () => true).forEach((item) =>
+          entries.push({ ownerId: owner.id, ownerName: owner.name || '', item })
+        )
+    );
+    const clock = new Date(),
+      { now, next } = currentAndUpcoming(entries, clock.getHours() * 60 + clock.getMinutes());
+    const favoriteOf = (entry) => eventIsFavorite(entry.ownerId, entry.item.day, entry.item.event);
+    const signature = [...now, ...next]
+      .map((entry) => eventFavoriteKey(entry.ownerId, entry.item.day, entry.item.event) + favoriteOf(entry))
+      .join('|');
+    strip.hidden = !entries.length;
+    if (!entries.length || strip.dataset.signature === signature) return;
+    strip.dataset.signature = signature;
+    strip.setAttribute('aria-label', window.AppI18n.t('nowNextLabel'));
+    const group = (headingKey, list, emptyKey) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'now-next-group';
+      const heading = document.createElement('strong');
+      heading.textContent = window.AppI18n.t(headingKey);
+      const chips = document.createElement('div');
+      chips.className = 'now-next-chips';
+      if (!list.length) {
+        const empty = document.createElement('span');
+        empty.className = 'hint';
+        empty.textContent = window.AppI18n.t(emptyKey);
+        chips.appendChild(empty);
+      }
+      list.forEach((entry) => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'now-next-chip chip-button';
+        const time = document.createElement('time');
+        time.textContent = eventTimeLabel(entry.item.event, entry.item);
+        const title = document.createElement('span');
+        title.textContent = entry.item.event.text;
+        const place = document.createElement('small');
+        place.textContent = entry.ownerName;
+        chip.append(time, title, place);
+        if (favoriteOf(entry)) {
+          const heart = document.createElement('i');
+          heart.className = 'fa-solid fa-heart';
+          heart.setAttribute('aria-hidden', 'true');
+          chip.appendChild(heart);
+        }
+        chip.addEventListener('click', () => openFromNowNext(entry));
+        chips.appendChild(chip);
+      });
+      wrap.append(heading, chips);
+      return wrap;
+    };
+    strip.replaceChildren(
+      group('nowNextNow', now, 'nowNextNothingNow'),
+      group('nowNextNext', next, 'nowNextNothingNext')
+    );
+  }
+  function openFromNowNext(entry) {
+    const { event, day } = entry.item;
+    window.trackAppEvent?.('Visitor', 'now_next_open', entry.ownerName + ' | ' + event.text);
+    // Show everything, so a saved filter cannot hide the event that was just chosen.
+    if (!eventShown(entry.ownerId, day, event)) {
+      favoriteOnly = false;
+      selectedEventCategories = new Set();
+    }
+    selectedDay = day;
+    daySelectionTouched = true;
+    renderTimetable();
+    setTimeout(() => {
+      const block = [...document.querySelectorAll('#timetable-content .timeline-event')].find(
+        (el) => el.dataset.eventId === event.id && !el.classList.contains('is-continued')
+      );
+      if (!block) return;
+      block.scrollIntoView({ block: 'center', inline: 'center' });
+      block.click();
+    }, 60);
   }
   function renderTimetable() {
     const host = document.getElementById('timetable-content'),
@@ -697,6 +866,7 @@
     host.replaceChildren();
     const dayHadFocus = dayHost.contains(document.activeElement);
     dayHost.replaceChildren();
+    renderNowNext();
     let filterRow = document.getElementById('timetable-filters');
     if (!filterRow) {
       filterRow = document.createElement('div');
@@ -896,6 +1066,7 @@
       host.appendChild(empty);
       return;
     }
+    currentClashes = computeClashes();
     const scroll = document.createElement('div');
     scroll.className = 'timetable-scroll';
     const table = document.createElement('table');
@@ -1009,6 +1180,7 @@
     scroll.appendChild(table);
     host.appendChild(scroll);
     if (previousScrollLeft) scroll.scrollLeft = previousScrollLeft;
+    renderClashSummary();
     updateCurrentTimeIndicators();
   }
   function updateCurrentTimeIndicators() {
@@ -1027,7 +1199,10 @@
       parent.appendChild(line);
     });
   }
-  setInterval(updateCurrentTimeIndicators, 60000);
+  setInterval(() => {
+    updateCurrentTimeIndicators();
+    renderNowNext();
+  }, 60000);
   function eventBoxColor(selected) {
     const keys = Array.isArray(selected) ? selected : [];
     const adult = eventCategories.find(
@@ -1155,6 +1330,9 @@
         );
         syncFavorite();
         syncTimelineFavorite(ownerId, day, event);
+        refreshClashes();
+        syncClash();
+        renderNowNext();
         if (favoriteOnly && wasFavorite) {
           hideEventTooltip(trigger);
           renderTimetable();
@@ -1206,6 +1384,17 @@
         changedNote.append(changedIcon, ' ' + window.AppI18n.t('eventChanged'));
         popup.appendChild(changedNote);
       }
+      const clashNote = document.createElement('p');
+      clashNote.className = 'program-tooltip-clash';
+      clashNote.setAttribute('role', 'status');
+      const favoriteKey = eventFavoriteKey(ownerId, day, event);
+      const syncClash = () => {
+        const titles = currentClashes.get(favoriteKey) || [];
+        clashNote.hidden = !titles.length;
+        clashNote.textContent = titles.length ? clashHint(titles) : '';
+      };
+      syncClash();
+      popup.appendChild(clashNote);
       if (event.host) {
         const host = document.createElement('p');
         host.className = 'program-tooltip-host';

@@ -75,9 +75,43 @@
     return Number.isFinite(changed) && nowMs - changed >= -60000 && nowMs - changed < windowMs;
   }
 
+  /**
+   * What is running at nowMinutes and what starts next. entries: [{ ..., item }] where item is a
+   * timelineItems() result for today. An event that carried over from yesterday counts while it lasts.
+   */
+  function currentAndUpcoming(entries, nowMinutes, nextLimit = 3) {
+    const now = entries.filter((e) => e.item.start <= nowMinutes && nowMinutes < e.item.end);
+    now.sort((a, b) => a.item.end - b.item.end || a.item.start - b.item.start);
+    const next = entries.filter((e) => e.item.start > nowMinutes);
+    next.sort((a, b) => a.item.start - b.item.start);
+    return { now, next: next.slice(0, nextLimit) };
+  }
+
+  /**
+   * Which items overlap in time. items: [{ key, start, end }]. Returns a Map from key to the keys it
+   * overlaps with; items that touch (one ends when the other starts) do not clash.
+   */
+  function findClashes(items) {
+    const clashes = new Map();
+    for (let i = 0; i < items.length; i++) {
+      for (let j = i + 1; j < items.length; j++) {
+        const a = items[i],
+          b = items[j];
+        if (a.key === b.key || !(a.start < b.end && b.start < a.end)) continue;
+        if (!clashes.has(a.key)) clashes.set(a.key, []);
+        if (!clashes.has(b.key)) clashes.set(b.key, []);
+        clashes.get(a.key).push(b.key);
+        clashes.get(b.key).push(a.key);
+      }
+    }
+    return clashes;
+  }
+
   const api = {
     DAY_KEYS,
     isRecentlyChanged,
+    currentAndUpcoming,
+    findClashes,
     timeMinutes,
     eventSpan,
     previousDay,
