@@ -71,4 +71,41 @@ check(statsRead($file) === [], 'a corrupt file reads as empty');
 check(statsMutate($file, static fn (array $s) => statsRecord($s, 'visit', '', $today)) && statsRead($file)['days'][$today]['visit']['-'] === 1, 'a corrupt file is replaced');
 unlink($file);
 
+// Flood protection: at most STATS_MAX_HITS_PER_MINUTE hits per minute, whatever the type or id
+$t = strtotime('2026-11-24 12:00:30 UTC');
+$flood = [];
+for ($i = 0; $i < STATS_MAX_HITS_PER_MINUTE + 50; $i++) {
+    $flood = statsRecord($flood, 'event_open', 'ev1', $today, $t);
+}
+check($flood['days'][$today]['event_open']['ev1'] === STATS_MAX_HITS_PER_MINUTE, 'hits beyond the per-minute limit are dropped');
+$flood = statsRecord($flood, 'event_open', 'ev1', $today, $t + 60);
+check($flood['days'][$today]['event_open']['ev1'] === STATS_MAX_HITS_PER_MINUTE + 1, 'the next minute counts again');
+
+// Favourite removals need a matching add
+$fav = statsRecord([], 'favorite_remove', 'ev1', $today, $t);
+check(!isset($fav['days'][$today]['favorite_remove']), 'a removal without an add is ignored');
+$fav = statsRecord(statsRecord([], 'favorite_add', 'ev1', $today, $t), 'favorite_remove', 'ev1', $today, $t);
+check($fav['days'][$today]['favorite_remove']['ev1'] === 1, 'a removal after an add is counted');
+for ($i = 0; $i < 5; $i++) {
+    $fav = statsRecord($fav, 'favorite_remove', 'ev1', $today, $t);
+}
+check($fav['days'][$today]['favorite_remove']['ev1'] === 1, 'removals cannot exceed adds');
+
+// An oversized file is trimmed from the oldest day, never replaced as a whole
+$big = ['days' => []];
+$padding = [];
+for ($n = 0; $n < 30000; $n++) {
+    $padding['id' . $n] = 12345;
+}
+for ($d = 3; $d >= 1; $d--) {
+    $big['days'][gmdate('Y-m-d', strtotime($today . ' UTC') - $d * 86400)] = ['event_open' => $padding];
+}
+file_put_contents($file, json_encode($big));
+check(strlen((string) file_get_contents($file)) > STATS_MAX_BYTES, 'test file is over the size limit');
+check(statsMutate($file, static fn (array $s) => statsRecord($s, 'visit', '', $today, $t)), 'an oversized file can still be written');
+$after = statsRead($file);
+check(strlen((string) file_get_contents($file)) <= STATS_MAX_BYTES, 'the file fits the limit again');
+check(isset($after['days'][$today]['visit']['-']) && count($after['days']) >= 2, 'recent days survive, only the oldest are dropped');
+unlink($file);
+
 echo "stats tests passed\n";

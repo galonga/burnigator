@@ -14,6 +14,16 @@
     );
   }
 
+  // A visit is counted once per browser session (tab), not on every reload. sessionStorage holds only
+  // this flag and disappears when the tab closes; it is not an identifier.
+  function firstInSession() {
+    try {
+      if (sessionStorage.getItem('burnigatorVisitCounted') === '1') return false;
+      sessionStorage.setItem('burnigatorVisitCounted', '1');
+    } catch (_) {}
+    return true;
+  }
+
   function send(type, id) {
     const body = JSON.stringify({ type, id: id || '' });
     try {
@@ -31,7 +41,7 @@
   window.BurnigatorStats = {
     init(settings) {
       enabled = settings?.statsEnabled === true && settings?.published !== false && !optedOut();
-      if (enabled) this.hit('visit');
+      if (enabled && firstInSession()) this.hit('visit');
     },
     // Counts once per page load for the same thing, so reopening a dialog does not inflate numbers.
     hit(type, id) {
