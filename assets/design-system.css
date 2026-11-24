@@ -210,6 +210,7 @@ button,
 .button-light,
 .music-control,
 .program-tooltip-favorite,
+.program-tooltip-share,
 .program-tooltip-edit {
   background: var(--color-surface-timetable);
   color: var(--color-primary);
@@ -218,6 +219,7 @@ button,
 .button-light:hover,
 .music-control:hover:not(:disabled),
 .program-tooltip-favorite:hover,
+.program-tooltip-share,
 .program-tooltip-edit:hover {
   background: var(--color-white);
   color: var(--color-primary-hover);
@@ -412,6 +414,7 @@ button:disabled,
   border-radius: 999px;
 }
 .program-tooltip-favorite.button-light,
+.program-tooltip-share,
 .program-tooltip-edit.button-light {
   width: 40px;
   height: 40px;
@@ -2062,12 +2065,14 @@ select {
   gap: var(--space-2);
 }
 
+.program-tooltip-share,
 .program-tooltip-edit {
   flex: 0 0 auto;
   display: grid;
   place-items: center;
   cursor: pointer;
 }
+.program-tooltip-share,
 .program-tooltip-edit:focus-visible {
   outline: 2px solid var(--color-focus-ring);
   outline-offset: 2px;

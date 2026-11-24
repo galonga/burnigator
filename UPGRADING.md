@@ -25,6 +25,8 @@ Restore your backup of the previous version's files. Restore `config.php`, `data
 
 ### Unreleased
 
+- **Deep links and Share button.** Nothing is required. Upload the new `assets/deeplink.js` with the other files. Existing events and places already have ids, so their links work right away; events saved long ago without an id simply have no Share button until they are saved again.
+
 - **Nothing is required**, but upload the new `lib/` folder (including its `.htaccess`) together with the other files: `api.php` now loads `lib/map_clean.php`, and the visitor page loads the new `assets/timetable-core.js`. Keep the `.htaccess` in `lib/`.
 
 ### 2026.11.1377

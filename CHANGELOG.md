@@ -6,6 +6,10 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ## [Unreleased]
 
+### Added
+
+- **Deep links and sharing:** every event and every place now has a link of the form `index.php?event=<id>` or `index.php?poi=<id>`. Opening an event link jumps to the event's day, scrolls to the event and opens its details; a place link opens the map at that place. A new **Share** button sits next to the heart in the event details (and in the place popup on the map): it opens the system share sheet where the browser has one and otherwise copies the link. A link to something that no longer exists shows a short notice. Saved filters are ignored for the linked event so it is always visible. The links work offline from the installed app too. Place links also make it easy to print QR codes for places.
+
 ### Changed
 
 - **Keyboard and screen-reader support:** opening an event's details now moves focus into the dialog and returns it to the event when the dialog closes (Escape, close button, save or cancel). The event no longer announces the whole dialog as its description. The day tabs and the Map/Timetable tabs follow the WAI-ARIA tabs pattern: one tab stop, arrow keys, Home and End switch tabs, and focus stays on the chosen day. Map markers now have the place name as their accessible name.
