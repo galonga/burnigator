@@ -990,10 +990,6 @@ input[type='search'] {
   box-shadow: var(--elevation-3);
   white-space: normal;
 }
-.program-event-popup::before {
-  background: var(--color-surface-high);
-  filter: none;
-}
 .program-tooltip-header {
   align-items: center;
   gap: var(--space-3);
@@ -2157,9 +2153,6 @@ select {
   max-height: calc(100vh - 32px);
   overflow-y: auto;
   white-space: normal;
-}
-.program-event-popup.is-editing::before {
-  display: none;
 }
 .program-owner-categories {
   gap: var(--space-1);
