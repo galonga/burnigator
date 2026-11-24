@@ -130,6 +130,8 @@ if (empty($_SESSION['admin'])) {
   <label><span data-i18n="impressUrl">Impress-Link (optional)</span><input id="impress-url" type="url" maxlength="2048" placeholder="https://"></label>
   <label class="setting-toggle"><input id="browser-translation-enabled" type="checkbox"><span data-i18n="enableBrowserTranslation">Browserübersetzung für WWW-Beschreibungen anbieten</span></label>
   <p class="hint" data-i18n="browserTranslationHint">Nutzt die experimentelle Übersetzungsfunktion des Browsers. Sie erscheint nur in Browsern, die sie unterstützen.</p>
+  <label class="setting-toggle"><input id="live-timetable-enabled" type="checkbox"><span data-i18n="enableLiveTimetable">„Jetzt und gleich“-Leiste und Überschneidungs-Hinweise anzeigen</span></label>
+  <p class="hint" data-i18n="liveTimetableHint">Zeigt Besuchern im Programm, was gerade läuft und was als Nächstes beginnt, und markiert überlappende Favoriten.</p>
 <button id="save-map" class="button button-primary" data-i18n="save">Änderungen speichern</button>
 </section>
 <section class="config-card" aria-labelledby="publication-heading">

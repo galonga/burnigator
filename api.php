@@ -75,6 +75,7 @@ function readMap(): array
         'pinboardEnabled' => false,
         'iconMode' => 'monochrome',
         'browserTranslationEnabled' => false,
+        'liveTimetableEnabled' => false,
         'announcement' => null,
         'statsEnabled' => false,
         'soundcloudEnabled' => true,
@@ -100,6 +101,7 @@ function readMap(): array
     $m['published'] = ($m['published'] ?? true) === true;
     $m['pinboardEnabled'] = ($m['pinboardEnabled'] ?? false) === true;
     $m['statsEnabled'] = ($m['statsEnabled'] ?? false) === true;
+    $m['liveTimetableEnabled'] = ($m['liveTimetableEnabled'] ?? false) === true;
     $m['announcement'] = cleanAnnouncement($m['announcement'] ?? null, $m['announcement'] ?? null, gmdate('c'));
     $m['theme'] = cleanTheme($m['theme'] ?? null);
     $m['matomoUrl'] = cleanMatomoUrl($m['matomoUrl'] ?? $fallback['matomoUrl']);
@@ -1226,6 +1228,7 @@ if ($action === 'restore-backup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         'height' => $imageInfo ? (int) $imageInfo[1] : 0,
         'iconMode' => ($src['iconMode'] ?? '') === 'colored' ? 'colored' : 'monochrome',
         'browserTranslationEnabled' => !empty($src['browserTranslationEnabled']),
+        'liveTimetableEnabled' => ($src['liveTimetableEnabled'] ?? false) === true,
         'announcement' => cleanAnnouncement($src['announcement'] ?? null, null, gmdate('c')),
         'statsEnabled' => ($src['statsEnabled'] ?? false) === true,
         'customButton' => ['label' => $url !== '' ? cleanText($custom['label'] ?? '', 40) : '', 'url' => $url],
@@ -1880,6 +1883,7 @@ $m = [
     'height' => (int) ($old['height'] ?? 0),
     'iconMode' => $mode,
     'browserTranslationEnabled' => !empty($in['browserTranslationEnabled']),
+    'liveTimetableEnabled' => array_key_exists('liveTimetableEnabled', $in) ? $in['liveTimetableEnabled'] === true : ($old['liveTimetableEnabled'] ?? false) === true,
     'soundcloudEnabled' => array_key_exists('soundcloudEnabled', $in) ? $in['soundcloudEnabled'] !== false : $old['soundcloudEnabled'] ?? true,
     'soundcloudPlaylist' => $soundcloudPlaylist,
     'customButton' => ['label' => $customLabel, 'url' => $customUrl],

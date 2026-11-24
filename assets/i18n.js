@@ -216,6 +216,10 @@
       'Browserübersetzung für WWW-Beschreibungen anbieten|Offer browser translation for WWW descriptions',
     browserTranslationHint:
       'Nutzt die experimentelle Übersetzungsfunktion des Browsers. Sie erscheint nur in Browsern, die sie unterstützen.|Uses the browser’s experimental translation feature. It appears only in browsers that support it.',
+    enableLiveTimetable:
+      '„Jetzt und gleich“-Leiste und Überschneidungs-Hinweise anzeigen|Show the “now and next” strip and clash warnings',
+    liveTimetableHint:
+      'Zeigt Besuchern im Programm, was gerade läuft und was als Nächstes beginnt, und markiert überlappende Favoriten.|Shows visitors what is on now and what starts next, and marks overlapping favourites.',
     translateDescription: 'Übersetzen|Translate',
     translationLoading: 'Übersetzung wird geladen…|Translating…',
     translationShowOriginal: 'Original anzeigen|Show original',
@@ -580,6 +584,14 @@
     statsLoadFailed: 'Statistik konnte nicht geladen werden.|Statistics could not be loaded.',
     history_stats_setting: 'Statistik-Einstellung geändert|Statistics setting changed',
     history_stats_reset: 'Statistik zurückgesetzt|Statistics reset',
+    nowNextLabel: 'Gerade und als Nächstes heute|Happening now and up next today',
+    nowNextNow: 'Läuft gerade|Happening now',
+    nowNextNext: 'Als Nächstes|Up next',
+    nowNextNothingNow: 'Gerade läuft nichts.|Nothing on right now.',
+    nowNextNothingNext: 'Heute kommt nichts mehr.|Nothing more today.',
+    clashHint: 'Überschneidet sich mit deinen Favoriten: {names}|Overlaps with your favourites: {names}',
+    clashSummary:
+      '{n} deiner Favoriten überschneiden sich an diesem Tag.|{n} of your favourites overlap on this day.',
     lang: 'Sprache|Language',
     ownerHint: 'Powered by|Powered by',
     impressLink: 'Impressum|Legal notice',

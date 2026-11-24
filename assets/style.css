@@ -3105,3 +3105,90 @@ small {
 .stats-table .num {
   text-align: right;
 }
+
+/* Now / next strip and clashing favourites */
+.now-next {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-outline);
+  border-radius: var(--shape-control);
+  background: var(--color-primary-container-soft);
+}
+.now-next[hidden] {
+  display: none;
+}
+.now-next-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+.now-next-group > strong {
+  flex: 0 0 8.5em;
+  color: var(--color-primary);
+}
+.now-next-chips {
+  display: flex;
+  flex: 1 1 0;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.now-next-chip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-2);
+  max-width: 100%;
+  text-align: left;
+}
+.now-next-chip time {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--type-weight-medium);
+}
+.now-next-chip small {
+  opacity: 0.8;
+}
+.now-next-chip i {
+  color: var(--color-alert);
+}
+.clash-summary {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-inline-start: 4px solid var(--color-alert);
+  border-radius: var(--shape-compact);
+  background: var(--color-accent-subtle);
+  color: var(--color-on-surface);
+  font-weight: var(--type-weight-medium);
+}
+.timeline-event .timeline-clash-badge {
+  position: absolute;
+  right: 4px;
+  bottom: 3px;
+  z-index: 2;
+  display: block;
+  max-width: none;
+  overflow: visible;
+  color: var(--color-white);
+  font-size: 0.72rem;
+}
+.timeline-event.is-clash {
+  outline: 2px dashed var(--color-white);
+  outline-offset: -4px;
+}
+.program-tooltip-clash {
+  margin: 0 0 var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--shape-compact);
+  background: var(--color-accent-subtle);
+  color: var(--color-on-surface);
+  font-size: 0.85rem;
+  font-weight: var(--type-weight-medium);
+}
+@media (max-width: 760px) {
+  .now-next-group > strong {
+    flex-basis: 100%;
+  }
+}

@@ -226,6 +226,7 @@
     document.getElementById('matomo-url').value = data.matomoUrl ?? '';
     document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '';
     document.getElementById('browser-translation-enabled').checked = data.browserTranslationEnabled === true;
+    document.getElementById('live-timetable-enabled').checked = data.liveTimetableEnabled === true;
     document.getElementById('soundcloud-enabled').checked = data.soundcloudEnabled !== false;
     document.getElementById('soundcloud-playlist').value = data.soundcloudPlaylist || '';
     setThemeFields(data.theme);
@@ -1187,6 +1188,7 @@
       data.matomoUrl = document.getElementById('matomo-url').value.trim();
       data.matomoSiteId = document.getElementById('matomo-site-id').value.trim();
       data.browserTranslationEnabled = document.getElementById('browser-translation-enabled').checked;
+      data.liveTimetableEnabled = document.getElementById('live-timetable-enabled').checked;
       data.soundcloudEnabled = document.getElementById('soundcloud-enabled').checked;
       data.soundcloudPlaylist = document.getElementById('soundcloud-playlist').value.trim();
       data.theme = readThemeFields();
@@ -1595,6 +1597,7 @@
           matomoUrl: typeof imported.matomoUrl === 'string' ? imported.matomoUrl : data.matomoUrl || '',
           matomoSiteId: String(imported.matomoSiteId || data.matomoSiteId || ''),
           browserTranslationEnabled: imported.browserTranslationEnabled === true,
+          liveTimetableEnabled: imported.liveTimetableEnabled === true,
           soundcloudEnabled: imported.soundcloudEnabled !== false,
           soundcloudPlaylist: imported.soundcloudPlaylist || '',
           iconMode: imported.iconMode === 'colored' ? 'colored' : 'monochrome',
@@ -1621,6 +1624,7 @@
         document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '';
         document.getElementById('browser-translation-enabled').checked =
           data.browserTranslationEnabled === true;
+        document.getElementById('live-timetable-enabled').checked = data.liveTimetableEnabled === true;
         document.getElementById('soundcloud-enabled').checked = data.soundcloudEnabled !== false;
         document.getElementById('soundcloud-playlist').value = data.soundcloudPlaylist;
         document.getElementById('icon-mode').value = data.iconMode;
@@ -1685,6 +1689,7 @@
         document.getElementById('matomo-site-id').value = data.matomoSiteId ?? '';
         document.getElementById('browser-translation-enabled').checked =
           data.browserTranslationEnabled === true;
+        document.getElementById('live-timetable-enabled').checked = data.liveTimetableEnabled === true;
         document.getElementById('soundcloud-enabled').checked = data.soundcloudEnabled !== false;
         document.getElementById('soundcloud-playlist').value = data.soundcloudPlaylist || '';
         document.getElementById('icon-mode').value = data.iconMode || 'monochrome';
