@@ -37,18 +37,7 @@
         ids: ['config-history-heading', 'config-data-heading', 'reset-app-heading'],
       },
     ];
-    const wideCards = [
-      'config-appearance-heading',
-      'config-categories-heading',
-      'config-accounts-heading',
-      'event-auth-heading',
-      'config-data-heading',
-      'config-history-heading',
-    ];
     const cards = [...config.querySelectorAll('.config-card')];
-    cards.forEach((card) => {
-      if (wideCards.includes(card.querySelector('[id]')?.id)) card.classList.add('is-wide');
-    });
     const byHeading = new Map(cards.map((card) => [card.querySelector('[id]')?.id, card]));
     const panels = [];
     sections.forEach((section, index) => {

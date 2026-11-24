@@ -2516,55 +2516,41 @@ select {
   }
 }
 
-/* Configuration and pinboard tabs use the same card grid as the dashboard. */
+/*
+ * Configuration and pinboard tabs: one column of settings sections. All sections share one
+ * width; on wide screens the title sits in a left pane and the controls in a right pane.
+ */
 .config-section-panel {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
-  /* Cards in a row share the height of the tallest one. */
-  align-items: stretch;
 }
 .config-section-panel > .config-card,
 #admin-pinboard-view > .config-card {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--space-2);
-  min-width: 0;
   margin: 0;
 }
-.config-section-panel > .config-card > h2,
-#admin-pinboard-view > .config-card > h2 {
-  margin: 0 0 2px;
+#admin-pinboard-view > .config-card {
+  margin-bottom: var(--space-3);
 }
-.config-section-panel > .config-card > .hint,
-.config-section-panel > .config-card > p,
-#admin-pinboard-view > .config-card > .hint {
-  margin: 0;
+.admin-layout.config-active #admin-config-view,
+.admin-layout.config-active #admin-pinboard-view {
+  max-width: 1100px;
 }
-/* Action buttons sit at the bottom edge so equal-height cards line up. */
-.config-section-panel > .config-card > .button,
-#admin-pinboard-view > .config-card > .button {
-  align-self: flex-start;
-}
-.config-section-panel > .config-card > .button:last-child {
-  margin-top: auto;
-}
-/* Bulky cards (forms with nested groups) take a whole row. */
-.config-section-panel > .config-card.is-wide {
-  grid-column: 1 / -1;
-}
-.pinboard-database-notice {
-  border-radius: var(--shape-compact);
-}
-/* Phones: one column, every card is only as tall as its content. */
-@media (max-width: 600px) {
-  .config-section-panel {
-    grid-template-columns: minmax(0, 1fr);
+@media (min-width: 900px) {
+  .config-section-panel > .config-card,
+  #admin-pinboard-view > .config-card {
+    grid-template-columns: minmax(180px, 1fr) minmax(0, 2.6fr);
+    column-gap: var(--space-5);
     align-items: start;
   }
-}
-@media (min-width: 1100px) {
-  .admin-layout.config-active #admin-config-view {
-    max-width: none;
+  .config-section-panel > .config-card > *,
+  #admin-pinboard-view > .config-card > * {
+    grid-column: 2;
+  }
+  .config-section-panel > .config-card > h2,
+  #admin-pinboard-view > .config-card > h2 {
+    grid-column: 1;
+    grid-row: 1;
+    padding: 0;
+    border-bottom: 0;
   }
 }
