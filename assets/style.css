@@ -3192,3 +3192,46 @@ small {
     flex-basis: 100%;
   }
 }
+
+/* Admin dashboard (default view for the owner) */
+.dashboard-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-3);
+  align-items: start;
+}
+.dashboard-card h3 {
+  margin-top: 0;
+}
+.dashboard-card h4 {
+  margin: var(--space-3) 0 var(--space-1);
+}
+.dashboard-event-name {
+  margin: 0 0 var(--space-2);
+  font-size: 1.15rem;
+}
+.dashboard-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.dashboard-list li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: var(--space-2);
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--color-outline);
+}
+.dashboard-list li small {
+  grid-column: 2;
+  color: var(--color-on-surface-variant, inherit);
+}
+.admin-layout.config-active #admin-dashboard-view {
+  max-width: 1200px;
+}

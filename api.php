@@ -7,6 +7,7 @@ require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/event_auth.php';
 require_once __DIR__ . '/lib/map_clean.php';
 require_once __DIR__ . '/lib/stats.php';
+require_once __DIR__ . '/lib/dashboard.php';
 startAppSession($config, false);
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
@@ -151,6 +152,42 @@ function recordHistory(string $action, int $count = 0, string $detail = '', ?arr
     fclose($fp);
 }
 
+/** Connection state of the optional event-auth database (shared by the settings card and the dashboard). */
+function databaseHealth(array $config): array
+{
+    $environmentDsn = (string) getenv('BURNIGATOR_DB_DSN');
+    $dsn = $environmentDsn !== '' ? $environmentDsn : (string) ($config['event_auth_db_dsn'] ?? '');
+    $host = '';
+    $name = '';
+    if (preg_match('/(?:^|[:;])host=([^;]*)/', $dsn, $m)) {
+        $host = $m[1];
+    }
+    if (preg_match('/(?:^|;)dbname=([^;]*)/', $dsn, $m)) {
+        $name = $m[1];
+    }
+    $ready = false;
+    $latency = null;
+    if ($dsn !== '') {
+        $started = microtime(true);
+        try {
+            eventAuthDb($config);
+            $ready = true;
+            $latency = (int) round((microtime(true) - $started) * 1000);
+        } catch (Throwable $e) {
+            $ready = false;
+        }
+    }
+    return [
+        'configured' => $dsn !== '',
+        'ready' => $ready,
+        'managedByEnvironment' => $environmentDsn !== '',
+        'host' => $host,
+        'name' => $name,
+        'driverAvailable' => extension_loaded('pdo_mysql'),
+        'latencyMs' => $latency,
+    ];
+}
+
 function snapshotFiles(): array
 {
     $files = glob(__DIR__ . '/data/snapshots/*.json') ?: [];
@@ -254,6 +291,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'account
         }
     }
     respond(200, ['accounts' => $accounts]);
+}
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'dashboard') {
+    header('Cache-Control: private, no-store');
+    if (empty($config['installed']) || empty($_SESSION['admin']) || appRole() !== 'owner') {
+        respond(403, ['error' => 'Keine Berechtigung']);
+    }
+    $map = readMap();
+    $database = databaseHealth($config);
+    $pinboard = ['enabled' => ($map['pinboardEnabled'] ?? false) === true, 'available' => false, 'posts' => 0, 'hidden' => 0, 'lastPostAt' => null];
+    $orders = ['available' => false, 'total' => 0, 'eligible' => 0, 'ineligible' => 0, 'groups' => [], 'lastSyncAt' => null, 'lastSyncSource' => null];
+    if ($database['ready']) {
+        try {
+            $db = eventAuthDb($config);
+            $eventId = eventAuthEventId();
+            $q = $db->prepare('SELECT COUNT(*) AS total, COALESCE(SUM(CASE WHEN hidden=1 THEN 1 ELSE 0 END),0) AS hidden, MAX(created_at) AS last_at FROM burnigator_pinboard_posts WHERE event_id=?');
+            $q->execute([$eventId]);
+            $row = $q->fetch(PDO::FETCH_ASSOC) ?: [];
+            $pinboard['available'] = true;
+            $pinboard['posts'] = (int) ($row['total'] ?? 0);
+            $pinboard['hidden'] = (int) ($row['hidden'] ?? 0);
+            $pinboard['lastPostAt'] = !empty($row['last_at']) ? gmdate('c', (int) strtotime((string) $row['last_at'] . ' UTC')) : null;
+            $q = $db->prepare('SELECT source,status,eligible,COUNT(*) AS amount FROM burnigator_event_auth_orders WHERE event_id=? GROUP BY source,status,eligible ORDER BY source,status,eligible DESC');
+            $q->execute([$eventId]);
+            foreach ($q as $row) {
+                $amount = (int) $row['amount'];
+                $eligible = (int) $row['eligible'] === 1;
+                $orders['total'] += $amount;
+                $orders[$eligible ? 'eligible' : 'ineligible'] += $amount;
+                $orders['groups'][] = ['source' => (string) $row['source'], 'status' => (string) $row['status'], 'eligible' => $eligible, 'count' => $amount];
+            }
+            $orders['available'] = true;
+            $orders['lastSyncAt'] = eventAuthSetting($db, 'last_sync_at');
+            $orders['lastSyncSource'] = eventAuthSetting($db, 'last_sync_source');
+        } catch (Throwable $e) {
+            $database['ready'] = false;
+        }
+    }
+    $stats = ['enabled' => ($map['statsEnabled'] ?? false) === true];
+    if ($stats['enabled']) {
+        $summary = statsSummary(statsRead(__DIR__ . '/data/stats.json'), statsTargets($map), gmdate('Y-m-d'), 7);
+        $stats['totals'] = $summary['totals'];
+        $stats['perDay'] = $summary['perDay'];
+    }
+    $path = __DIR__ . '/data/history.json';
+    $history = is_file($path) ? json_decode((string) file_get_contents($path), true) : [];
+    respond(200, [
+        'title' => (string) ($map['title'] ?? ''),
+        'published' => ($map['published'] ?? true) === true,
+        'updatedAt' => (string) ($map['updatedAt'] ?? ''),
+        'weekStart' => (string) ($map['weekStart'] ?? 'mon'),
+        'counts' => dashboardCounts($map),
+        'owners' => dashboardProgramOwners($map),
+        'database' => $database,
+        'pinboard' => $pinboard,
+        'orders' => $orders,
+        'stats' => $stats,
+        'history' => is_array($history) ? array_slice($history, 0, 8) : [],
+    ]);
 }
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'history') {
     if (empty($config['installed']) || empty($_SESSION['admin']) || appRole() !== 'owner') {
@@ -608,31 +703,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'databas
     if (empty($_SESSION['admin']) || appRole() !== 'owner') {
         respond(403, ['error' => 'forbidden']);
     }
+    $health = databaseHealth($config);
     $environmentDsn = (string) getenv('BURNIGATOR_DB_DSN');
-    $dsn = $environmentDsn !== '' ? $environmentDsn : (string) ($config['event_auth_db_dsn'] ?? '');
-    $host = '';
-    $name = '';
-    if (preg_match('/(?:^|[:;])host=([^;]*)/', $dsn, $m)) {
-        $host = $m[1];
-    }
-    if (preg_match('/(?:^|;)dbname=([^;]*)/', $dsn, $m)) {
-        $name = $m[1];
-    }
-    $ready = false;
-    if ($dsn !== '') {
-        try {
-            eventAuthDb($config);
-            $ready = true;
-        } catch (Throwable $e) {
-            $ready = false;
-        }
-    }
     respond(200, [
-        'configured' => $dsn !== '',
-        'ready' => $ready,
-        'managedByEnvironment' => $environmentDsn !== '',
-        'host' => $host,
-        'name' => $name,
+        'configured' => $health['configured'],
+        'ready' => $health['ready'],
+        'managedByEnvironment' => $health['managedByEnvironment'],
+        'host' => $health['host'],
+        'name' => $health['name'],
         'user' => (string) ($environmentDsn !== '' ? getenv('BURNIGATOR_DB_USER') : ($config['event_auth_db_user'] ?? '')),
         'passwordSet' => (string) ($config['event_auth_db_password'] ?? '') !== '' || (string) getenv('BURNIGATOR_DB_PASSWORD') !== '',
         'driverAvailable' => extension_loaded('pdo_mysql'),

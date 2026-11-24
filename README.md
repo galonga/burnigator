@@ -37,6 +37,7 @@ Learn more, and see what Burnigator offers guests and organizers, at **[burnigat
 - **Now / next and clash warnings (optional):** Enable them in Configuration → General. The timetable starts with a strip of what is happening now and what starts next today, and favourite events that overlap in time are flagged.
 - **Event details and favourites:** Events can include a host, description, multiple categories, and an external link with a custom label. Visitors open the details card by selecting an event and can save favourites in their browser; favourites remain after a reload on that device.
 - **Print exports:** Export the map with a numbered place index or export the selected timetable day as a high-resolution JPEG. The exports target A2 printing and 300 DPI where browser canvas limits permit. A configured QR URL is included in the exports.
+- **Admin dashboard:** The owner's admin page opens on a dashboard with the event status, counts of places and events, what is running now, database and pinboard health, order-ID import statistics, visitor statistics and the latest changes.
 - **Admin panel:** Manage POIs, categories, events, independent timelines, general configuration, accounts, backups, and change history. Configuration is split into four categories, with event authentication grouped under User management. Owners can fully reset an installation from Security & History after confirming the action. Places are grouped by category and can be collapsed for a more compact overview.
 - **Hosted pilot visibility:** New installations start unpublished. Signed-in festival editors can preview the map and timetable; only the owner can publish or unpublish the visitor view.
 - **Built-in statistics (optional):** An anonymous, cookie-free counter for visits, opened events and places, and favourites, shown in Configuration → General with the most popular events and places. Off by default; see Privacy and analytics.
@@ -187,6 +188,7 @@ Matomo tracking is off by default. It only runs when the owner enters a Matomo U
 | `theme_bootstrap.php` | Passes the saved theme colors to the page before first paint |
 | `assets/deeplink.js` | Deep link parsing and building helpers, shared by the visitor page and the tests |
 | `lib/stats.php` | Anonymous statistics counters and summaries, loaded by `api.php` |
+| `lib/dashboard.php` | Pure counting helpers for the admin dashboard, loaded by `api.php` |
 | `lib/map_clean.php` | Pure validation and sanitising helpers for map data, loaded by `api.php` |
 | `assets/timetable-core.js` | Pure time, overnight-event and timeline helpers, shared by the visitor page and the tests |
 | `assets/map.js` | Map, timetable, player, exports, and visitor interactions |

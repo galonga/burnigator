@@ -89,11 +89,20 @@ if (empty($_SESSION['admin'])) {
 <nav class="admin-view-tabs" role="tablist" aria-label="Admin views" data-i18n-aria="adminViews" <?php 
     echo $role === 'owner' ? '' : 'hidden';
     ?>>
-<button id="admin-edit-tab" class="admin-view-tab chip-button active" type="button" role="tab" aria-selected="true" aria-controls="admin-edit-view" data-i18n="adminEditView">Orte und Programm</button>
+<button id="admin-dashboard-tab" class="admin-view-tab chip-button<?= $role === 'owner' ? ' active' : '' ?>" type="button" role="tab" aria-selected="<?= $role === 'owner' ? 'true' : 'false' ?>" aria-controls="admin-dashboard-view" data-i18n="adminDashboardView" <?= $role === 'owner' ? '' : 'hidden' ?>>Dashboard</button>
+<button id="admin-edit-tab" class="admin-view-tab chip-button<?= $role === 'owner' ? '' : ' active' ?>" type="button" role="tab" aria-selected="<?= $role === 'owner' ? 'false' : 'true' ?>" aria-controls="admin-edit-view" data-i18n="adminEditView">Orte und Programm</button>
 <button id="admin-config-tab" class="admin-view-tab chip-button" type="button" role="tab" aria-selected="false" aria-controls="admin-config-view" data-i18n="adminConfigView">Konfiguration</button>
 <button id="admin-pinboard-tab" class="admin-view-tab chip-button" type="button" role="tab" aria-selected="false" aria-controls="admin-pinboard-view" data-i18n="adminPinboardView">Pinnwand moderieren</button>
 </nav>
-<div id="admin-edit-view" role="tabpanel" aria-labelledby="admin-edit-tab">
+<section id="admin-dashboard-view" role="tabpanel" aria-labelledby="admin-dashboard-tab" <?= $role === 'owner' ? '' : 'hidden' ?>>
+  <div class="dashboard-head">
+    <h2 data-i18n="dashboardTitle">Dashboard</h2>
+    <button id="dashboard-refresh" type="button" class="button button-secondary" data-i18n="dashboardRefresh">Aktualisieren</button>
+  </div>
+  <p id="dashboard-status" class="hint" role="status" aria-live="polite"></p>
+  <div id="dashboard-grid" class="dashboard-grid"></div>
+</section>
+<div id="admin-edit-view" role="tabpanel" aria-labelledby="admin-edit-tab" <?= $role === 'owner' ? 'hidden' : '' ?>>
   <h2 data-i18n="poiHeading">Orte</h2>
   <p class="hint" data-i18n="addPoiHint">Klicke auf die Karte, um einen Ort anzulegen. Ziehe Marker zum Verschieben.</p>
   <div id="poi-editor">
@@ -356,7 +365,7 @@ XWDYD,canceled
 <div id="map" aria-label="Karte bearbeiten" data-i18n-aria="mapLabel">
 </div>
 </main>
-<script src="<?= assetUrl('assets/avatar.js') ?>"></script><script src="<?= assetUrl('assets/config-tabs.js') ?>"></script><script src="<?= assetUrl('assets/event-auth-admin.js') ?>"></script><script src="<?= assetUrl('assets/announcement-admin.js') ?>"></script><script src="<?= assetUrl('assets/stats-admin.js') ?>"></script>
+<script src="<?= assetUrl('assets/avatar.js') ?>"></script><script src="<?= assetUrl('assets/config-tabs.js') ?>"></script><script src="<?= assetUrl('assets/event-auth-admin.js') ?>"></script><script src="<?= assetUrl('assets/announcement-admin.js') ?>"></script><script src="<?= assetUrl('assets/stats-admin.js') ?>"></script><script src="<?= assetUrl('assets/timetable-core.js') ?>"></script><script src="<?= assetUrl('assets/dashboard-admin.js') ?>"></script>
 <script>window.MAP_CSRF=<?php 
     echo json_encode($_SESSION['csrf']);
     ?>;window.ADMIN_ROLE=<?php 
