@@ -6,6 +6,8 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ## [Unreleased]
 
+## [2026.11.1389] - 2026-11-24
+
 ### Added
 
 - **Admin dashboard (default view for owners):** the admin page now opens on a new **Dashboard** tab. It shows the event status (published or preview, last saved), the number of places, places with a programme, timelines, events and events with an event owner, the events running right now and the next ones today, the database connection (including response time), the pinboard state (on or off, posts, hidden posts, latest post), statistics of imported order IDs (total, allowed, blocked, last sync, breakdown by source and status), the visitor statistics of the last 7 days when they are switched on, and the latest changes. It refreshes every minute and has shortcuts to the pinboard moderation, the database setup and the full history. Programme and POI editors still open on their editor. The layout adapts from small phones (single column) to wide screens (up to four columns, with the order and history cards spanning two). The Configuration and Pinboard tabs are restructured as one column of equal-width sections (title left, controls right on wide screens, stacked on phones). Also removes a duplicated Database connection card that showed at the bottom of every Configuration tab. Read-only: no new settings or data.
@@ -115,7 +117,8 @@ First public release.
 - Event authentication hardening: write rate limits, safer imports that guard against mass access revocation, installation reset, and HTTP Pretix support.
 - `config.php`, `data/` and `uploads/` are ignored by git and excluded from release zips.
 
-[Unreleased]: https://github.com/galonga/burnigator/compare/v2026.11.1377...HEAD
+[Unreleased]: https://github.com/galonga/burnigator/compare/v2026.11.1389...HEAD
+[2026.11.1389]: https://github.com/galonga/burnigator/compare/v2026.11.1377...v2026.11.1389
 [2026.11.1377]: https://github.com/galonga/burnigator/compare/v2026.11.1373...v2026.11.1377
 [2026.11.1373]: https://github.com/galonga/burnigator/compare/v2026.11.1367...v2026.11.1373
 [2026.11.1367]: https://github.com/galonga/burnigator/compare/v2026.11.1359...v2026.11.1367
