@@ -11,6 +11,7 @@
     const t = (key) => window.AppI18n.t(key);
     const core = window.BurnigatorTimetable;
     const weekdayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+    const WIDE = new Set(['dashboardOrdersTitle', 'historyHeading']);
     let last = null;
     let timer = 0;
 
@@ -31,6 +32,7 @@
     };
     const card = (titleKey, ...children) => {
       const section = el('section', 'config-card dashboard-card');
+      if (WIDE.has(titleKey)) section.classList.add('is-wide');
       section.append(el('h3', '', t(titleKey)), ...children);
       return section;
     };
