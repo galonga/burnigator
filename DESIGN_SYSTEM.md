@@ -55,6 +55,7 @@ When an interface context calls for a button, chip, switch, card, field, dialog,
 ## Surfaces and interactive components
 
 - **Cards:** Place rows, POI editors, event editors, and detail popovers use `--shape-card`, a quiet outline, shared spacing, and subtle elevation. Expanded/selected content uses a blue-tinted surface; keyboard focus uses the shared focus ring.
+- **Dashboard cards:** The owner dashboard uses `.config-card` surfaces with the same title treatment as configuration cards, nested tiles and list rows on the low surface with `--shape-control`/`--shape-compact`, and status boxes with a 4px success or alert edge. Cards in one grid row share the height of the tallest card and keep their action button on the bottom edge; on phones the grid is a single column and each card is only as tall as its content.
 - **Expandable rows:** POI, program, icon, and category summaries look and respond like their mapped Light, Secondary, or Outlined control. Keep a visible disclosure affordance and keyboard focus.
 - **Switches:** Binary options such as category visibility, POI name labels, and “has program” use the shared Material-style switch.
 - **Category selection:** Admin event category assignment uses inactive/active chips. The visitor WWW category filter uses one full-width row per category with a Material-style switch indicator, wrapped long labels, and `aria-pressed` state.
