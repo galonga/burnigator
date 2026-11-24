@@ -196,6 +196,23 @@ if (empty($_SESSION['admin'])) {
   <label><span data-i18n="matomoSiteId">Seiten-ID</span><input id="matomo-site-id" type="number" min="1" max="999999999" step="1" inputmode="numeric"></label>
 <button id="save-tracking" type="button" class="button button-primary" data-i18n="saveTracking">Tracking-Einstellungen speichern</button>
 </section>
+<section class="config-card" aria-labelledby="config-stats-heading">
+  <h2 id="config-stats-heading" data-i18n="statsTitle">Statistik</h2>
+  <p class="hint" data-i18n="statsIntro">Zählt anonym, was Besucher öffnen: Besuche, Events, Orte und Favoriten. Es werden keine Cookies, IP-Adressen, Kennungen oder Zeitpunkte unterhalb eines Tages gespeichert. Daten von angemeldeten Teammitgliedern und aus der Vorschau werden nicht gezählt. Die Werte der letzten 90 Tage bleiben erhalten.</p>
+  <label class="setting-toggle"><input id="stats-enabled" type="checkbox"><span data-i18n="statsEnable">Statistik aktivieren</span></label>
+  <p id="stats-status" class="hint" role="status" aria-live="polite"></p>
+  <div id="stats-report" hidden>
+    <label><span data-i18n="statsRange">Zeitraum</span><select id="stats-range"><option value="7" data-i18n="statsRange7">Letzte 7 Tage</option><option value="30" selected data-i18n="statsRange30">Letzte 30 Tage</option><option value="90" data-i18n="statsRange90">Letzte 90 Tage</option></select></label>
+    <div id="stats-totals" class="stats-totals"></div>
+    <h3 data-i18n="statsVisitsPerDay">Besuche pro Tag</h3>
+    <div id="stats-bars" class="stats-bars" role="img"></div>
+    <h3 data-i18n="statsTopEvents">Beliebteste Events</h3>
+    <div id="stats-events" class="stats-table-wrap"></div>
+    <h3 data-i18n="statsTopPois">Meistgeöffnete Orte</h3>
+    <div id="stats-pois" class="stats-table-wrap"></div>
+    <button id="stats-reset" type="button" class="button button-primary button-danger" data-i18n="statsReset">Statistik zurücksetzen</button>
+  </div>
+</section>
 </div>
 <div id="owner-tools" <?php 
     echo $role === 'owner' ? '' : 'hidden';
@@ -337,7 +354,7 @@ XWDYD,canceled
 <div id="map" aria-label="Karte bearbeiten" data-i18n-aria="mapLabel">
 </div>
 </main>
-<script src="<?= assetUrl('assets/avatar.js') ?>"></script><script src="<?= assetUrl('assets/config-tabs.js') ?>"></script><script src="<?= assetUrl('assets/event-auth-admin.js') ?>"></script><script src="<?= assetUrl('assets/announcement-admin.js') ?>"></script>
+<script src="<?= assetUrl('assets/avatar.js') ?>"></script><script src="<?= assetUrl('assets/config-tabs.js') ?>"></script><script src="<?= assetUrl('assets/event-auth-admin.js') ?>"></script><script src="<?= assetUrl('assets/announcement-admin.js') ?>"></script><script src="<?= assetUrl('assets/stats-admin.js') ?>"></script>
 <script>window.MAP_CSRF=<?php 
     echo json_encode($_SESSION['csrf']);
     ?>;window.ADMIN_ROLE=<?php 

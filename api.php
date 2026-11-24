@@ -6,6 +6,7 @@ $GLOBALS['burnigatorConfig'] = $config;
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/event_auth.php';
 require_once __DIR__ . '/lib/map_clean.php';
+require_once __DIR__ . '/lib/stats.php';
 startAppSession($config, false);
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
@@ -75,6 +76,7 @@ function readMap(): array
         'iconMode' => 'monochrome',
         'browserTranslationEnabled' => false,
         'announcement' => null,
+        'statsEnabled' => false,
         'soundcloudEnabled' => true,
         'soundcloudPlaylist' => defaultSoundCloudPlaylist(),
         'customButton' => ['label' => '', 'url' => ''],
@@ -97,6 +99,7 @@ function readMap(): array
     $m = is_array($m) ? array_merge($fallback, $m) : $fallback;
     $m['published'] = ($m['published'] ?? true) === true;
     $m['pinboardEnabled'] = ($m['pinboardEnabled'] ?? false) === true;
+    $m['statsEnabled'] = ($m['statsEnabled'] ?? false) === true;
     $m['announcement'] = cleanAnnouncement($m['announcement'] ?? null, $m['announcement'] ?? null, gmdate('c'));
     $m['theme'] = cleanTheme($m['theme'] ?? null);
     $m['matomoUrl'] = cleanMatomoUrl($m['matomoUrl'] ?? $fallback['matomoUrl']);
@@ -229,6 +232,15 @@ function safeAssetPath($value, string $kind): string
     return $value;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'stats') {
+    header('Cache-Control: private, no-store');
+    if (empty($config['installed']) || empty($_SESSION['admin']) || appRole() !== 'owner') {
+        respond(403, ['error' => 'Keine Berechtigung']);
+    }
+    $map = readMap();
+    $days = (int) ($_GET['days'] ?? 30);
+    respond(200, ['enabled' => ($map['statsEnabled'] ?? false) === true] + statsSummary(statsRead(__DIR__ . '/data/stats.json'), statsTargets($map), gmdate('Y-m-d'), $days));
+}
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'accounts') {
     if (empty($config['installed']) || empty($_SESSION['admin']) || appRole() !== 'owner') {
         respond(403, ['error' => 'Keine Berechtigung']);
@@ -697,6 +709,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
     respond(200, publicEventMap($map));
 }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_GET['action'] ?? '') === 'stat') {
+    // Anonymous counter hit from the visitor page. Always answers 204 so it reveals nothing.
+    header('Cache-Control: no-store');
+    $map = !empty($config['installed']) && empty($_SESSION['admin']) ? readMap() : [];
+    if (($map['statsEnabled'] ?? false) === true && ($map['published'] ?? true) === true) {
+        $in = json_decode((string) file_get_contents('php://input', false, null, 0, 512), true);
+        $type = is_array($in) && is_string($in['type'] ?? null) ? $in['type'] : '';
+        $id = is_array($in) && is_string($in['id'] ?? null) ? substr($in['id'], 0, 64) : '';
+        if (statsValidHit($type, $id, statsTargets($map))) {
+            statsMutate(__DIR__ . '/data/stats.json', static function (array $stats) use ($type, $id) {
+                return statsRecord($stats, $type, $id, gmdate('Y-m-d'));
+            });
+        }
+    }
+    http_response_code(204);
+    exit;
+}
 $role = appRole();
 if (empty($config['installed']) || empty($_SESSION['admin']) || !in_array($role, [
     'owner',
@@ -716,6 +745,8 @@ if (in_array($action, [
     'database-settings',
     'pinboard-settings',
     'announcement-save',
+    'stats-settings',
+    'stats-reset',
     'reset-application',
 ], true) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($role !== 'owner') {
@@ -802,6 +833,31 @@ if (in_array($action, [
         }
         recordHistory('announcement_save', 0, $map['announcement'] ? cleanText($map['announcement']['text'], 120) : 'Cleared');
         respond(200, ['ok' => true, 'announcement' => $map['announcement']]);
+    }
+    if ($action === 'stats-settings') {
+        $input = json_decode((string) file_get_contents('php://input'), true);
+        if (!is_array($input) || !is_bool($input['enabled'] ?? null)) {
+            respond(400, ['error' => 'invalid_settings']);
+        }
+        $enabled = $input['enabled'];
+        $map = withMapLock(function () use ($enabled) {
+            $current = readMap();
+            $current['statsEnabled'] = $enabled;
+            return saveMap($current) ? $current : false;
+        });
+        if (!is_array($map)) {
+            respond(500, ['error' => 'settings_save_failed']);
+        }
+        recordHistory('stats_setting', 0, $enabled ? 'Statistics enabled' : 'Statistics disabled');
+        respond(200, ['ok' => true, 'enabled' => $enabled]);
+    }
+    if ($action === 'stats-reset') {
+        $path = __DIR__ . '/data/stats.json';
+        if (is_file($path) && !@unlink($path)) {
+            respond(500, ['error' => 'stats_reset_failed']);
+        }
+        recordHistory('stats_reset');
+        respond(200, ['ok' => true]);
     }
     if ($action === 'database-settings') {
         $input = json_decode((string) file_get_contents('php://input'), true);
@@ -1171,6 +1227,7 @@ if ($action === 'restore-backup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         'iconMode' => ($src['iconMode'] ?? '') === 'colored' ? 'colored' : 'monochrome',
         'browserTranslationEnabled' => !empty($src['browserTranslationEnabled']),
         'announcement' => cleanAnnouncement($src['announcement'] ?? null, null, gmdate('c')),
+        'statsEnabled' => ($src['statsEnabled'] ?? false) === true,
         'customButton' => ['label' => $url !== '' ? cleanText($custom['label'] ?? '', 40) : '', 'url' => $url],
         'categories' => $categories,
         'pois' => $pois,
@@ -1834,6 +1891,7 @@ $m = [
     'published' => ($old['published'] ?? true) === true,
     'pinboardEnabled' => ($old['pinboardEnabled'] ?? false) === true,
     'announcement' => $old['announcement'] ?? null,
+    'statsEnabled' => ($old['statsEnabled'] ?? false) === true,
     'categories' => $cats,
     'pois' => $pois,
     'timelines' => $timelines,

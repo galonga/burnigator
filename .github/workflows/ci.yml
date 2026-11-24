@@ -93,3 +93,4 @@ jobs:
         run: |
           php tests/event_auth_test.php
           php tests/map_clean_test.php
+          php tests/stats_test.php

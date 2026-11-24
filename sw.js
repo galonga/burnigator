@@ -13,6 +13,7 @@ const SHELL_FILES = [
   './assets/theme.js',
   './assets/easter-egg.js',
   './assets/deeplink.js',
+  './assets/stats.js',
   './assets/timetable-core.js',
   './assets/map.js',
   './assets/matomo.js',

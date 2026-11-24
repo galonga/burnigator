@@ -65,6 +65,7 @@
     showMapLoadError();
     return;
   }
+  window.BurnigatorStats?.init(data);
   if (data.published === false) {
     const banner = document.createElement('p');
     banner.className = 'preview-banner';
@@ -326,6 +327,7 @@
     marker.on('mouseover', () => marker.openTooltip());
     marker.on('mouseout', () => marker.closeTooltip());
     marker.on('click', () => {
+      window.BurnigatorStats?.hit('poi_open', p.id);
       trackVisitorClick('poi_click', poiLabel);
       marker.closeTooltip();
     });
@@ -390,6 +392,7 @@
     }
     item.append(itemIcon, itemCopy);
     item.onclick = () => {
+      window.BurnigatorStats?.hit('poi_open', p.id);
       trackVisitorClick('poi_click', p.name || window.AppI18n.t('locationName'));
       map.setView(marker.getLatLng(), Math.max(map.getZoom(), 0));
       marker.openPopup();
@@ -1107,6 +1110,7 @@
       }
       hideEventTooltip(undefined, true);
       map.closePopup();
+      window.BurnigatorStats?.hit('event_open', event.id);
       const popup = document.createElement('div');
       popup.className = 'program-event-popup';
       popup.setAttribute('role', 'dialog');
@@ -1143,6 +1147,7 @@
         try {
           localStorage.setItem(favoriteEventsKey, JSON.stringify([...favoriteEvents]));
         } catch (_) {}
+        window.BurnigatorStats?.action(wasFavorite ? 'favorite_remove' : 'favorite_add', event.id);
         window.trackAppEvent?.(
           'Visitor',
           'event_favorite_toggle',
