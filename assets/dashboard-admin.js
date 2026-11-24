@@ -122,7 +122,8 @@
                   .replace('{host}', db.host || '')
               : t('databaseStateConnected')) + (db.latencyMs !== null ? ' · ' + db.latencyMs + ' ms' : '')
           : t('databaseStateFailed');
-      const parts = [pill(db.configured && db.ready, text)];
+      if (db.ready && db.queryFailed) text = t('dashboardDatabaseQueryFailed');
+      const parts = [pill(db.configured && db.ready && !db.queryFailed, text)];
       if (!db.driverAvailable) parts.push(el('p', 'hint', t('setupDatabaseUnavailable')));
       if (!db.configured || !db.ready)
         parts.push(

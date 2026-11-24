@@ -325,7 +325,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && ($_GET['action'] ?? '') === 'dashboa
             $orders['lastSyncAt'] = eventAuthSetting($db, 'last_sync_at');
             $orders['lastSyncSource'] = eventAuthSetting($db, 'last_sync_source');
         } catch (Throwable $e) {
-            $database['ready'] = false;
+            // Connected, but a table could not be read: keep the connection state, flag the failure.
+            $database['queryFailed'] = true;
         }
     }
     $stats = ['enabled' => ($map['statsEnabled'] ?? false) === true];

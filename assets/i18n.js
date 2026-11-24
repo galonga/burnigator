@@ -601,6 +601,8 @@
     dashboardNowTitle: 'Läuft gerade|Running now',
     dashboardNothingNow: 'Gerade läuft nichts.|Nothing is running right now.',
     dashboardNothingNext: 'Heute folgt nichts mehr.|Nothing else today.',
+    dashboardDatabaseQueryFailed:
+      'Verbunden, aber die Tabellen konnten nicht gelesen werden.|Connected, but the tables could not be read.',
     dashboardPinboardTitle: 'Pinnwand|Pinboard',
     dashboardPinboardOn: 'Pinnwand ist aktiv|Pinboard is on',
     dashboardPinboardOff: 'Pinnwand ist aus|Pinboard is off',
