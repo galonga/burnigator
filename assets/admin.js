@@ -147,19 +147,24 @@
       editView = document.getElementById('admin-edit-view'),
       configView = document.getElementById('admin-config-view'),
       pinboardView = document.getElementById('admin-pinboard-view'),
+      dashboardView = document.getElementById('admin-dashboard-view'),
+      dashboardTab = document.getElementById('admin-dashboard-tab'),
       editTab = document.getElementById('admin-edit-tab'),
       configTab = document.getElementById('admin-config-tab'),
       pinboardTab = document.getElementById('admin-pinboard-tab');
     const showAdminView = (view) => {
       const ownerView = role === 'owner' ? view : 'edit';
+      const showDashboard = ownerView === 'dashboard';
       const showEdit = ownerView === 'edit';
       const showConfig = ownerView === 'config';
       const showPinboard = ownerView === 'pinboard';
+      if (dashboardView) dashboardView.hidden = !showDashboard;
       editView.hidden = !showEdit;
       configView.hidden = !showConfig;
       if (pinboardView) pinboardView.hidden = !showPinboard;
       adminLayout.classList.toggle('config-active', !showEdit);
       [
+        [dashboardTab, showDashboard],
         [editTab, showEdit],
         [configTab, showConfig],
         [pinboardTab, showPinboard],
@@ -167,8 +172,19 @@
         tab?.classList.toggle('active', active);
         tab?.setAttribute('aria-selected', String(active));
       });
-      if (showEdit && map) setTimeout(() => map.invalidateSize(), 50);
+      if (showDashboard) window.dispatchEvent(new CustomEvent('admin-dashboard-shown'));
+      if (showEdit && map)
+        setTimeout(() => {
+          map.invalidateSize();
+          // The map started hidden behind the dashboard, so it was fitted at zero size.
+          if (mapNeedsFit && bounds) map.fitBounds(bounds);
+          mapNeedsFit = false;
+        }, 50);
     };
+    let mapNeedsFit = role === 'owner';
+    dashboardTab?.addEventListener('click', () => showAdminView('dashboard'));
+    window.addEventListener('admin-open-view', (event) => showAdminView(event.detail));
+    if (role === 'owner') showAdminView('dashboard');
     editTab?.addEventListener('click', () => showAdminView('edit'));
     configTab?.addEventListener('click', () => showAdminView('config'));
     pinboardTab?.addEventListener('click', () => showAdminView('pinboard'));
