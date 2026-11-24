@@ -16,6 +16,7 @@
           'config-appearance-heading',
           'config-soundcloud-heading',
           'config-tracking-heading',
+          'config-stats-heading',
         ],
       },
       {

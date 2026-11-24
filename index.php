@@ -150,7 +150,7 @@ if ($impressUrl !== '') {
 <div id="share-toast" class="burnigator-toast" role="status" aria-live="polite" hidden></div>
 <div id="burnigator-easter-toast" class="burnigator-toast" role="status" aria-live="polite" hidden>
 </div>
-<script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="<?= assetUrl('assets/i18n.js') ?>"></script><script src="<?= assetUrl('assets/easter-egg.js') ?>"></script><script src="<?= assetUrl('assets/pwa.js') ?>"></script><script src="https://w.soundcloud.com/player/api.js" async></script><script src="assets/vendor/qrcode.min.js"></script><script src="<?= assetUrl('assets/deeplink.js') ?>"></script><script src="<?= assetUrl('assets/timetable-core.js') ?>"></script><script src="<?= assetUrl('assets/map.js') ?>"></script>
+<script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="<?= assetUrl('assets/i18n.js') ?>"></script><script src="<?= assetUrl('assets/easter-egg.js') ?>"></script><script src="<?= assetUrl('assets/pwa.js') ?>"></script><script src="https://w.soundcloud.com/player/api.js" async></script><script src="assets/vendor/qrcode.min.js"></script><script src="<?= assetUrl('assets/stats.js') ?>"></script><script src="<?= assetUrl('assets/deeplink.js') ?>"></script><script src="<?= assetUrl('assets/timetable-core.js') ?>"></script><script src="<?= assetUrl('assets/map.js') ?>"></script>
 <script src="<?= assetUrl('assets/avatar.js') ?>"></script><script src="<?= assetUrl('assets/pinboard.js') ?>"></script>
 </body>
 </html>

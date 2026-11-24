@@ -40,6 +40,7 @@ find . -name '*.php' -not -path './assets/vendor/*' -print0 | xargs -0 -n1 php -
 for f in assets/*.js sw.js; do node --check "$f"; done
 php tests/event_auth_test.php
 php tests/map_clean_test.php
+php tests/stats_test.php
 node tests/timetable-core.test.js
 node tests/deeplink.test.js
 npx prettier@3 --check "assets/*.js" "assets/*.css" sw.js "tests/*.js" eslint.config.mjs

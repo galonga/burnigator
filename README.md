@@ -38,6 +38,7 @@ Learn more, and see what Burnigator offers guests and organizers, at **[burnigat
 - **Print exports:** Export the map with a numbered place index or export the selected timetable day as a high-resolution JPEG. The exports target A2 printing and 300 DPI where browser canvas limits permit. A configured QR URL is included in the exports.
 - **Admin panel:** Manage POIs, categories, events, independent timelines, general configuration, accounts, backups, and change history. Configuration is split into four categories, with event authentication grouped under User management. Owners can fully reset an installation from Security & History after confirming the action. Places are grouped by category and can be collapsed for a more compact overview.
 - **Hosted pilot visibility:** New installations start unpublished. Signed-in festival editors can preview the map and timetable; only the owner can publish or unpublish the visitor view.
+- **Built-in statistics (optional):** An anonymous, cookie-free counter for visits, opened events and places, and favourites, shown in Configuration → General with the most popular events and places. Off by default; see Privacy and analytics.
 - **Optional integrations:** Configure a SoundCloud playlist (the player stays hidden until you enter a public playlist URL), a Matomo tracking URL and site ID (tracking is off until you set them), and the browser's experimental translation API for event descriptions. The optional pinboard requires a paid Pretix order to post, gives each order a burner pseudonym (shown with a generated avatar icon), and can be switched on in setup or Configuration → Event & Pinboard. Pretix API sync and a two-column CSV fallback are available. Admins with the owner role can also give an event an optional **event owner** order code; a visitor signed in with that order code can edit the event's time, description and categories from the event details (this uses the pinboard sign-in, so the pinboard must be enabled). The compact SoundCloud player offers play/pause, random next track, 30-second skip, volume control, and a link to the current track.
 - **Branding and navigation:** Upload a title logo and favicon, set a custom top-bar button, link the event title to a website of your choice, and configure an optional legal notice link. The favicon is also used to generate the installed web app icon.
 - **Responsive German and English interface:** The visitor and admin views adapt to mobile screens. Users can switch the UI language; the selection is kept in the browser.
@@ -130,6 +131,7 @@ Runtime files are stored as follows:
 | `config.php` | Created by setup (template: `config.sample.php`). Installation ID, owner password hash, generated event-auth secret, and optional database credentials |
 | `data/map.json` | Map, categories, POIs, programmes, timelines, and configuration |
 | `data/accounts.json` | Active owner and optional limited-account password hashes after account changes |
+| `data/stats.json` | Optional anonymous daily counters of the built-in statistics (last 90 days) |
 | `data/history.json` | Recent admin changes by username and role |
 | `data/login-attempts.json` | Login throttling state |
 | `data/snapshots/` | Up to five recent map-data snapshots |
@@ -160,6 +162,8 @@ Keep an independent FTP or hosting backup of `config.php`, `data/`, and `uploads
 
 ## Privacy and analytics
 
+The optional built-in statistics (Configuration → General → Statistics) are off by default. When on, the server only increments anonymous daily counters in `data/stats.json` for visits, opened event details, opened places and favourites. It stores no cookies, IP addresses, user agents, visitor or session identifiers, and no timestamps finer than a day; counters older than 90 days are dropped. Do Not Track and Global Privacy Control are respected, and signed-in team members and the unpublished preview are not counted. The owner can reset the data at any time.
+
 Matomo tracking is off by default. It only runs when the owner enters a Matomo URL and site ID, and clearing the URL disables it again. When enabled, the app sends page views and interaction events such as map POI clicks, timetable event interactions, favourites, and media-player actions to the configured Matomo installation. SoundCloud playback is served by SoundCloud. Browser-stored favourites and map/category display preferences remain local to the visitor's device.
 
 ## Links
@@ -181,6 +185,7 @@ Matomo tracking is off by default. It only runs when the owner enters a Matomo U
 | `config.sample.php` | Template for `config.php`, which setup creates |
 | `theme_bootstrap.php` | Passes the saved theme colors to the page before first paint |
 | `assets/deeplink.js` | Deep link parsing and building helpers, shared by the visitor page and the tests |
+| `lib/stats.php` | Anonymous statistics counters and summaries, loaded by `api.php` |
 | `lib/map_clean.php` | Pure validation and sanitising helpers for map data, loaded by `api.php` |
 | `assets/timetable-core.js` | Pure time, overnight-event and timeline helpers, shared by the visitor page and the tests |
 | `assets/map.js` | Map, timetable, player, exports, and visitor interactions |
