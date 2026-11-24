@@ -39,9 +39,13 @@ This makes installed and offline copies pick up the change. CI fails the pull re
 find . -name '*.php' -not -path './assets/vendor/*' -print0 | xargs -0 -n1 php -l
 for f in assets/*.js sw.js; do node --check "$f"; done
 php tests/event_auth_test.php
+php tests/map_clean_test.php
+node tests/timetable-core.test.js
+npx prettier@3 --check "assets/*.js" "assets/*.css" sw.js "tests/*.js" eslint.config.mjs
+npx eslint@9 .
 ```
 
-CI runs the PHP and JavaScript syntax checks, the PHP tests, and the version check.
+CI runs the PHP and JavaScript syntax checks, the PHP and Node tests, Prettier, ESLint (correctness rules only), and the version check.
 
 ## Pull requests
 

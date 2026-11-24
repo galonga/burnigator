@@ -46,6 +46,22 @@ jobs:
           find assets sw.js -name '*.js' -not -path 'assets/vendor/*' -print0 \
             | xargs -0 -n1 node --check
 
+  js-lint:
+    name: JS lint, format and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Prettier
+        run: npx --yes prettier@3 --check "assets/*.js" "assets/*.css" sw.js "tests/*.js" eslint.config.mjs
+      - name: ESLint (correctness rules only)
+        run: npx --yes eslint@9 .
+      - name: Timetable unit tests
+        run: node tests/timetable-core.test.js
+
   version-bump:
     name: VERSION build number bumped
     if: github.event_name == 'pull_request'
@@ -72,4 +88,6 @@ jobs:
           extensions: pdo_sqlite
           coverage: none
       - name: Run tests
-        run: php tests/event_auth_test.php
+        run: |
+          php tests/event_auth_test.php
+          php tests/map_clean_test.php

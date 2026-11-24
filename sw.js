@@ -12,6 +12,7 @@ const SHELL_FILES = [
   './assets/i18n.js',
   './assets/theme.js',
   './assets/easter-egg.js',
+  './assets/timetable-core.js',
   './assets/map.js',
   './assets/matomo.js',
   './assets/pwa.js',
