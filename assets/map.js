@@ -1,4 +1,5 @@
 (async function () {
+  const { timeMinutes, eventSpan, eventTimeLabel, formatTime } = window.BurnigatorTimetable;
   if ('serviceWorker' in navigator)
     navigator.serviceWorker
       .register('./sw.php', { updateViaCache: 'none' })
@@ -6,6 +7,39 @@
       .catch(() => {});
   function trackVisitorClick(action, label) {
     window.trackAppEvent?.('Visitor', action, String(label || ''));
+  }
+  // WAI-ARIA tabs pattern: one tab stop per tablist, arrow keys / Home / End move between tabs.
+  function enableTablistKeys(tablist) {
+    if (!tablist || tablist.dataset.tabKeys) return;
+    tablist.dataset.tabKeys = '1';
+    const tabs = () => [...tablist.querySelectorAll('[role="tab"]')];
+    const sync = () => {
+      const all = tabs();
+      const active = all.find((tab) => tab.getAttribute('aria-selected') === 'true') || all[0];
+      all.forEach((tab) => (tab.tabIndex = tab === active ? 0 : -1));
+    };
+    tablist.addEventListener('keydown', (event) => {
+      const all = tabs();
+      const index = all.indexOf(document.activeElement);
+      if (index < 0) return;
+      const next = {
+        ArrowRight: (index + 1) % all.length,
+        ArrowLeft: (index + all.length - 1) % all.length,
+        Home: 0,
+        End: all.length - 1,
+      }[event.key];
+      if (next === undefined) return;
+      event.preventDefault();
+      all[next].focus();
+      all[next].click();
+    });
+    new MutationObserver(sync).observe(tablist, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['aria-selected'],
+    });
+    sync();
   }
   document.getElementById('refresh-data')?.addEventListener('click', (event) => {
     const activeTab = document.getElementById('timetable-view')?.hidden ? 'map' : 'timetable';
@@ -41,6 +75,7 @@
     document.querySelector('main')?.prepend(banner);
     document.querySelectorAll('.visitor-install-button').forEach((button) => (button.hidden = true));
   }
+  document.querySelectorAll('[role="tablist"]').forEach(enableTablistKeys);
   function showMapLoadError() {
     const container = document.getElementById('map');
     if (!container) return;
@@ -246,6 +281,7 @@
         iconAnchor: [19.5, 19.5],
       }),
     }).addTo(map);
+    marker.getElement()?.setAttribute('aria-label', poiLabel);
     marker.on('mouseover', () => marker.openTooltip());
     marker.on('mouseout', () => marker.closeTooltip());
     marker.on('click', () => {
@@ -553,6 +589,7 @@
       dayHost = document.getElementById('timetable-days'),
       previousScrollLeft = host.querySelector('.timetable-scroll')?.scrollLeft || 0;
     host.replaceChildren();
+    const dayHadFocus = dayHost.contains(document.activeElement);
     dayHost.replaceChildren();
     let filterRow = document.getElementById('timetable-filters');
     if (!filterRow) {
@@ -736,6 +773,7 @@
         renderTimetable();
       };
       dayHost.appendChild(button);
+      if (dayHadFocus && day === selectedDay) button.focus({ preventScroll: true });
     });
     const exportButton = document.getElementById('export-day-jpg');
     exportButton.hidden = !visibleDays.length;
@@ -902,60 +940,8 @@
       white = 1.05 / (luminance + 0.05);
     return black >= white ? '#111' : '#fff';
   }
-  function timeMinutes(value) {
-    const match = /^(\d{1,2}):(\d{2})$/.exec(value || '');
-    if (!match) return 0;
-    return Math.max(0, Math.min(1439, Number(match[1]) * 60 + Number(match[2])));
-  }
-  function eventSpan(event) {
-    const start = timeMinutes(event.start || event.time || '00:00');
-    if (event.end) {
-      const endMinutes = timeMinutes(event.end);
-      if (endMinutes < start) return { start, end: 1440, overnight: endMinutes > 0, carryEnd: endMinutes };
-      if (endMinutes > start) return { start, end: endMinutes, overnight: false, carryEnd: 0 };
-    }
-    return { start, end: Math.min(1440, start + 60), overnight: false, carryEnd: 0 };
-  }
-  function previousDay(day) {
-    return allDayKeys[(allDayKeys.indexOf(day) + 6) % 7];
-  }
   function timelineItems(ownerId, program, day, isVisible = (id, d, e) => eventShown(id, d, e)) {
-    const items = [];
-    const collect = (sourceDay, carried) => {
-      (Array.isArray(program?.[sourceDay]) ? program[sourceDay] : []).forEach((event) => {
-        if (!isVisible(ownerId, sourceDay, event)) return;
-        const span = eventSpan(event);
-        if (carried) {
-          if (span.overnight)
-            items.push({
-              event,
-              day: sourceDay,
-              start: 0,
-              end: span.carryEnd,
-              overnight: false,
-              continued: true,
-            });
-        } else
-          items.push({
-            event,
-            day: sourceDay,
-            start: span.start,
-            end: span.end,
-            overnight: span.overnight,
-            continued: false,
-          });
-      });
-    };
-    collect(day, false);
-    collect(previousDay(day), true);
-    return items.sort((a, b) => a.start - b.start);
-  }
-  function eventTimeLabel(event, item) {
-    const range = (event.start || event.time || formatTime(item.start)) + (event.end ? '–' + event.end : '');
-    return item.continued ? '← ' + range : item.overnight ? range + ' →' : range;
-  }
-  function formatTime(minutes) {
-    return String(Math.floor(minutes / 60)).padStart(2, '0') + ':' + String(minutes % 60).padStart(2, '0');
+    return window.BurnigatorTimetable.timelineItems(ownerId, program, day, isVisible, allDayKeys);
   }
   function openTimetableForPoi(id) {
     const poi = (data.pois || []).find((p) => p.id === id);
@@ -1205,9 +1191,12 @@
       popup.style.left = left + 'px';
       popup.style.top = (above ? rect.top - margin : rect.bottom + margin) + 'px';
       if (above) popup.style.transform = 'translateY(-100%)';
-      trigger.setAttribute('aria-describedby', popup.id);
+      trigger.setAttribute('aria-controls', popup.id);
       trigger.setAttribute('aria-expanded', 'true');
       activeEventTooltip = { trigger, popup };
+      // Move focus into the dialog so keyboard and screen-reader users land on it; closing returns it.
+      popup.tabIndex = -1;
+      popup.focus({ preventScroll: true });
       openDetailHistory();
     };
     trigger.setAttribute('aria-haspopup', 'dialog');
@@ -1368,10 +1357,13 @@
   );
   function hideEventTooltip(trigger, preserveHistory = false) {
     if (!activeEventTooltip || (trigger && activeEventTooltip.trigger !== trigger)) return;
-    activeEventTooltip.trigger.removeAttribute('aria-describedby');
-    activeEventTooltip.trigger.setAttribute('aria-expanded', 'false');
-    activeEventTooltip.popup.remove();
+    const { trigger: openTrigger, popup } = activeEventTooltip;
+    const hadFocus = popup.contains(document.activeElement);
+    openTrigger.removeAttribute('aria-controls');
+    openTrigger.setAttribute('aria-expanded', 'false');
+    popup.remove();
     activeEventTooltip = null;
+    if (hadFocus && openTrigger.isConnected) openTrigger.focus({ preventScroll: true });
     if (!preserveHistory) clearDetailHistory();
   }
   let todayTimelinePositioned = false;

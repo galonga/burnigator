@@ -23,6 +23,10 @@ Restore your backup of the previous version's files. Restore `config.php`, `data
 
 ## Notes per version
 
+### Unreleased
+
+- **Nothing is required**, but upload the new `lib/` folder (including its `.htaccess`) together with the other files: `api.php` now loads `lib/map_clean.php`, and the visitor page loads the new `assets/timetable-core.js`. Keep the `.htaccess` in `lib/`.
+
 ### 2026.11.1377
 
 - **Nothing is required.** No database change; existing data is kept.

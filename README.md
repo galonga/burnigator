@@ -178,6 +178,8 @@ Matomo tracking is off by default. It only runs when the owner enters a Matomo U
 | `auth.php` | Account, role, login, and security header support |
 | `config.sample.php` | Template for `config.php`, which setup creates |
 | `theme_bootstrap.php` | Passes the saved theme colors to the page before first paint |
+| `lib/map_clean.php` | Pure validation and sanitising helpers for map data, loaded by `api.php` |
+| `assets/timetable-core.js` | Pure time, overnight-event and timeline helpers, shared by the visitor page and the tests |
 | `assets/map.js` | Map, timetable, player, exports, and visitor interactions |
 | `assets/admin.js` | Admin editing and configuration |
 | `assets/style.css` | Application styles |

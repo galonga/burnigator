@@ -6,8 +6,18 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ## [Unreleased]
 
+### Changed
+
+- **Keyboard and screen-reader support:** opening an event's details now moves focus into the dialog and returns it to the event when the dialog closes (Escape, close button, save or cancel). The event no longer announces the whole dialog as its description. The day tabs and the Map/Timetable tabs follow the WAI-ARIA tabs pattern: one tab stop, arrow keys, Home and End switch tabs, and focus stays on the chosen day. Map markers now have the place name as their accessible name.
+- **Code structure (no behaviour change):** the pure map-data validation helpers moved from `api.php` into `lib/map_clean.php`, and the time and overnight-event helpers moved from `assets/map.js` into `assets/timetable-core.js`, so both can be tested on their own.
+
+### Added
+
+- **Tests:** `tests/map_clean_test.php` (theme, URL, day, text, programme and owner-hash handling) and `tests/timetable-core.test.js` (overnight events, day wrap-around, labels). CI now runs both, plus Prettier and a correctness-only ESLint check (`eslint.config.mjs`).
+
 ### Fixed
 
+- **Duplicate translation keys:** removed sixteen identical, duplicated entries from `assets/i18n.js`.
 - **Event details dialog:** no longer shows a scrollbar for short text. The invisible pointer arrow under the dialog extended its scrollable area when it opened above the event; the arrow is removed. Long content still scrolls.
 
 ## [2026.11.1377] - 2026-11-19
