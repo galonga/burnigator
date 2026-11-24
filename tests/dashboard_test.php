@@ -32,12 +32,11 @@ check($counts['poisWithProgram'] === 1, 'only places with the programme flag cou
 check($counts['timelines'] === 3, 'at most three timelines are counted');
 check($counts['events'] === 4, 'events of hidden programmes and a fourth timeline are not counted');
 check($counts['eventsWithOwner'] === 1, 'events with an owner hash are counted');
-check($counts['eventsPerDay'] === ['fri' => 3, 'sat' => 1], 'events are counted per weekday');
 
 $owners = dashboardProgramOwners($map);
 check(array_column($owners, 'id') === ['p1', 't1', 't2', 't3'], 'owners are places with a programme followed by up to three timelines');
 
 $empty = dashboardCounts([]);
-check($empty['pois'] === 0 && $empty['events'] === 0 && $empty['eventsPerDay'] === [], 'an empty map gives zero counts');
+check($empty['pois'] === 0 && $empty['events'] === 0, 'an empty map gives zero counts');
 
 echo "dashboard tests passed\n";

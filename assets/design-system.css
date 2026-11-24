@@ -2014,7 +2014,8 @@ select {
 }
 .config-section-panel {
   display: grid;
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
 }
 .config-section-panel[hidden] {
   display: none;
@@ -2479,9 +2480,6 @@ select {
 .dashboard-card .stats-table td {
   font-size: var(--type-label);
 }
-.admin-layout.config-active #admin-dashboard-view {
-  max-width: 1000px;
-}
 /* Phones: one column, every card is only as tall as its content. */
 @media (max-width: 600px) {
   .dashboard-grid {
@@ -2499,14 +2497,6 @@ select {
   }
 }
 /* Wide screens: use the full width; table-heavy cards take two columns. */
-@media (min-width: 1100px) {
-  .admin-layout.config-active #admin-dashboard-view {
-    max-width: none;
-  }
-  .dashboard-grid {
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  }
-}
 @media (min-width: 1500px) {
   .dashboard-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2520,10 +2510,6 @@ select {
  * Configuration and pinboard tabs: one column of settings sections. All sections share one
  * width; on wide screens the title sits in a left pane and the controls in a right pane.
  */
-.config-section-panel {
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-3);
-}
 .config-section-panel > .config-card,
 #admin-pinboard-view > .config-card {
   margin: 0;

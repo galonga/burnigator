@@ -89,14 +89,14 @@ if (empty($_SESSION['admin'])) {
 <nav class="admin-view-tabs" role="tablist" aria-label="Admin views" data-i18n-aria="adminViews" <?php 
     echo $role === 'owner' ? '' : 'hidden';
     ?>>
-<button id="admin-dashboard-tab" class="admin-view-tab chip-button<?= $role === 'owner' ? ' active' : '' ?>" type="button" role="tab" aria-selected="<?= $role === 'owner' ? 'true' : 'false' ?>" aria-controls="admin-dashboard-view" data-i18n="adminDashboardView" <?= $role === 'owner' ? '' : 'hidden' ?>>Dashboard</button>
+<button id="admin-dashboard-tab" class="admin-view-tab chip-button<?= $role === 'owner' ? ' active' : '' ?>" type="button" role="tab" aria-selected="<?= $role === 'owner' ? 'true' : 'false' ?>" aria-controls="admin-dashboard-view" data-i18n="adminDashboardView">Dashboard</button>
 <button id="admin-edit-tab" class="admin-view-tab chip-button<?= $role === 'owner' ? '' : ' active' ?>" type="button" role="tab" aria-selected="<?= $role === 'owner' ? 'false' : 'true' ?>" aria-controls="admin-edit-view" data-i18n="adminEditView">Orte und Programm</button>
 <button id="admin-config-tab" class="admin-view-tab chip-button" type="button" role="tab" aria-selected="false" aria-controls="admin-config-view" data-i18n="adminConfigView">Konfiguration</button>
 <button id="admin-pinboard-tab" class="admin-view-tab chip-button" type="button" role="tab" aria-selected="false" aria-controls="admin-pinboard-view" data-i18n="adminPinboardView">Pinnwand moderieren</button>
 </nav>
 <section id="admin-dashboard-view" role="tabpanel" aria-labelledby="admin-dashboard-tab" <?= $role === 'owner' ? '' : 'hidden' ?>>
   <div class="dashboard-head">
-    <h2 data-i18n="dashboardTitle">Dashboard</h2>
+    <h2 data-i18n="adminDashboardView">Dashboard</h2>
     <button id="dashboard-refresh" type="button" class="button button-secondary" data-i18n="dashboardRefresh">Aktualisieren</button>
   </div>
   <p id="dashboard-status" class="hint" role="status" aria-live="polite"></p>

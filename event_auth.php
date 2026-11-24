@@ -756,3 +756,19 @@ function eventAuthCsvImport(PDO $db, string $path, bool $force = false): array
     }
     return eventAuthApplyOrders($db, $orders, 'csv', $force);
 }
+
+/** Order totals and the breakdown by source, status and access (event id of this installation). */
+function eventAuthOrderSummary(PDO $db): array
+{
+    $summary = ['total' => 0, 'eligible' => 0, 'ineligible' => 0, 'groups' => []];
+    $q = $db->prepare('SELECT source,status,eligible,COUNT(*) AS amount FROM burnigator_event_auth_orders WHERE event_id=? GROUP BY source,status,eligible ORDER BY source,status,eligible DESC');
+    $q->execute([eventAuthEventId()]);
+    foreach ($q as $row) {
+        $amount = (int) $row['amount'];
+        $eligible = (int) $row['eligible'] === 1;
+        $summary['total'] += $amount;
+        $summary[$eligible ? 'eligible' : 'ineligible'] += $amount;
+        $summary['groups'][] = ['source' => (string) $row['source'], 'status' => (string) $row['status'], 'eligible' => $eligible, 'count' => $amount];
+    }
+    return $summary;
+}

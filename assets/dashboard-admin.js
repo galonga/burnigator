@@ -11,9 +11,8 @@
     const t = (key) => window.AppI18n.t(key);
     const core = window.BurnigatorTimetable;
     const weekdayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-    const WIDE = new Set(['dashboardOrdersTitle', 'historyHeading']);
     let last = null;
-    let timer = 0;
+    let loading = null;
 
     const el = (tag, className, text) => {
       const node = document.createElement(tag);
@@ -32,7 +31,6 @@
     };
     const card = (titleKey, ...children) => {
       const section = el('section', 'config-card dashboard-card');
-      if (WIDE.has(titleKey)) section.classList.add('is-wide');
       section.append(el('h3', '', t(titleKey)), ...children);
       return section;
     };
@@ -133,7 +131,7 @@
             document.querySelector('[data-goto-database]')?.click();
           })
         );
-      return card('dashboardDatabaseTitle', ...parts);
+      return card('databaseTitle', ...parts);
     }
     function pinboardCard(d) {
       const p = d.pinboard;
@@ -185,7 +183,9 @@
         wrap.append(table);
         parts.push(wrap);
       }
-      return card('dashboardOrdersTitle', ...parts);
+      const wide = card('dashboardOrdersTitle', ...parts);
+      wide.classList.add('is-wide');
+      return wide;
     }
     function statsCard(d) {
       const s = d.stats;
@@ -246,7 +246,9 @@
         parts.push(list);
       }
       parts.push(link('dashboardHistoryOpen', () => openView('config')));
-      return card('historyHeading', ...parts);
+      const wide = card('historyHeading', ...parts);
+      wide.classList.add('is-wide');
+      return wide;
     }
 
     function render(d) {
@@ -262,32 +264,34 @@
       );
     }
 
-    async function load() {
-      const status = document.getElementById('dashboard-status');
-      try {
-        const response = await fetch('api.php?action=dashboard', {
-          credentials: 'same-origin',
-          cache: 'no-store',
-        });
-        if (!response.ok) throw new Error('http');
-        last = await response.json();
-        render(last);
-        status.textContent = t('dashboardUpdated') + ': ' + dateFormat().format(new Date());
-      } catch (_) {
-        status.textContent = t('dashboardLoadFailed');
-      }
-    }
-    function schedule() {
-      clearInterval(timer);
-      timer = setInterval(() => {
-        if (!document.getElementById('admin-dashboard-view').hidden && !document.hidden) load();
-      }, 60000);
+    // One request at a time: the page-load fetch and the "view shown" event can overlap.
+    function load() {
+      loading ??= (async () => {
+        const status = document.getElementById('dashboard-status');
+        try {
+          const response = await fetch('api.php?action=dashboard', {
+            credentials: 'same-origin',
+            cache: 'no-store',
+          });
+          if (!response.ok) throw new Error('http');
+          last = await response.json();
+          render(last);
+          status.textContent = t('dashboardUpdated') + ': ' + dateFormat().format(new Date());
+        } catch (_) {
+          status.textContent = t('dashboardLoadFailed');
+        } finally {
+          loading = null;
+        }
+      })();
+      return loading;
     }
 
     document.getElementById('dashboard-refresh').addEventListener('click', load);
     window.addEventListener('admin-dashboard-shown', load);
     window.addEventListener('image-map-language-change', () => last && render(last));
-    schedule();
+    setInterval(() => {
+      if (!document.getElementById('admin-dashboard-view').hidden && !document.hidden) load();
+    }, 60000);
     load();
   });
 })();

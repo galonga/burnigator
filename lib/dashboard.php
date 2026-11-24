@@ -6,31 +6,34 @@ declare(strict_types=1);
  * Pure helpers for the admin dashboard. No I/O, so they can be tested without a server.
  */
 
-/** Places and timelines whose programme the visitor page shows (same selection as the timetable). */
+/**
+ * Places and timelines whose programme the visitor page shows. Keep this selection in step with
+ * the visitor timetable (assets/map.js): places with hasProgram, then the first three timelines.
+ */
 function dashboardProgramOwners(array $map): array
 {
+    $entry = static fn (array $item): array => ['id' => (string) ($item['id'] ?? ''), 'name' => (string) ($item['name'] ?? ''), 'program' => (array) ($item['program'] ?? [])];
     $owners = [];
     foreach ((array) ($map['pois'] ?? []) as $poi) {
         if (is_array($poi) && ($poi['hasProgram'] ?? false) === true) {
-            $owners[] = ['id' => (string) ($poi['id'] ?? ''), 'name' => (string) ($poi['name'] ?? ''), 'program' => (array) ($poi['program'] ?? [])];
+            $owners[] = $entry($poi);
         }
     }
     foreach (array_slice((array) ($map['timelines'] ?? []), 0, 3) as $timeline) {
         if (is_array($timeline)) {
-            $owners[] = ['id' => (string) ($timeline['id'] ?? ''), 'name' => (string) ($timeline['name'] ?? ''), 'program' => (array) ($timeline['program'] ?? [])];
+            $owners[] = $entry($timeline);
         }
     }
     return $owners;
 }
 
 /** Totals for the dashboard tiles. */
-function dashboardCounts(array $map): array
+function dashboardCounts(array $map, ?array $owners = null): array
 {
     $events = 0;
     $owned = 0;
-    $perDay = [];
-    foreach (dashboardProgramOwners($map) as $owner) {
-        foreach ($owner['program'] as $day => $list) {
+    foreach ($owners ?? dashboardProgramOwners($map) as $owner) {
+        foreach ($owner['program'] as $list) {
             if (!is_array($list)) {
                 continue;
             }
@@ -39,7 +42,6 @@ function dashboardCounts(array $map): array
                     continue;
                 }
                 $events++;
-                $perDay[(string) $day] = ($perDay[(string) $day] ?? 0) + 1;
                 if (!empty($event['ownerOrderHash'])) {
                     $owned++;
                 }
@@ -53,6 +55,5 @@ function dashboardCounts(array $map): array
         'timelines' => min(3, count((array) ($map['timelines'] ?? []))),
         'events' => $events,
         'eventsWithOwner' => $owned,
-        'eventsPerDay' => $perDay,
     ];
 }
