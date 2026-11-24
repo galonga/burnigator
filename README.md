@@ -32,6 +32,7 @@ Learn more, and see what Burnigator offers guests and organizers, at **[burnigat
 - **Interactive image map:** The visitor view opens on the timetable by default. Visitors can switch to the image map, which fits the full image into view the first time it is opened, then pan and zoom. POIs have Font Awesome icons and categories. Visitors can search places, show or hide POI names, and hide categories; owners can choose monochrome or colored POI icons.
 - **Festival timetable:** Browse the programme one day at a time, Monday through Sunday; days without events are hidden. The first day of the week (for example Thursday to Wednesday) is set in Configuration → General. Individual days can be disabled there too; they then disappear from the programme editor. Each day spans 24 hours, places appear as rows, and event blocks are positioned at their start and end times. An event that ends after midnight (for example 22:00–02:00) is drawn to midnight and continues on the next day. The current-time indicator, favourite filter, and event-category filters help visitors find programme items.
 - **Independent timelines:** Add up to three named programme rows that are not attached to a place.
+- **Deep links and sharing:** Events and places have links (`?event=<id>`, `?poi=<id>`). A Share button in the event details and the place popup uses the system share sheet or copies the link. Links open the event's details or the place on the map.
 - **Event details and favourites:** Events can include a host, description, multiple categories, and an external link with a custom label. Visitors open the details card by selecting an event and can save favourites in their browser; favourites remain after a reload on that device.
 - **Print exports:** Export the map with a numbered place index or export the selected timetable day as a high-resolution JPEG. The exports target A2 printing and 300 DPI where browser canvas limits permit. A configured QR URL is included in the exports.
 - **Admin panel:** Manage POIs, categories, events, independent timelines, general configuration, accounts, backups, and change history. Configuration is split into four categories, with event authentication grouped under User management. Owners can fully reset an installation from Security & History after confirming the action. Places are grouped by category and can be collapsed for a more compact overview.
@@ -178,6 +179,7 @@ Matomo tracking is off by default. It only runs when the owner enters a Matomo U
 | `auth.php` | Account, role, login, and security header support |
 | `config.sample.php` | Template for `config.php`, which setup creates |
 | `theme_bootstrap.php` | Passes the saved theme colors to the page before first paint |
+| `assets/deeplink.js` | Deep link parsing and building helpers, shared by the visitor page and the tests |
 | `lib/map_clean.php` | Pure validation and sanitising helpers for map data, loaded by `api.php` |
 | `assets/timetable-core.js` | Pure time, overnight-event and timeline helpers, shared by the visitor page and the tests |
 | `assets/map.js` | Map, timetable, player, exports, and visitor interactions |

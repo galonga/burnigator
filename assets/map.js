@@ -1,5 +1,6 @@
 (async function () {
   const { timeMinutes, eventSpan, eventTimeLabel, formatTime } = window.BurnigatorTimetable;
+  const { buildLink, parseLink, stripLink, findEvent } = window.BurnigatorDeepLink;
   if ('serviceWorker' in navigator)
     navigator.serviceWorker
       .register('./sw.php', { updateViaCache: 'none' })
@@ -297,6 +298,7 @@
     const titleHeader = document.createElement('div');
     titleHeader.className = 'program-tooltip-header map-poi-header';
     titleHeader.appendChild(title);
+    if (p.id) titleHeader.appendChild(makeShareButton('poi', p.id, p.name || ''));
     body.appendChild(titleHeader);
     if (p.description) {
       const d = document.createElement('p');
@@ -386,6 +388,56 @@
         else marker.closeTooltip();
       });
     document.getElementById('poi-search').dispatchEvent(new Event('input'));
+  }
+  const shareToast = document.getElementById('share-toast');
+  let shareToastTimer;
+  function showShareToast(text) {
+    if (!shareToast) return;
+    shareToast.textContent = text;
+    shareToast.hidden = false;
+    shareToast.classList.remove('show');
+    requestAnimationFrame(() => shareToast.classList.add('show'));
+    clearTimeout(shareToastTimer);
+    shareToastTimer = setTimeout(() => {
+      shareToast.classList.remove('show');
+      setTimeout(() => (shareToast.hidden = true), 250);
+    }, 2400);
+  }
+  // Uses the system share sheet where there is one, otherwise copies the link.
+  async function shareLink(type, id, title) {
+    const url = buildLink(window.location.href, type, id);
+    window.trackAppEvent?.('Visitor', 'share_link', type + ' | ' + title);
+    try {
+      if (navigator.share) {
+        await navigator.share({ title, url });
+        return;
+      }
+    } catch (error) {
+      if (error?.name === 'AbortError') return;
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      showShareToast(window.AppI18n.t('shareCopied'));
+    } catch (_) {
+      window.prompt(window.AppI18n.t('shareLink'), url);
+    }
+  }
+  function makeShareButton(type, id, title) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'program-tooltip-share button-light';
+    button.setAttribute('aria-label', window.AppI18n.t('shareLink'));
+    button.title = button.getAttribute('aria-label');
+    const icon = document.createElement('i');
+    icon.className = 'fa-solid fa-share-nodes';
+    icon.setAttribute('aria-hidden', 'true');
+    button.appendChild(icon);
+    button.addEventListener('click', (click) => {
+      click.preventDefault();
+      click.stopPropagation();
+      shareLink(type, id, title);
+    });
+    return button;
   }
   function openMapPoi(id) {
     const entry = poiEls.find((item) => item.p.id === id);
@@ -538,6 +590,7 @@
     block.type = 'button';
     block.className = 'timeline-event';
     block.dataset.favoriteKey = eventFavoriteKey(ownerId, day, event);
+    if (event.id) block.dataset.eventId = event.id;
     block.style.backgroundColor = eventBoxColor(event.categories);
     block.style.borderColor = eventBoxColor(event.categories);
     block.style.color = '#fff';
@@ -1066,7 +1119,9 @@
         click.stopPropagation();
         hideEventTooltip(trigger);
       });
-      header.append(eventTitle, favorite);
+      header.append(eventTitle);
+      if (event.id) header.append(makeShareButton('event', event.id, event.text || ''));
+      header.append(favorite);
       if (event.id && ownedEventIds.has(event.id)) {
         const edit = document.createElement('button');
         edit.type = 'button';
@@ -1424,6 +1479,39 @@
   } catch (_) {}
   if (restoredTab === 'map') switchTab('map', false);
   else switchTab('timetable', false);
+  // Links like index.php?event=<id> or ?poi=<id> open that event's details or that place on the map.
+  function openDeepLink() {
+    const link = parseLink(window.location.search);
+    if (!link) return;
+    try {
+      history.replaceState(history.state, '', stripLink(window.location.href));
+    } catch (_) {}
+    const notFound = () => showShareToast(window.AppI18n.t('deepLinkNotFound'));
+    window.trackAppEvent?.('Visitor', 'deep_link_open', link.type);
+    if (link.type === 'poi') {
+      if ((data.pois || []).some((p) => p.id === link.id)) openMapPoi(link.id);
+      else notFound();
+      return;
+    }
+    const found = findEvent(data, link.id);
+    if (!found) return notFound();
+    // Show everything, so a saved filter cannot hide the linked event.
+    favoriteOnly = false;
+    selectedEventCategories = new Set();
+    selectedDay = found.day;
+    daySelectionTouched = true;
+    switchTab('timetable', false);
+    renderTimetable();
+    setTimeout(() => {
+      const block = [...document.querySelectorAll('#timetable-content .timeline-event')].find(
+        (el) => el.dataset.eventId === link.id && !el.classList.contains('is-continued')
+      );
+      if (!block) return notFound();
+      block.scrollIntoView({ block: 'center', inline: 'center' });
+      block.click();
+    }, 120);
+  }
+  openDeepLink();
   document.getElementById('export-day-jpg').onclick = () => {
     window.trackAppEvent?.('Visitor', 'www_jpg_export', selectedDay);
     exportTimetableJpg();

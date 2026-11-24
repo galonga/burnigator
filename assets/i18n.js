@@ -534,6 +534,10 @@
     locationName: 'Neuer Ort|New place',
     categoryDelete: 'Löschen|Delete',
     musicForward30: '30 Sekunden vorspulen|Skip forward 30 seconds',
+    shareLink: 'Link teilen|Share link',
+    shareCopied: 'Link kopiert|Link copied',
+    deepLinkNotFound:
+      'Dieser Link verweist auf einen Eintrag, den es nicht mehr gibt.|This link points to something that no longer exists.',
     lang: 'Sprache|Language',
     ownerHint: 'Powered by|Powered by',
     impressLink: 'Impressum|Legal notice',

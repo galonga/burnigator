@@ -60,7 +60,9 @@ jobs:
       - name: ESLint (correctness rules only)
         run: npx --yes eslint@9 .
       - name: Timetable unit tests
-        run: node tests/timetable-core.test.js
+        run: |
+          node tests/timetable-core.test.js
+          node tests/deeplink.test.js
 
   version-bump:
     name: VERSION build number bumped

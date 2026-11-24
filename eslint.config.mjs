@@ -96,7 +96,13 @@ export default [
     languageOptions: {
       ecmaVersion: 2022,
       sourceType: 'commonjs',
-      globals: { require: 'readonly', process: 'readonly', console: 'readonly' },
+      globals: {
+        require: 'readonly',
+        process: 'readonly',
+        console: 'readonly',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
+      },
     },
     rules: { 'no-undef': 'error' },
   },
