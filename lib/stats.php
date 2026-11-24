@@ -12,6 +12,8 @@ declare(strict_types=1);
  */
 const STATS_RETENTION_DAYS = 90;
 const STATS_MAX_BYTES = 1048576;
+/** Most hits accepted per minute across all visitors; a flood cannot inflate or load more than this. */
+const STATS_MAX_HITS_PER_MINUTE = 600;
 const STATS_TYPES = ['visit', 'event_open', 'poi_open', 'favorite_add', 'favorite_remove'];
 
 /** Ids of all events and places in the map, keyed by id, with a display name and (for events) the place. */
@@ -77,9 +79,40 @@ function statsPrune(array $stats, string $today): array
     return ['days' => $days];
 }
 
-function statsRecord(array $stats, string $type, string $id, string $today): array
+/** Favourite adds and removes seen for an id over all stored days. */
+function statsFavoriteBalance(array $stats, string $id): array
 {
+    $adds = 0;
+    $removes = 0;
+    foreach ((array) ($stats['days'] ?? []) as $counts) {
+        $adds += (int) ($counts['favorite_add'][$id] ?? 0);
+        $removes += (int) ($counts['favorite_remove'][$id] ?? 0);
+    }
+    return [$adds, $removes];
+}
+
+/**
+ * Counts one hit. Returns the stats unchanged when the hit is dropped: more than
+ * STATS_MAX_HITS_PER_MINUTE hits in the current minute, or a favourite removal with no matching add.
+ * $now is a Unix time (injectable for tests).
+ */
+function statsRecord(array $stats, string $type, string $id, string $today, ?int $now = null): array
+{
+    $minute = gmdate('Y-m-d\TH:i', $now ?? time());
+    $rate = is_array($stats['rate'] ?? null) ? $stats['rate'] : [];
+    $hits = ($rate['minute'] ?? '') === $minute ? (int) ($rate['n'] ?? 0) : 0;
     $stats = statsPrune($stats, $today);
+    if ($hits >= STATS_MAX_HITS_PER_MINUTE) {
+        $stats['rate'] = ['minute' => $minute, 'n' => $hits];
+        return $stats;
+    }
+    $stats['rate'] = ['minute' => $minute, 'n' => $hits + 1];
+    if ($type === 'favorite_remove') {
+        [$adds, $removes] = statsFavoriteBalance($stats, $id);
+        if ($removes >= $adds) {
+            return $stats;
+        }
+    }
     $key = $type === 'visit' ? '-' : $id;
     $stats['days'][$today][$type][$key] = (int) ($stats['days'][$today][$type][$key] ?? 0) + 1;
     return $stats;
@@ -165,9 +198,15 @@ function statsMutate(string $path, callable $change): bool
         return false;
     }
     $raw = (string) stream_get_contents($fp);
-    $stats = $raw !== '' && strlen($raw) <= STATS_MAX_BYTES ? json_decode($raw, true) : [];
+    $stats = $raw !== '' ? json_decode($raw, true) : [];
     $stats = $change(is_array($stats) ? $stats : []);
     $json = json_encode($stats, JSON_UNESCAPED_UNICODE);
+    // Over the size limit: drop the oldest days until it fits, never the existing file as a whole.
+    while ($json !== false && strlen($json) > STATS_MAX_BYTES && count((array) ($stats['days'] ?? [])) > 1) {
+        reset($stats['days']);
+        unset($stats['days'][key($stats['days'])]);
+        $json = json_encode($stats, JSON_UNESCAPED_UNICODE);
+    }
     $ok = false;
     if ($json !== false && strlen($json) <= STATS_MAX_BYTES) {
         $ok = ftruncate($fp, 0) && rewind($fp) && fwrite($fp, $json) !== false;
@@ -181,6 +220,6 @@ function statsMutate(string $path, callable $change): bool
 function statsRead(string $path): array
 {
     $raw = is_file($path) ? (string) @file_get_contents($path) : '';
-    $stats = $raw !== '' && strlen($raw) <= STATS_MAX_BYTES ? json_decode($raw, true) : [];
+    $stats = $raw !== '' ? json_decode($raw, true) : [];
     return is_array($stats) ? $stats : [];
 }

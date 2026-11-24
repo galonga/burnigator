@@ -131,6 +131,22 @@ $untouched = stampEventChanges($old, $old, $now);
 check(!array_key_exists('changedAt', $untouched['pois'][0]['program']['fri'][0]), 'saving without changes marks nothing');
 check(stampEventChanges(['pois' => [], 'timelines' => []], $new, $now) === $new, 'first save with no earlier events marks nothing');
 
+// Duplicate event ids cannot be matched to one earlier event
+$dupOld = ['pois' => [['id' => 'p1', 'program' => ['fri' => [
+    ['id' => 'd1', 'start' => '10:00', 'end' => '', 'text' => 'Copy'],
+    ['id' => 'd1', 'start' => '12:00', 'end' => '', 'text' => 'Copy'],
+]]]], 'timelines' => []];
+$dupNew = ['pois' => [['id' => 'p1', 'program' => ['fri' => [
+    ['id' => 'd1', 'start' => '10:00', 'end' => '', 'text' => 'Copy'],
+    ['id' => 'd1', 'start' => '12:00', 'end' => '', 'text' => 'Copy'],
+]]]], 'timelines' => []];
+check(stampEventChanges($dupOld, $dupNew, $now) === $dupNew, 'events sharing an id are never marked from an unrelated earlier event');
+$dupNew['pois'][0]['program']['fri'][1]['start'] = '13:00';
+check(stampEventChanges($dupOld, $dupNew, $now) === $dupNew, 'a duplicated id in the old map is left alone even if one copy moved');
+$single = ['pois' => [['id' => 'p1', 'program' => ['fri' => [['id' => 'd1', 'start' => '10:00', 'end' => '', 'text' => 'Copy']]]]], 'timelines' => []];
+$dupAdded = ['pois' => [['id' => 'p1', 'program' => ['fri' => [['id' => 'd1', 'start' => '11:00', 'end' => '', 'text' => 'Copy'], ['id' => 'd1', 'start' => '12:00', 'end' => '', 'text' => 'Copy']]]]], 'timelines' => []];
+check(!array_key_exists('changedAt', stampEventChanges($single, $dupAdded, $now)['pois'][0]['program']['fri'][0]), 'ids duplicated in the new map are not marked');
+
 // History detail
 $detail = programHistoryDetail(['mon' => [['start' => '10:00', 'text' => 'Yoga']]], 'Tent');
 check($detail === 'Tent · mon 10:00 Yoga', 'history detail names the place and event');
