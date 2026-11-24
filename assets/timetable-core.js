@@ -67,7 +67,24 @@
     return item.continued ? '← ' + range : item.overnight ? range + ' →' : range;
   }
 
-  const api = { DAY_KEYS, timeMinutes, eventSpan, previousDay, formatTime, timelineItems, eventTimeLabel };
+  const CHANGED_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+  /** True when the event's schedule changed within the last 24 hours (changedAt is set by the server). */
+  function isRecentlyChanged(event, nowMs = Date.now(), windowMs = CHANGED_WINDOW_MS) {
+    const changed = Date.parse(event?.changedAt || '');
+    return Number.isFinite(changed) && nowMs - changed >= -60000 && nowMs - changed < windowMs;
+  }
+
+  const api = {
+    DAY_KEYS,
+    isRecentlyChanged,
+    timeMinutes,
+    eventSpan,
+    previousDay,
+    formatTime,
+    timelineItems,
+    eventTimeLabel,
+  };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.BurnigatorTimetable = api;
 })(typeof window !== 'undefined' ? window : globalThis);

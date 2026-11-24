@@ -342,3 +342,69 @@ function cleanProgram($value): array
     }
     return $program;
 }
+
+/**
+ * The visitor announcement banner: null when there is no text, otherwise text, level and the time it
+ * was last changed (kept from $previous when text and level did not change, so visitors who already
+ * dismissed it are not shown it again).
+ */
+function cleanAnnouncement($value, $previous, string $now): ?array
+{
+    $text = is_array($value) ? cleanText($value['text'] ?? '', 300) : '';
+    if ($text === '') {
+        return null;
+    }
+    $level = is_array($value) && ($value['level'] ?? '') === 'warning' ? 'warning' : 'info';
+    $unchanged = is_array($previous) && ($previous['text'] ?? null) === $text && ($previous['level'] ?? 'info') === $level;
+    $updatedAt = $unchanged && is_string($previous['updatedAt'] ?? null) && $previous['updatedAt'] !== '' ? $previous['updatedAt'] : $now;
+    return ['text' => $text, 'level' => $level, 'updatedAt' => $updatedAt];
+}
+
+/** Everything that makes an event "different" for a visitor: where, when and what it is called. */
+function eventScheduleSignature(string $ownerId, string $day, array $event): string
+{
+    return json_encode([$ownerId, $day, (string) ($event['start'] ?? $event['time'] ?? ''), (string) ($event['end'] ?? ''), (string) ($event['text'] ?? '')], JSON_UNESCAPED_UNICODE);
+}
+
+/**
+ * Marks events whose place, day, time or title changed since $old with a changedAt timestamp, and
+ * carries an earlier changedAt over for events that did not change. New events get no mark.
+ */
+function stampEventChanges(array $old, array $new, string $now): array
+{
+    $known = [];
+    foreach (['pois', 'timelines'] as $group) {
+        foreach ((array) ($old[$group] ?? []) as $item) {
+            foreach ((array) (is_array($item) ? $item['program'] ?? [] : []) as $day => $entries) {
+                foreach ((array) $entries as $event) {
+                    $id = is_array($event) ? (string) ($event['id'] ?? '') : '';
+                    if ($id !== '') {
+                        $known[$id] = [eventScheduleSignature((string) ($item['id'] ?? ''), (string) $day, $event), (string) ($event['changedAt'] ?? '')];
+                    }
+                }
+            }
+        }
+    }
+    foreach (['pois', 'timelines'] as $group) {
+        foreach ((array) ($new[$group] ?? []) as $i => $item) {
+            if (!is_array($item) || !is_array($item['program'] ?? null)) {
+                continue;
+            }
+            foreach ($item['program'] as $day => $entries) {
+                foreach ((array) $entries as $j => $event) {
+                    $id = is_array($event) ? (string) ($event['id'] ?? '') : '';
+                    if ($id === '' || !isset($known[$id])) {
+                        continue;
+                    }
+                    $same = $known[$id][0] === eventScheduleSignature((string) ($item['id'] ?? ''), (string) $day, $event);
+                    $stamp = $same ? $known[$id][1] : $now;
+                    unset($new[$group][$i]['program'][$day][$j]['changedAt']);
+                    if ($stamp !== '') {
+                        $new[$group][$i]['program'][$day][$j]['changedAt'] = $stamp;
+                    }
+                }
+            }
+        }
+    }
+    return $new;
+}

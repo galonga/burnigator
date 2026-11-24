@@ -9,6 +9,8 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 ### Added
 
 - **Deep links and sharing:** every event and every place now has a link of the form `index.php?event=<id>` or `index.php?poi=<id>`. Opening an event link jumps to the event's day, scrolls to the event and opens its details; a place link opens the map at that place. A new **Share** button sits next to the heart in the event details (and in the place popup on the map): it opens the system share sheet where the browser has one and otherwise copies the link. A link to something that no longer exists shows a short notice. Saved filters are ignored for the linked event so it is always visible. The links work offline from the installed app too. Place links also make it easy to print QR codes for places.
+- **Visitor announcement:** Configuration → Event has a new **Visitor announcement** card (owner). A short text (up to 300 characters, type Information or Warning) appears as a banner at the top of the visitor page, for example for a delay or a weather warning. Visitors can dismiss it; if the owner changes the text or type it shows again. Saving it empty removes it. It is part of the full backup.
+- **"Recently changed" marks:** when an event's time, day, place or title changes, the server marks it and visitors see a small marker on the event block, a note in the event details and an extra screen-reader hint for the next 24 hours. New events and changes to the description, host or link are not marked.
 
 ### Changed
 
