@@ -2,6 +2,7 @@
 // Run with: node tests/timetable-core.test.js
 const assert = require('node:assert/strict');
 const {
+  isRecentlyChanged,
   timeMinutes,
   eventSpan,
   previousDay,
@@ -121,6 +122,23 @@ test('eventTimeLabel marks continued and overnight events', () => {
     eventTimeLabel({ start: '09:00' }, { overnight: false, continued: false, start: 540 }),
     '09:00'
   );
+});
+
+test('isRecentlyChanged is true for 24 hours after the change only', () => {
+  const now = Date.parse('2026-11-24T12:00:00Z');
+  const at = (iso) => ({ changedAt: iso });
+  assert.equal(isRecentlyChanged(at('2026-11-24T11:00:00Z'), now), true);
+  assert.equal(isRecentlyChanged(at('2026-11-23T12:00:01Z'), now), true);
+  assert.equal(isRecentlyChanged(at('2026-11-23T11:59:00Z'), now), false);
+  assert.equal(
+    isRecentlyChanged(at('2026-11-24T12:00:30Z'), now),
+    true,
+    'small clock differences are tolerated'
+  );
+  assert.equal(isRecentlyChanged(at('2026-11-25T12:00:00Z'), now), false, 'a far-future stamp is ignored');
+  assert.equal(isRecentlyChanged({}, now), false);
+  assert.equal(isRecentlyChanged(at('garbage'), now), false);
+  assert.equal(isRecentlyChanged(undefined, now), false);
 });
 
 let failed = 0;

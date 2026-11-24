@@ -74,6 +74,7 @@ function readMap(): array
         'pinboardEnabled' => false,
         'iconMode' => 'monochrome',
         'browserTranslationEnabled' => false,
+        'announcement' => null,
         'soundcloudEnabled' => true,
         'soundcloudPlaylist' => defaultSoundCloudPlaylist(),
         'customButton' => ['label' => '', 'url' => ''],
@@ -96,6 +97,7 @@ function readMap(): array
     $m = is_array($m) ? array_merge($fallback, $m) : $fallback;
     $m['published'] = ($m['published'] ?? true) === true;
     $m['pinboardEnabled'] = ($m['pinboardEnabled'] ?? false) === true;
+    $m['announcement'] = cleanAnnouncement($m['announcement'] ?? null, $m['announcement'] ?? null, gmdate('c'));
     $m['theme'] = cleanTheme($m['theme'] ?? null);
     $m['matomoUrl'] = cleanMatomoUrl($m['matomoUrl'] ?? $fallback['matomoUrl']);
     $m['matomoSiteId'] = cleanMatomoSiteId($m['matomoSiteId'] ?? $fallback['matomoSiteId']);
@@ -713,6 +715,7 @@ if (in_array($action, [
     'event-auth-import',
     'database-settings',
     'pinboard-settings',
+    'announcement-save',
     'reset-application',
 ], true) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($role !== 'owner') {
@@ -783,6 +786,22 @@ if (in_array($action, [
         }
         recordHistory('pinboard_setting', 0, $enabled ? 'Pinboard enabled' : 'Pinboard disabled');
         respond(200, ['ok' => true, 'enabled' => $enabled]);
+    }
+    if ($action === 'announcement-save') {
+        $input = json_decode((string) file_get_contents('php://input'), true);
+        if (!is_array($input)) {
+            respond(400, ['error' => 'invalid_settings']);
+        }
+        $map = withMapLock(function () use ($input) {
+            $current = readMap();
+            $current['announcement'] = cleanAnnouncement($input, $current['announcement'] ?? null, gmdate('c'));
+            return saveMap($current) ? $current : false;
+        });
+        if (!is_array($map)) {
+            respond(500, ['error' => 'settings_save_failed']);
+        }
+        recordHistory('announcement_save', 0, $map['announcement'] ? cleanText($map['announcement']['text'], 120) : 'Cleared');
+        respond(200, ['ok' => true, 'announcement' => $map['announcement']]);
     }
     if ($action === 'database-settings') {
         $input = json_decode((string) file_get_contents('php://input'), true);
@@ -1151,6 +1170,7 @@ if ($action === 'restore-backup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
         'height' => $imageInfo ? (int) $imageInfo[1] : 0,
         'iconMode' => ($src['iconMode'] ?? '') === 'colored' ? 'colored' : 'monochrome',
         'browserTranslationEnabled' => !empty($src['browserTranslationEnabled']),
+        'announcement' => cleanAnnouncement($src['announcement'] ?? null, null, gmdate('c')),
         'customButton' => ['label' => $url !== '' ? cleanText($custom['label'] ?? '', 40) : '', 'url' => $url],
         'categories' => $categories,
         'pois' => $pois,
@@ -1270,6 +1290,7 @@ function saveMap(array &$m): bool
         return false;
     }
     $m['updatedAt'] = gmdate('c');
+    $m = stampEventChanges(readMap(), $m, $m['updatedAt']);
     $tmp = $path . '.' . bin2hex(random_bytes(5)) . '.tmp';
     $json = json_encode($m, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE);
     if ($json === false || file_put_contents($tmp, $json, LOCK_EX) === false) {
@@ -1812,6 +1833,7 @@ $m = [
     'titleLinkUrl' => cleanOptionalHttpUrl($in['titleLinkUrl'] ?? $old['titleLinkUrl'] ?? ''),
     'published' => ($old['published'] ?? true) === true,
     'pinboardEnabled' => ($old['pinboardEnabled'] ?? false) === true,
+    'announcement' => $old['announcement'] ?? null,
     'categories' => $cats,
     'pois' => $pois,
     'timelines' => $timelines,

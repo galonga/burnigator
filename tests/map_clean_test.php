@@ -91,6 +91,46 @@ check(publicEventMap($map)['pois'][0]['program']['mon'][0]['hasOwner'] === true,
 $_SESSION = ['admin' => true, 'role' => 'poi'];
 check(!isset(publicEventMap($map)['pois'][0]['program']['mon'][0]['hasOwner']), 'POI editors do not see the flag');
 
+// Announcement banner
+$now = '2026-11-24T12:00:00+00:00';
+check(cleanAnnouncement(null, null, $now) === null, 'no input means no announcement');
+check(cleanAnnouncement(['text' => '   '], ['text' => 'old', 'level' => 'info', 'updatedAt' => 'x'], $now) === null, 'empty text removes the announcement');
+$a = cleanAnnouncement(['text' => ' <b>Stage 2</b> delayed ', 'level' => 'warning'], null, $now);
+check($a === ['text' => 'Stage 2 delayed', 'level' => 'warning', 'updatedAt' => $now], 'announcement is cleaned and stamped');
+check(cleanAnnouncement(['text' => 'x', 'level' => 'bogus'], null, $now)['level'] === 'info', 'unknown level falls back to info');
+check(mb_strlen(cleanAnnouncement(['text' => str_repeat('ä', 500)], null, $now)['text']) === 300, 'text is limited to 300 characters');
+$same = cleanAnnouncement(['text' => 'Stage 2 delayed', 'level' => 'warning'], $a, '2026-11-25T00:00:00+00:00');
+check($same['updatedAt'] === $now, 'an unchanged announcement keeps its time, so dismissed banners stay dismissed');
+$edited = cleanAnnouncement(['text' => 'Stage 2 open again', 'level' => 'warning'], $a, '2026-11-25T00:00:00+00:00');
+check($edited['updatedAt'] === '2026-11-25T00:00:00+00:00', 'a changed announcement gets a new time');
+check(cleanAnnouncement(['text' => 'Stage 2 delayed', 'level' => 'info'], $a, '2026-11-25T00:00:00+00:00')['updatedAt'] !== $now, 'changing only the level counts as a change');
+
+// Changed-event marks
+$old = ['pois' => [['id' => 'p1', 'program' => ['fri' => [
+    ['id' => 'e1', 'start' => '10:00', 'end' => '11:00', 'text' => 'Yoga'],
+    ['id' => 'e2', 'start' => '12:00', 'end' => '', 'text' => 'Talk', 'changedAt' => '2026-11-20T08:00:00+00:00'],
+    ['id' => 'e3', 'start' => '14:00', 'end' => '', 'text' => 'Gone'],
+], 'sat' => []]]], 'timelines' => []];
+$new = ['pois' => [['id' => 'p1', 'program' => ['fri' => [
+    ['id' => 'e1', 'start' => '10:30', 'end' => '11:00', 'text' => 'Yoga'],
+    ['id' => 'e2', 'start' => '12:00', 'end' => '', 'text' => 'Talk', 'description' => 'now with text'],
+    ['id' => 'e4', 'start' => '15:00', 'end' => '', 'text' => 'Brand new'],
+], 'sat' => []]]], 'timelines' => []];
+$stamped = stampEventChanges($old, $new, $now);
+$fri = $stamped['pois'][0]['program']['fri'];
+check($fri[0]['changedAt'] === $now, 'a moved start time marks the event as changed');
+check($fri[1]['changedAt'] === '2026-11-20T08:00:00+00:00', 'an unchanged schedule keeps its earlier mark, a description edit is not a change');
+check(!array_key_exists('changedAt', $fri[2]), 'a new event gets no mark');
+$moved = ['pois' => [['id' => 'p1', 'program' => ['fri' => [], 'sat' => [['id' => 'e1', 'start' => '10:00', 'end' => '11:00', 'text' => 'Yoga']]]]], 'timelines' => []];
+check(stampEventChanges($old, $moved, $now)['pois'][0]['program']['sat'][0]['changedAt'] === $now, 'moving an event to another day marks it');
+$otherPlace = ['pois' => [['id' => 'p2', 'program' => ['fri' => [['id' => 'e1', 'start' => '10:00', 'end' => '11:00', 'text' => 'Yoga']]]]], 'timelines' => []];
+check(stampEventChanges($old, $otherPlace, $now)['pois'][0]['program']['fri'][0]['changedAt'] === $now, 'moving an event to another place marks it');
+$renamed = ['pois' => [['id' => 'p1', 'program' => ['fri' => [['id' => 'e1', 'start' => '10:00', 'end' => '11:00', 'text' => 'Yoga flow']]]]], 'timelines' => []];
+check(stampEventChanges($old, $renamed, $now)['pois'][0]['program']['fri'][0]['changedAt'] === $now, 'a new title marks the event');
+$untouched = stampEventChanges($old, $old, $now);
+check(!array_key_exists('changedAt', $untouched['pois'][0]['program']['fri'][0]), 'saving without changes marks nothing');
+check(stampEventChanges(['pois' => [], 'timelines' => []], $new, $now) === $new, 'first save with no earlier events marks nothing');
+
 // History detail
 $detail = programHistoryDetail(['mon' => [['start' => '10:00', 'text' => 'Yoga']]], 'Tent');
 check($detail === 'Tent · mon 10:00 Yoga', 'history detail names the place and event');

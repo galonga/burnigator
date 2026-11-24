@@ -1,5 +1,6 @@
 (async function () {
-  const { timeMinutes, eventSpan, eventTimeLabel, formatTime } = window.BurnigatorTimetable;
+  const { timeMinutes, eventSpan, eventTimeLabel, formatTime, isRecentlyChanged } =
+    window.BurnigatorTimetable;
   const { buildLink, parseLink, stripLink, findEvent } = window.BurnigatorDeepLink;
   if ('serviceWorker' in navigator)
     navigator.serviceWorker
@@ -121,6 +122,45 @@
     window.addEventListener('image-map-language-change', renderUpdated);
   }
   initSoundCloudPlayer(data);
+  // Organizer announcement. A visitor who dismissed it sees it again only when it changes.
+  (function showAnnouncement(announcement) {
+    if (!announcement?.text) return;
+    const seenKey = 'burnigatorAnnouncementSeenV1';
+    try {
+      if (localStorage.getItem(seenKey) === (announcement.updatedAt || announcement.text)) return;
+    } catch (_) {}
+    const banner = document.createElement('div');
+    banner.className = 'announcement-banner' + (announcement.level === 'warning' ? ' is-warning' : '');
+    banner.setAttribute('role', announcement.level === 'warning' ? 'alert' : 'status');
+    const icon = document.createElement('i');
+    icon.className =
+      'fa-solid ' + (announcement.level === 'warning' ? 'fa-triangle-exclamation' : 'fa-bullhorn');
+    icon.setAttribute('aria-hidden', 'true');
+    const text = document.createElement('p');
+    text.textContent = announcement.text;
+    const close = document.createElement('button');
+    close.type = 'button';
+    close.className = 'announcement-close button-light';
+    const closeIcon = document.createElement('i');
+    closeIcon.className = 'fa-solid fa-xmark';
+    closeIcon.setAttribute('aria-hidden', 'true');
+    close.appendChild(closeIcon);
+    const updateLabel = () => {
+      close.setAttribute('aria-label', window.AppI18n.t('announcementDismiss'));
+      close.title = close.getAttribute('aria-label');
+    };
+    updateLabel();
+    window.addEventListener('image-map-language-change', updateLabel);
+    close.addEventListener('click', () => {
+      try {
+        localStorage.setItem(seenKey, announcement.updatedAt || announcement.text);
+      } catch (_) {}
+      window.trackAppEvent?.('Visitor', 'announcement_dismiss');
+      banner.remove();
+    });
+    banner.append(icon, text, close);
+    document.querySelector('main')?.prepend(banner);
+  })(data.announcement);
   const mapTitle = document.getElementById('map-title'),
     mapLogo = document.getElementById('map-logo');
   mapTitle.textContent = data.title || 'Event';
@@ -612,7 +652,16 @@
       indicator.setAttribute('aria-hidden', 'true');
       block.appendChild(indicator);
     }
-    block.title = time.textContent + ' ' + event.text;
+    const changed = isRecentlyChanged(event);
+    if (changed) {
+      block.classList.add('is-changed');
+      const badge = document.createElement('i');
+      badge.className = 'timeline-changed-badge fa-solid fa-circle-exclamation';
+      badge.setAttribute('aria-hidden', 'true');
+      block.appendChild(badge);
+    }
+    block.title =
+      (changed ? window.AppI18n.t('eventChanged') + ': ' : '') + time.textContent + ' ' + event.text;
     block.addEventListener('click', () =>
       trackVisitorClick(
         'event_click',
@@ -630,6 +679,7 @@
               .map((key) => window.AppI18n.t('eventCategory' + key[0].toUpperCase() + key.slice(1)))
               .join(', ')
           : '') +
+        (changed ? '. ' + window.AppI18n.t('eventChanged') : '') +
         (event.host ? '. ' + window.AppI18n.t('eventHostLabel') + ': ' + event.host : '') +
         (event.description ? '. ' + event.description : '')
     );
@@ -1142,6 +1192,15 @@
       }
       header.appendChild(close);
       popup.appendChild(header);
+      if (isRecentlyChanged(event)) {
+        const changedNote = document.createElement('p');
+        changedNote.className = 'program-tooltip-changed';
+        const changedIcon = document.createElement('i');
+        changedIcon.className = 'fa-solid fa-circle-exclamation';
+        changedIcon.setAttribute('aria-hidden', 'true');
+        changedNote.append(changedIcon, ' ' + window.AppI18n.t('eventChanged'));
+        popup.appendChild(changedNote);
+      }
       if (event.host) {
         const host = document.createElement('p');
         host.className = 'program-tooltip-host';

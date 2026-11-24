@@ -172,6 +172,15 @@ if (empty($_SESSION['admin'])) {
 <button id="upload-image" class="button button-secondary" data-i18n="upload">Bild hochladen</button>
 <button id="save-appearance" type="button" class="button button-primary" data-i18n="saveAppearance">Erscheinungsbild speichern</button>
 </section>
+<section class="config-card" aria-labelledby="config-announcement-heading">
+  <h2 id="config-announcement-heading" data-i18n="announcementTitle">Hinweis für Besucher</h2>
+  <p class="hint" data-i18n="announcementIntro">Ein kurzer Hinweis, der oben auf der Besucherseite erscheint.</p>
+  <label><span data-i18n="announcementText">Text (max. 300 Zeichen)</span><textarea id="announcement-text" maxlength="300" rows="3"></textarea></label>
+  <label><span data-i18n="announcementLevel">Art</span><select id="announcement-level"><option value="info" data-i18n="announcementLevelInfo">Information</option><option value="warning" data-i18n="announcementLevelWarning">Warnung</option></select></label>
+  <p id="announcement-status" class="hint" role="status" aria-live="polite"></p>
+  <button id="announcement-save" type="button" class="button button-primary" data-i18n="announcementSave">Hinweis veröffentlichen</button>
+  <button id="announcement-clear" type="button" class="button button-secondary" data-i18n="announcementClear">Hinweis entfernen</button>
+</section>
 <section class="config-card" aria-labelledby="config-categories-heading">
   <h2 id="config-categories-heading" data-i18n="categories">Kategorien</h2>
   <div id="category-editor">
@@ -328,7 +337,7 @@ XWDYD,canceled
 <div id="map" aria-label="Karte bearbeiten" data-i18n-aria="mapLabel">
 </div>
 </main>
-<script src="<?= assetUrl('assets/avatar.js') ?>"></script><script src="<?= assetUrl('assets/config-tabs.js') ?>"></script><script src="<?= assetUrl('assets/event-auth-admin.js') ?>"></script>
+<script src="<?= assetUrl('assets/avatar.js') ?>"></script><script src="<?= assetUrl('assets/config-tabs.js') ?>"></script><script src="<?= assetUrl('assets/event-auth-admin.js') ?>"></script><script src="<?= assetUrl('assets/announcement-admin.js') ?>"></script>
 <script>window.MAP_CSRF=<?php 
     echo json_encode($_SESSION['csrf']);
     ?>;window.ADMIN_ROLE=<?php 
