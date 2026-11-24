@@ -701,7 +701,10 @@
     wrap.appendChild(block);
     return wrap;
   }
-  const clashHint = (titles) => window.AppI18n.t('clashHint').replace('{names}', titles.join(', '));
+  // A function declaration (hoisted): renderTimetable() already runs during start-up, before this point.
+  function clashHint(titles) {
+    return window.AppI18n.t('clashHint').replace('{names}', titles.join(', '));
+  }
   function computeClashes() {
     const items = [],
       titles = new Map();
@@ -774,7 +777,11 @@
       strip.id = 'now-next';
       strip.className = 'now-next';
       strip.hidden = true;
-      dayHost.parentNode.insertBefore(strip, document.getElementById('timetable-filters') || dayHost);
+      // First child section of the timetable view that follows its heading, i.e. above the filters.
+      const view = document.getElementById('timetable-view');
+      const anchor = view?.querySelector('.timetable-filter-section, .timetable-day-section');
+      if (anchor && anchor.parentNode === view) view.insertBefore(strip, anchor);
+      else (view || dayHost.parentNode).appendChild(strip);
       window.addEventListener('image-map-language-change', () => {
         strip.dataset.signature = '';
         renderNowNext();
