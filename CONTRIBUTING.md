@@ -23,7 +23,7 @@ MariaDB is only needed for the event authentication and pinboard features.
 ## Code style
 
 - **PHP:** four spaces, one statement per line, `declare(strict_types=1)` at the top of new files.
-- **JavaScript and CSS:** formatted with [Prettier](https://prettier.io/) using the settings in `.prettierrc.json`. Run `npx prettier --write assets/*.js sw.js assets/*.css` before you commit.
+- **JavaScript and CSS:** formatted with [Prettier](https://prettier.io/) using the settings in `.prettierrc.json`. Run `npm run format` before you commit.
 - **UI:** follow [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md). Use the shared tokens and component classes in `assets/design-system.css` instead of one-off styles.
 - **Texts:** add both languages in `assets/i18n.js` (German and English, separated by `|`).
 
@@ -35,18 +35,24 @@ This makes installed and offline copies pick up the change. CI fails the pull re
 
 ## Checks
 
+The `package.json` is for developer tooling only (ESLint and Prettier, pinned by `package-lock.json`). The app itself has no build step and no runtime dependencies, and these files are not part of the release zip. Install once with Node 20 or newer:
+
 ```sh
-find . -name '*.php' -not -path './assets/vendor/*' -print0 | xargs -0 -n1 php -l
-for f in assets/*.js sw.js; do node --check "$f"; done
-php tests/event_auth_test.php
-php tests/map_clean_test.php
-php tests/stats_test.php
-php tests/dashboard_test.php
-node tests/timetable-core.test.js
-node tests/deeplink.test.js
-npx prettier@3 --check "assets/*.js" "assets/*.css" sw.js "tests/*.js" eslint.config.mjs
-npx eslint@9 .
+npm ci
 ```
+
+Then run:
+
+```sh
+npm run check        # everything below
+npm run lint:php     # php -l over all PHP files (except assets/vendor)
+npm run lint:js      # node --check plus ESLint
+npm run format       # Prettier, writes changes
+npm run format:check # Prettier, check only
+npm test             # PHP tests (needs pdo_sqlite) and Node tests
+```
+
+`npm run test:php`, `npm run test:js`, `npm run lint:js:syntax` and `npm run lint:js:eslint` run the individual parts.
 
 CI runs the PHP and JavaScript syntax checks, the PHP and Node tests, Prettier, ESLint (correctness rules only), and the version check.
 
