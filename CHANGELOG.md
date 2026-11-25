@@ -6,6 +6,12 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ## [Unreleased]
 
+## [2026.11.1390] - 2026-11-25
+
+### Changed
+
+- **Minimum PHP version is now 8.1** (was 7.4). PHP 7.4 to 8.0 no longer receive security fixes. `auth.php`, which every page loads, now stops with a plain message ("Burnigator requires PHP 8.1 or newer") on older versions, so the setup wizard and the app no longer fail with a confusing error. CI lints PHP 8.1, 8.3 and 8.4.
+
 ## [2026.11.1389] - 2026-11-24
 
 ### Added
