@@ -42,6 +42,7 @@ php tests/event_auth_test.php
 php tests/map_clean_test.php
 php tests/stats_test.php
 php tests/dashboard_test.php
+php tests/map_revision_test.php
 node tests/timetable-core.test.js
 node tests/deeplink.test.js
 npx prettier@3 --check "assets/*.js" "assets/*.css" sw.js "tests/*.js" eslint.config.mjs

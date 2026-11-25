@@ -8,11 +8,15 @@ require_once __DIR__ . '/event_auth.php';
 require_once __DIR__ . '/lib/map_clean.php';
 require_once __DIR__ . '/lib/stats.php';
 require_once __DIR__ . '/lib/dashboard.php';
+require_once __DIR__ . '/lib/map_revision.php';
 startAppSession($config, false);
 header('Content-Type: application/json; charset=utf-8');
 header('X-Content-Type-Options: nosniff');
 function respond(int $status, array $body): void
 {
+    if ($status === 409 && ($body['error'] ?? '') === 'map_conflict') {
+        $body = mapConflictBody(readMap());
+    }
     if (isset($body['map']) && is_array($body['map'])) {
         $body['map'] = publicEventMap($body['map']);
     }
@@ -1148,7 +1152,7 @@ if ($action === 'restore-snapshot' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $expected = (string) ($in['expectedUpdatedAt'] ?? '');
     $saved = withMapLock(function () use (&$m, $expected) {
         $latest = readMap();
-        if ($expected === '' || !hash_equals((string) ($latest['updatedAt'] ?? ''), $expected)) {
+        if (mapRevisionStale($latest, $expected)) {
             return 'conflict';
         }
         $m['published'] = $latest['published'];
@@ -1297,7 +1301,7 @@ if ($action === 'restore-backup' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $expected = (string) ($in['expectedUpdatedAt'] ?? '');
     $saved = withMapLock(function () use (&$map, $expected) {
         $latest = readMap();
-        if ($expected === '' || !hash_equals((string) ($latest['updatedAt'] ?? ''), $expected)) {
+        if (mapRevisionStale($latest, $expected)) {
             return 'conflict';
         }
         $map['published'] = $latest['published'];
@@ -1465,7 +1469,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, [
         $expected = (string) ($in['expectedUpdatedAt'] ?? '');
         $map = withMapLock(function () use ($in, $expected) {
             $m = readMap();
-            if ($expected === '' || !hash_equals((string) ($m['updatedAt'] ?? ''), $expected)) {
+            if (mapRevisionStale($m, $expected)) {
                 return 'conflict';
             }
             $m['published'] = $in['published'];
@@ -1581,7 +1585,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, [
         $map = withMapLock(function () use ($in, $canEditProgram) {
             $m = readMap();
             $expected = (string) ($in['expectedUpdatedAt'] ?? '');
-            if ($expected === '' || !hash_equals((string) ($m['updatedAt'] ?? ''), $expected)) {
+            if (mapRevisionStale($m, $expected)) {
                 return 'conflict';
             }
             $p = $in['poi'] ?? null;
@@ -1663,7 +1667,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, [
         $expected = (string) ($in['expectedUpdatedAt'] ?? '');
         $map = withMapLock(function () use ($items, $expected) {
             $m = readMap();
-            if ($expected === '' || !hash_equals((string) ($m['updatedAt'] ?? ''), $expected)) {
+            if (mapRevisionStale($m, $expected)) {
                 return 'conflict';
             }
             $knownCats = array_column((array) $m['categories'], 'id');
@@ -1735,7 +1739,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, [
         $expected = (string) ($in['expectedUpdatedAt'] ?? '');
         $map = withMapLock(function () use ($id, $role, $expected) {
             $m = readMap();
-            if ($expected === '' || !hash_equals((string) ($m['updatedAt'] ?? ''), $expected)) {
+            if (mapRevisionStale($m, $expected)) {
                 return 'conflict';
             }
             $found = false;
@@ -1785,7 +1789,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, [
         $expected = (string) ($in['expectedUpdatedAt'] ?? '');
         $map = withMapLock(function () use ($cleanTimelines, $expected) {
             $m = readMap();
-            if ($expected === '' || !hash_equals((string) ($m['updatedAt'] ?? ''), $expected)) {
+            if (mapRevisionStale($m, $expected)) {
                 return 'conflict';
             }
             $m['timelines'] = $cleanTimelines;
@@ -1807,7 +1811,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && in_array($action, [
         $map = withMapLock(function () use ($in) {
             $m = readMap();
             $expected = (string) ($in['expectedUpdatedAt'] ?? '');
-            if ($expected === '' || !hash_equals((string) ($m['updatedAt'] ?? ''), $expected)) {
+            if (mapRevisionStale($m, $expected)) {
                 return 'conflict';
             }
             $update = $in['program'] ?? null;
@@ -1964,7 +1968,7 @@ $m = [
 $expected = (string) ($in['expectedUpdatedAt'] ?? '');
 $saved = withMapLock(function () use (&$m, $expected) {
     $latest = readMap();
-    if ($expected === '' || !hash_equals((string) ($latest['updatedAt'] ?? ''), $expected)) {
+    if (mapRevisionStale($latest, $expected)) {
         return 'conflict';
     }
     foreach ([
