@@ -27,11 +27,25 @@ MariaDB is only needed for the event authentication and pinboard features.
 - **UI:** follow [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md). Use the shared tokens and component classes in `assets/design-system.css` instead of one-off styles.
 - **Texts:** add both languages in `assets/i18n.js` (German and English, separated by `|`).
 
-## Version bump (required)
+## Version bump (required, automated)
 
-Versions use CalVer, `YEAR.MONTH.BUILD` (for example `2026.11.1359`), stored in the `VERSION` file. When you change application code or the visitor page, increase the **build number** (the last number) in `VERSION`, and update year and month if they changed. The footer, the asset cache-busting and the service-worker cache all derive from `VERSION`, so there is nothing else to edit.
+Versions use CalVer, `YEAR.MONTH.BUILD` (for example `2026.11.1359`), stored in the `VERSION` file. A pull request that changes application code (PHP, JS, CSS that ship to visitors) must increase the **build number**. You do not edit it by hand:
 
-This makes installed and offline copies pick up the change. CI fails the pull request if the build number did not increase. See [RELEASING.md](RELEASING.md).
+```sh
+scripts/bump-version.sh            # compares with origin/main, bumps VERSION if needed
+```
+
+The script only bumps when application files changed, sets year and month to the current month, and does nothing if `VERSION` is already ahead of the base branch, so it is safe to run repeatedly. Commit the changed `VERSION`.
+
+To have this happen on every commit, enable the optional hook once per clone:
+
+```sh
+scripts/install-hooks.sh           # git config core.hooksPath scripts/hooks
+```
+
+The hook bumps and stages `VERSION` when staged files include application code. Skip it once with `git commit --no-verify`. Fetch `origin/main` first (`git fetch origin`) so the base is current.
+
+CI fails the pull request if the build number did not increase, and the failure message tells you the command to run. CI never pushes commits. See [RELEASING.md](RELEASING.md).
 
 ## Checks
 
@@ -42,6 +56,7 @@ php tests/event_auth_test.php
 php tests/map_clean_test.php
 php tests/stats_test.php
 php tests/dashboard_test.php
+tests/bump_version_test.sh
 node tests/timetable-core.test.js
 node tests/deeplink.test.js
 npx prettier@3 --check "assets/*.js" "assets/*.css" sw.js "tests/*.js" eslint.config.mjs
