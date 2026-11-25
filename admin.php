@@ -356,7 +356,7 @@ XWDYD,canceled
     echo json_encode($role);
     ?>;</script><script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="<?= assetUrl('assets/fa-icons.js') ?>"></script><script src="<?= assetUrl('assets/i18n.js') ?>"></script><?php 
     echo appInitialThemeScript();
-    ?><script src="<?= assetUrl('assets/theme.js') ?>"></script><script src="<?= assetUrl('assets/admin.js') ?>"></script><script src="<?= assetUrl('assets/backup-admin.js') ?>"></script><?php 
+    ?><script src="<?= assetUrl('assets/theme.js') ?>"></script><script src="<?= assetUrl('assets/admin-program.js') ?>"></script><script src="<?= assetUrl('assets/admin.js') ?>"></script><script src="<?= assetUrl('assets/backup-admin.js') ?>"></script><?php 
 }
 ?></body>
 </html>
