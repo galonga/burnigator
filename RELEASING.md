@@ -42,7 +42,7 @@ If the workflow fails, fix the problem, delete the tag (`git push origin :refs/t
 
 - [ ] CI is green on `main`
 - [ ] Browser test with the Content-Security-Policy active: map, timetable, favourites, print exports, SoundCloud, Matomo, install as app, offline use, admin panel, setup wizard
-- [ ] Fresh install from the zip on PHP 7.4 and a current PHP 8.x, with Apache and `.htaccess`
+- [ ] Fresh install from the zip on PHP 8.1 and a current PHP 8.x, with Apache and `.htaccess`
 - [ ] Upgrade of a copy of a real installation: nothing lost, database migrated, offline cache refreshed
 - [ ] MariaDB features: pinboard, Pretix API sync, CSV import, order summary
 - [ ] Security pass: login throttling, CSRF, uploads, role limits, reset flow; no secrets or personal data in the zip

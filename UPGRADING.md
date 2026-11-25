@@ -23,6 +23,10 @@ Restore your backup of the previous version's files. Restore `config.php`, `data
 
 ## Notes per version
 
+### 2026.11.1390
+
+- **PHP 8.1 or newer is now required** (was 7.4). Before uploading, set the PHP version in your hosting control panel (for example ALL-INKL KAS) to 8.1 or newer, ideally 8.3. On an older PHP the site shows "Burnigator requires PHP 8.1 or newer" instead of the app; switching the PHP version fixes it, and no data is affected. Otherwise nothing is required.
+
 ### 2026.11.1389
 
 - **Admin dashboard.** Nothing is required; there are no settings and no data changes. Upload the new `lib/dashboard.php` and `assets/dashboard-admin.js` together with the other files (`api.php` now loads `lib/dashboard.php`).

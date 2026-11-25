@@ -10,7 +10,7 @@ Thanks for helping! Bug reports, ideas and pull requests are welcome.
 
 ## Run it locally
 
-You need PHP 7.4 or newer. There is no build step and no dependency installation.
+You need PHP 8.1 or newer. There is no build step and no dependency installation.
 
 ```sh
 php -S 127.0.0.1:8080

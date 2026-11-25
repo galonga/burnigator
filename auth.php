@@ -1,6 +1,14 @@
 <?php
 
 declare (strict_types=1);
+if (PHP_VERSION_ID < 80100) {
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: text/plain; charset=utf-8');
+    }
+    echo 'Burnigator requires PHP 8.1 or newer. This server runs PHP ' . PHP_VERSION . ". Please switch the PHP version in your hosting control panel and reload this page.\n";
+    exit;
+}
 function appInstanceId(array $config): string
 {
     $configured = (string) ($config['instance_id'] ?? '');
