@@ -116,7 +116,8 @@ function beginLoginAttempt(): bool
         fclose($fp);
         return true;
     }
-    if ((int) ($entry['until'] ?? 0) <= $now) {
+    // Start over only once a lockout has expired; resetting on every attempt kept the count at 1.
+    if ((int) ($entry['until'] ?? 0) > 0) {
         $entry = ['count' => 0, 'until' => 0];
     }
     $entry['count'] = (int) ($entry['count'] ?? 0) + 1;
