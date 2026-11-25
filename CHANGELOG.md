@@ -135,7 +135,8 @@ First public release.
 - Event authentication hardening: write rate limits, safer imports that guard against mass access revocation, installation reset, and HTTP Pretix support.
 - `config.php`, `data/` and `uploads/` are ignored by git and excluded from release zips.
 
-[Unreleased]: https://github.com/galonga/burnigator/compare/v2026.11.1389...HEAD
+[Unreleased]: https://github.com/galonga/burnigator/compare/v2026.11.1390...HEAD
+[2026.11.1390]: https://github.com/galonga/burnigator/compare/v2026.11.1389...v2026.11.1390
 [2026.11.1389]: https://github.com/galonga/burnigator/compare/v2026.11.1377...v2026.11.1389
 [2026.11.1377]: https://github.com/galonga/burnigator/compare/v2026.11.1373...v2026.11.1377
 [2026.11.1373]: https://github.com/galonga/burnigator/compare/v2026.11.1367...v2026.11.1373
