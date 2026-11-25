@@ -50,6 +50,14 @@
     const say = (s, bad = false) => {
       status.textContent = s;
       status.className = bad ? 'error' : 'success';
+      if (bad && s === window.AppI18n.t('mapConflict')) {
+        const reload = document.createElement('button');
+        reload.type = 'button';
+        reload.className = 'button button-primary';
+        reload.textContent = window.AppI18n.t('reloadMap');
+        reload.onclick = () => window.location.reload();
+        status.append(' ', reload);
+      }
     };
     const themeFields = {
       primary: document.getElementById('theme-primary'),

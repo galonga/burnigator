@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 function respond(int $status, array $body): void
 {
+    if ($status === 409 && ($body['error'] ?? '') === 'map_conflict') {
+        $body = mapConflictBody(readMap());
+    }
     if (isset($body['map']) && is_array($body['map'])) {
         $body['map'] = publicEventMap($body['map']);
     }

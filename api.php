@@ -13,6 +13,7 @@ require_once BURNIGATOR_ROOT . '/event_auth.php';
 require_once BURNIGATOR_ROOT . '/lib/map_clean.php';
 require_once BURNIGATOR_ROOT . '/lib/stats.php';
 require_once BURNIGATOR_ROOT . '/lib/dashboard.php';
+require_once BURNIGATOR_ROOT . '/lib/map_revision.php';
 foreach (['support', 'owner_reads', 'pinboard', 'public', 'settings', 'backup', 'uploads', 'accounts', 'pois', 'program', 'map_save'] as $module) {
     require_once BURNIGATOR_ROOT . '/lib/api/' . $module . '.php';
 }

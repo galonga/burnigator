@@ -11,7 +11,7 @@ function apiSetPublicationAction(array $in): void
     $expected = (string) ($in['expectedUpdatedAt'] ?? '');
     $map = withMapLock(function () use ($in, $expected) {
         $m = readMap();
-        if ($expected === '' || !hash_equals((string) ($m['updatedAt'] ?? ''), $expected)) {
+        if (mapRevisionStale($m, $expected)) {
             return 'conflict';
         }
         $m['published'] = $in['published'];
@@ -157,7 +157,7 @@ function apiSaveAction($action): void
     $expected = (string) ($in['expectedUpdatedAt'] ?? '');
     $saved = withMapLock(function () use (&$m, $expected) {
         $latest = readMap();
-        if ($expected === '' || !hash_equals((string) ($latest['updatedAt'] ?? ''), $expected)) {
+        if (mapRevisionStale($latest, $expected)) {
             return 'conflict';
         }
         foreach ([

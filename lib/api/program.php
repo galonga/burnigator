@@ -23,7 +23,7 @@ function apiSaveTimelinesAction(array $in): void
     $expected = (string) ($in['expectedUpdatedAt'] ?? '');
     $map = withMapLock(function () use ($cleanTimelines, $expected) {
         $m = readMap();
-        if ($expected === '' || !hash_equals((string) ($m['updatedAt'] ?? ''), $expected)) {
+        if (mapRevisionStale($m, $expected)) {
             return 'conflict';
         }
         $m['timelines'] = $cleanTimelines;
@@ -48,7 +48,7 @@ function apiSaveProgramAction(array $in): void
     $map = withMapLock(function () use ($in) {
         $m = readMap();
         $expected = (string) ($in['expectedUpdatedAt'] ?? '');
-        if ($expected === '' || !hash_equals((string) ($m['updatedAt'] ?? ''), $expected)) {
+        if (mapRevisionStale($m, $expected)) {
             return 'conflict';
         }
         $update = $in['program'] ?? null;

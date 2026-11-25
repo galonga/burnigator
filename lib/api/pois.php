@@ -12,7 +12,7 @@ function apiSavePoiAction(string $role, array $in): void
     $map = withMapLock(function () use ($in, $canEditProgram) {
         $m = readMap();
         $expected = (string) ($in['expectedUpdatedAt'] ?? '');
-        if ($expected === '' || !hash_equals((string) ($m['updatedAt'] ?? ''), $expected)) {
+        if (mapRevisionStale($m, $expected)) {
             return 'conflict';
         }
         $p = $in['poi'] ?? null;
@@ -97,7 +97,7 @@ function apiSavePoisAction(array $in): void
     $expected = (string) ($in['expectedUpdatedAt'] ?? '');
     $map = withMapLock(function () use ($items, $expected) {
         $m = readMap();
-        if ($expected === '' || !hash_equals((string) ($m['updatedAt'] ?? ''), $expected)) {
+        if (mapRevisionStale($m, $expected)) {
             return 'conflict';
         }
         $knownCats = array_column((array) $m['categories'], 'id');
@@ -172,7 +172,7 @@ function apiDeletePoiAction(string $role, array $in): void
     $expected = (string) ($in['expectedUpdatedAt'] ?? '');
     $map = withMapLock(function () use ($id, $role, $expected) {
         $m = readMap();
-        if ($expected === '' || !hash_equals((string) ($m['updatedAt'] ?? ''), $expected)) {
+        if (mapRevisionStale($m, $expected)) {
             return 'conflict';
         }
         $found = false;

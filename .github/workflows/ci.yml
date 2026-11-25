@@ -99,3 +99,4 @@ jobs:
           php tests/map_clean_test.php
           php tests/stats_test.php
           php tests/dashboard_test.php
+          php tests/map_revision_test.php

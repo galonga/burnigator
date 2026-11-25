@@ -91,7 +91,7 @@ function apiRestoreSnapshotAction(string $role, $action): void
         $expected = (string) ($in['expectedUpdatedAt'] ?? '');
         $saved = withMapLock(function () use (&$m, $expected) {
             $latest = readMap();
-            if ($expected === '' || !hash_equals((string) ($latest['updatedAt'] ?? ''), $expected)) {
+            if (mapRevisionStale($latest, $expected)) {
                 return 'conflict';
             }
             $m['published'] = $latest['published'];
@@ -245,7 +245,7 @@ function apiRestoreBackupAction(string $role, $action): void
         $expected = (string) ($in['expectedUpdatedAt'] ?? '');
         $saved = withMapLock(function () use (&$map, $expected) {
             $latest = readMap();
-            if ($expected === '' || !hash_equals((string) ($latest['updatedAt'] ?? ''), $expected)) {
+            if (mapRevisionStale($latest, $expected)) {
                 return 'conflict';
             }
             $map['published'] = $latest['published'];
