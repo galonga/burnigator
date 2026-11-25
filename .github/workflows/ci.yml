@@ -95,3 +95,23 @@ jobs:
           php tests/map_clean_test.php
           php tests/stats_test.php
           php tests/dashboard_test.php
+
+  http-integration:
+    name: HTTP integration tests (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['7.4', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Run tests against php -S
+        run: node tests/http-integration.test.js

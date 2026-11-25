@@ -44,11 +44,12 @@ php tests/stats_test.php
 php tests/dashboard_test.php
 node tests/timetable-core.test.js
 node tests/deeplink.test.js
+node tests/http-integration.test.js
 npx prettier@3 --check "assets/*.js" "assets/*.css" sw.js "tests/*.js" eslint.config.mjs
 npx eslint@9 .
 ```
 
-CI runs the PHP and JavaScript syntax checks, the PHP and Node tests, Prettier, ESLint (correctness rules only), and the version check.
+CI runs the PHP and JavaScript syntax checks, the PHP and Node tests, the HTTP integration tests (which start `php -S` on a copy of the app in a temp directory and need `php` on your PATH; they never touch your `config.php` or `data/`) on PHP 7.4, 8.3 and 8.4, Prettier, ESLint (correctness rules only), and the version check.
 
 ## Pull requests
 
