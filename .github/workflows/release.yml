@@ -50,6 +50,7 @@ jobs:
           php tests/map_revision_test.php
           node tests/timetable-core.test.js
           node tests/deeplink.test.js
+          node tests/exposure-check.test.js
 
       - name: Build zip and checksum
         run: |

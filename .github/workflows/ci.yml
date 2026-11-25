@@ -65,6 +65,7 @@ jobs:
         run: |
           node tests/timetable-core.test.js
           node tests/deeplink.test.js
+          node tests/exposure-check.test.js
 
   version-bump:
     name: VERSION build number bumped

@@ -8,6 +8,7 @@ if (!empty($config['installed'])) {
     exit;
 }
 require_once __DIR__ . '/auth.php';
+require_once __DIR__ . '/lib/dashboard.php';
 $appVersion = appVersion();
 appSendSecurityHeaders();
 $error = '';
@@ -221,6 +222,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       </header>
       <div class="setup-progress" aria-label="Setup progress"><span data-step-label="1" aria-current="step" data-i18n="setupStepAccount">1. Zugang</span><span data-step-label="2" data-i18n="setupStepAppearance">2. Aussehen</span><span data-step-label="3" data-i18n="setupStepOptions">3. Optionen</span>
       </div><?php 
+if (deploymentNeedsHttpsWarning($_SERVER)) {
+    ?><p class=error role=alert data-i18n=setupHttpsWarning>Achtung: Diese Seite wird nicht über HTTPS ausgeliefert. Passwort und Anmeldung würden unverschlüsselt übertragen. Richte HTTPS ein, bevor du fortfährst. Die Einrichtung ist weiterhin möglich.</p><?php 
+}
 if ($error) {
     ?><p class="error" role="alert" data-i18n="<?php 
     echo htmlspecialchars($errorKey, ENT_QUOTES, 'UTF-8');
