@@ -11,9 +11,9 @@ head="${2:-HEAD}"
 changed=$(git diff --name-only "$base" "$head")
 
 # Files that ship to visitors. Docs, workflows and vendored libs are exempt.
-app_changed=$(printf '%s\n' "$changed" \
-  | grep -E '\.(php|js|css)$|^sw\.js$' \
-  | grep -vE '^(assets/vendor/|\.github/|tests/)' || true)
+# shellcheck source=lib-app-files.sh
+. "$(dirname "$0")/lib-app-files.sh"
+app_changed=$(printf '%s\n' "$changed" | app_files)
 
 if [ -z "$app_changed" ]; then
   echo "No application files changed; no version bump needed."
@@ -40,6 +40,8 @@ new_build="${new##*.}"
 if [ "$new_build" -le "$old_build" ]; then
   echo "::error file=VERSION::Application files changed but the build number in VERSION did not increase (base $old, head $new)."
   echo "Changed application files:"; echo "$app_changed"
+  echo "Fix: run 'scripts/bump-version.sh origin/main', commit VERSION and push."
+  echo "     Optional: 'scripts/install-hooks.sh' does this automatically on every commit."
   exit 1
 fi
 
