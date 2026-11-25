@@ -55,10 +55,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Install dev tools (pinned by package-lock.json)
+        run: npm ci
       - name: Prettier
-        run: npx --yes prettier@3 --check "assets/*.js" "assets/*.css" sw.js "tests/*.js" eslint.config.mjs
+        run: npm run format:check
       - name: ESLint (correctness rules only)
-        run: npx --yes eslint@9 .
+        run: npm run lint:js:eslint
       - name: Timetable unit tests
         run: |
           node tests/timetable-core.test.js
