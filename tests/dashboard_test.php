@@ -36,6 +36,15 @@ check($counts['eventsWithOwner'] === 1, 'events with an owner hash are counted')
 $owners = dashboardProgramOwners($map);
 check(array_column($owners, 'id') === ['p1', 't1', 't2', 't3'], 'owners are places with a programme followed by up to three timelines');
 
+check(deploymentIsLocalHost('localhost') && deploymentIsLocalHost('localhost:8080') && deploymentIsLocalHost('127.0.0.1:8080') && deploymentIsLocalHost('[::1]:8080') && deploymentIsLocalHost('app.localhost'), 'local hosts are recognised');
+check(!deploymentIsLocalHost('example.org') && !deploymentIsLocalHost('localhost.evil.example') && !deploymentIsLocalHost('127.0.0.1.evil.example') && !deploymentIsLocalHost(''), 'other hosts are not local');
+check(deploymentNeedsHttpsWarning(['HTTP_HOST' => 'example.org', 'SERVER_PORT' => '80']), 'plain HTTP on a public host warns');
+check(!deploymentNeedsHttpsWarning(['HTTP_HOST' => 'example.org', 'HTTPS' => 'on']), 'HTTPS does not warn');
+check(deploymentNeedsHttpsWarning(['HTTP_HOST' => 'example.org', 'HTTPS' => 'off', 'SERVER_PORT' => '80']), 'HTTPS=off warns');
+check(!deploymentNeedsHttpsWarning(['HTTP_HOST' => 'example.org', 'SERVER_PORT' => '443']), 'port 443 does not warn');
+check(deploymentNeedsHttpsWarning(['HTTP_HOST' => 'example.org', 'SERVER_PORT' => '80', 'HTTP_X_FORWARDED_PROTO' => 'https']), 'forwarded headers are not trusted');
+check(!deploymentNeedsHttpsWarning(['HTTP_HOST' => 'localhost:8080', 'SERVER_PORT' => '8080']), 'localhost over HTTP does not warn');
+
 $empty = dashboardCounts([]);
 check($empty['pois'] === 0 && $empty['events'] === 0, 'an empty map gives zero counts');
 

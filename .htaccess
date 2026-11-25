@@ -4,6 +4,11 @@ AddType application/manifest+json .webmanifest
   Require all denied
 </FilesMatch>
 
+# Dev tooling files (not needed by visitors; do not expose dependency info)
+<FilesMatch "^(package\.json|package-lock\.json)$">
+  Require all denied
+</FilesMatch>
+
 <IfModule mod_headers.c>
   Header always set X-Content-Type-Options "nosniff"
   Header always set X-Frame-Options "SAMEORIGIN"

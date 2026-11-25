@@ -1,6 +1,14 @@
 <?php
 
 declare (strict_types=1);
+if (PHP_VERSION_ID < 80100) {
+    if (!headers_sent()) {
+        http_response_code(500);
+        header('Content-Type: text/plain; charset=utf-8');
+    }
+    echo 'Burnigator requires PHP 8.1 or newer. This server runs PHP ' . PHP_VERSION . ". Please switch the PHP version in your hosting control panel and reload this page.\n";
+    exit;
+}
 function appInstanceId(array $config): string
 {
     $configured = (string) ($config['instance_id'] ?? '');
@@ -116,7 +124,8 @@ function beginLoginAttempt(): bool
         fclose($fp);
         return true;
     }
-    if ((int) ($entry['until'] ?? 0) <= $now) {
+    // Start over only once a lockout has expired; resetting on every attempt kept the count at 1.
+    if ((int) ($entry['until'] ?? 0) > 0) {
         $entry = ['count' => 0, 'until' => 0];
     }
     $entry['count'] = (int) ($entry['count'] ?? 0) + 1;

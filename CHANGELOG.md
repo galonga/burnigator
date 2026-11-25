@@ -6,6 +6,24 @@ Versions use CalVer in the form `YEAR.MONTH.BUILD`, for example `2026.11.1359`. 
 
 ## [Unreleased]
 
+## [2026.11.1390] - 2026-11-25
+
+### Security
+
+- **Login rate limit now works:** `beginLoginAttempt()` reset the failure counter on every attempt, so the lockout after 5 failed logins never engaged and `admin.php` had no brute-force protection. It now locks the client out for 15 minutes after 5 failures.
+
+### Added
+
+- **Deployment checks:** the setup wizard warns when the site is not served over HTTPS (localhost is exempt). The admin dashboard has a new **Security check** card that tests from the browser whether `data/map.json`, `config.php` and `lib/stats.php` are publicly readable and warns if the server ignores `.htaccess`.
+- **Conflict message with reload:** when another admin saved first, the admin panel now shows a **Reload** button next to the conflict message, and the 409 response includes the current revision.
+- **Development tooling:** `package.json` with `npm run check` (PHP lint, JS lint, Prettier, all tests), `scripts/bump-version.sh` with an optional pre-commit hook, and HTTP integration tests that start `php -S` against a temporary copy of the app. None of it is needed to run the app.
+- **Documentation:** `GLOSSARY.md` and architecture decision records in `docs/adr/`.
+
+### Changed
+
+- **Code structure (no behaviour change):** `api.php` is now a small dispatcher and its actions live in `lib/api/`. Map export, the SoundCloud player and the programme editor moved out of `map.js` and `admin.js` into their own files. **Upload `lib/api/` and the new `assets/*.js` files together with the release.**
+- **Minimum PHP version is now 8.1** (was 7.4). PHP 7.4 to 8.0 no longer receive security fixes. `auth.php`, which every page loads, now stops with a plain message ("Burnigator requires PHP 8.1 or newer") on older versions, so the setup wizard and the app no longer fail with a confusing error. CI lints PHP 8.1, 8.3 and 8.4.
+
 ## [2026.11.1389] - 2026-11-24
 
 ### Added

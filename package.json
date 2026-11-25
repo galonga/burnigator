@@ -1,0 +1,24 @@
+{
+  "name": "burnigator-dev-tools",
+  "private": true,
+  "description": "Developer tooling only (lint, format, tests). Burnigator itself has no build step and no runtime dependencies.",
+  "license": "AGPL-3.0-only",
+  "scripts": {
+    "lint:php": "find . -name '*.php' -not -path './assets/vendor/*' -not -path './node_modules/*' -print0 | xargs -0 -n1 php -l -q",
+    "lint:js:syntax": "find assets sw.js -name '*.js' -not -path 'assets/vendor/*' -print0 | xargs -0 -n1 node --check",
+    "lint:js:eslint": "eslint .",
+    "lint:js": "npm run lint:js:syntax && npm run lint:js:eslint",
+    "format": "prettier --write \"assets/*.js\" \"assets/*.css\" sw.js \"tests/*.js\" eslint.config.mjs package.json",
+    "format:check": "prettier --check \"assets/*.js\" \"assets/*.css\" sw.js \"tests/*.js\" eslint.config.mjs package.json",
+    "test:php": "php tests/event_auth_test.php && php tests/map_clean_test.php && php tests/stats_test.php && php tests/dashboard_test.php && php tests/map_revision_test.php",
+    "test:js": "node tests/timetable-core.test.js && node tests/deeplink.test.js && node tests/exposure-check.test.js",
+    "test:http": "node tests/http-integration.test.js",
+    "test:sh": "tests/bump_version_test.sh",
+    "test": "npm run test:php && npm run test:js && npm run test:sh && npm run test:http",
+    "check": "npm run lint:php && npm run lint:js && npm run format:check && npm test"
+  },
+  "devDependencies": {
+    "eslint": "^9.0.0",
+    "prettier": "^3.0.0"
+  }
+}

@@ -349,14 +349,14 @@ XWDYD,canceled
 <div id="map" aria-label="Karte bearbeiten" data-i18n-aria="mapLabel">
 </div>
 </main>
-<script src="<?= assetUrl('assets/avatar.js') ?>"></script><script src="<?= assetUrl('assets/config-tabs.js') ?>"></script><script src="<?= assetUrl('assets/event-auth-admin.js') ?>"></script><script src="<?= assetUrl('assets/announcement-admin.js') ?>"></script><script src="<?= assetUrl('assets/stats-admin.js') ?>"></script><script src="<?= assetUrl('assets/timetable-core.js') ?>"></script><script src="<?= assetUrl('assets/dashboard-admin.js') ?>"></script>
+<script src="<?= assetUrl('assets/avatar.js') ?>"></script><script src="<?= assetUrl('assets/config-tabs.js') ?>"></script><script src="<?= assetUrl('assets/event-auth-admin.js') ?>"></script><script src="<?= assetUrl('assets/announcement-admin.js') ?>"></script><script src="<?= assetUrl('assets/stats-admin.js') ?>"></script><script src="<?= assetUrl('assets/timetable-core.js') ?>"></script><script src="<?= assetUrl('assets/exposure-check.js') ?>"></script><script src="<?= assetUrl('assets/dashboard-admin.js') ?>"></script>
 <script>window.MAP_CSRF=<?php 
     echo json_encode($_SESSION['csrf']);
     ?>;window.ADMIN_ROLE=<?php 
     echo json_encode($role);
     ?>;</script><script src="assets/vendor/leaflet/leaflet.js" crossorigin=""></script><script src="<?= assetUrl('assets/fa-icons.js') ?>"></script><script src="<?= assetUrl('assets/i18n.js') ?>"></script><?php 
     echo appInitialThemeScript();
-    ?><script src="<?= assetUrl('assets/theme.js') ?>"></script><script src="<?= assetUrl('assets/admin.js') ?>"></script><script src="<?= assetUrl('assets/backup-admin.js') ?>"></script><?php 
+    ?><script src="<?= assetUrl('assets/theme.js') ?>"></script><script src="<?= assetUrl('assets/admin-program.js') ?>"></script><script src="<?= assetUrl('assets/admin.js') ?>"></script><script src="<?= assetUrl('assets/backup-admin.js') ?>"></script><?php 
 }
 ?></body>
 </html>

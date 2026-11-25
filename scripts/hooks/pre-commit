@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Bumps VERSION when staged application files changed (no-op otherwise).
+# Skip once with: git commit --no-verify
+exec "$(git rev-parse --show-toplevel)/scripts/bump-version.sh" --staged

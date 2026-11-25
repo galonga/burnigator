@@ -23,6 +23,13 @@ Restore your backup of the previous version's files. Restore `config.php`, `data
 
 ## Notes per version
 
+### 2026.11.1390
+
+- **New folders and files:** upload the whole release, including the new `lib/api/` folder (the API code moved there from `api.php`) and the new `assets/map-*.js`, `assets/admin-program.js` and `assets/exposure-check.js` files. Uploading only `api.php` breaks the admin panel. `package.json`, `package-lock.json`, `scripts/` and `tests/` are for development and do not need to be uploaded.
+- **Login lockout is now active:** after 5 failed logins a client is locked out for 15 minutes. Nothing to configure.
+- **Security check:** the admin dashboard now tests whether `data/`, `config.php` and `lib/` are blocked from the web. If it warns, your server ignores `.htaccess` (common on nginx), so block those paths in the server configuration.
+- **PHP 8.1 or newer is now required** (was 7.4). Before uploading, set the PHP version in your hosting control panel (for example ALL-INKL KAS) to 8.1 or newer, ideally 8.3. On an older PHP the site shows "Burnigator requires PHP 8.1 or newer" instead of the app; switching the PHP version fixes it, and no data is affected. Otherwise nothing is required.
+
 ### 2026.11.1389
 
 - **Admin dashboard.** Nothing is required; there are no settings and no data changes. Upload the new `lib/dashboard.php` and `assets/dashboard-admin.js` together with the other files (`api.php` now loads `lib/dashboard.php`).

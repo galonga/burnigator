@@ -10,7 +10,7 @@ Thanks for helping! Bug reports, ideas and pull requests are welcome.
 
 ## Run it locally
 
-You need PHP 7.4 or newer. There is no build step and no dependency installation.
+You need PHP 8.1 or newer. There is no build step and no dependency installation.
 
 ```sh
 php -S 127.0.0.1:8080
@@ -23,32 +23,53 @@ MariaDB is only needed for the event authentication and pinboard features.
 ## Code style
 
 - **PHP:** four spaces, one statement per line, `declare(strict_types=1)` at the top of new files.
-- **JavaScript and CSS:** formatted with [Prettier](https://prettier.io/) using the settings in `.prettierrc.json`. Run `npx prettier --write assets/*.js sw.js assets/*.css` before you commit.
+- **JavaScript and CSS:** formatted with [Prettier](https://prettier.io/) using the settings in `.prettierrc.json`. Run `npm run format` before you commit.
 - **UI:** follow [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md). Use the shared tokens and component classes in `assets/design-system.css` instead of one-off styles.
 - **Texts:** add both languages in `assets/i18n.js` (German and English, separated by `|`).
 
-## Version bump (required)
+## Version bump (required, automated)
 
-Versions use CalVer, `YEAR.MONTH.BUILD` (for example `2026.11.1359`), stored in the `VERSION` file. When you change application code or the visitor page, increase the **build number** (the last number) in `VERSION`, and update year and month if they changed. The footer, the asset cache-busting and the service-worker cache all derive from `VERSION`, so there is nothing else to edit.
+Versions use CalVer, `YEAR.MONTH.BUILD` (for example `2026.11.1359`), stored in the `VERSION` file. A pull request that changes application code (PHP, JS, CSS that ship to visitors) must increase the **build number**. You do not edit it by hand:
 
-This makes installed and offline copies pick up the change. CI fails the pull request if the build number did not increase. See [RELEASING.md](RELEASING.md).
+```sh
+scripts/bump-version.sh            # compares with origin/main, bumps VERSION if needed
+```
+
+The script only bumps when application files changed, sets year and month to the current month, and does nothing if `VERSION` is already ahead of the base branch, so it is safe to run repeatedly. Commit the changed `VERSION`.
+
+To have this happen on every commit, enable the optional hook once per clone:
+
+```sh
+scripts/install-hooks.sh           # git config core.hooksPath scripts/hooks
+```
+
+The hook bumps and stages `VERSION` when staged files include application code. Skip it once with `git commit --no-verify`. Fetch `origin/main` first (`git fetch origin`) so the base is current.
+
+CI fails the pull request if the build number did not increase, and the failure message tells you the command to run. CI never pushes commits. See [RELEASING.md](RELEASING.md).
 
 ## Checks
 
+The `package.json` is for developer tooling only (ESLint and Prettier, pinned by `package-lock.json`). The app itself has no build step and no runtime dependencies, and these files are not part of the release zip. Install once with Node 20 or newer:
+
 ```sh
-find . -name '*.php' -not -path './assets/vendor/*' -print0 | xargs -0 -n1 php -l
-for f in assets/*.js sw.js; do node --check "$f"; done
-php tests/event_auth_test.php
-php tests/map_clean_test.php
-php tests/stats_test.php
-php tests/dashboard_test.php
-node tests/timetable-core.test.js
-node tests/deeplink.test.js
-npx prettier@3 --check "assets/*.js" "assets/*.css" sw.js "tests/*.js" eslint.config.mjs
-npx eslint@9 .
+npm ci
 ```
 
-CI runs the PHP and JavaScript syntax checks, the PHP and Node tests, Prettier, ESLint (correctness rules only), and the version check.
+Then run:
+
+```sh
+npm run check        # everything below
+npm run lint:php     # php -l over all PHP files (except assets/vendor)
+npm run lint:js      # node --check plus ESLint
+npm run format       # Prettier, writes changes
+npm run format:check # Prettier, check only
+npm run test:http    # HTTP integration tests (starts php -S on a temp copy of the app; needs php on PATH)
+npm test             # PHP tests (needs pdo_sqlite), Node tests and the version-bump script test
+```
+
+`npm run test:php`, `npm run test:js`, `npm run lint:js:syntax` and `npm run lint:js:eslint` run the individual parts.
+
+CI runs the PHP and JavaScript syntax checks, the PHP and Node tests, the HTTP integration tests (which start `php -S` on a copy of the app in a temp directory and need `php` on your PATH; they never touch your `config.php` or `data/`) on PHP 8.1, 8.3 and 8.4, Prettier, ESLint (correctness rules only), and the version check.
 
 ## Pull requests
 

@@ -13,7 +13,9 @@ Notes for maintainers. Releases are cut from `main`.
 
 ## Every change to application code
 
-Any pull request that changes PHP, JS or CSS files that ship to visitors must increase the build number in `VERSION` (CI checks this). Update year and month if they changed. Docs, workflows, tests and vendored libraries do not need a bump.
+Any pull request that changes PHP, JS or CSS files that ship to visitors must increase the build number in `VERSION` (CI checks this). Docs, workflows, tests and vendored libraries do not need a bump.
+
+Do not edit it by hand: run `scripts/bump-version.sh` (or enable the commit hook with `scripts/install-hooks.sh`). It increments the build number only when application files changed, sets year and month to the current month (so rollovers are handled; the build number keeps counting), and is a no-op when `VERSION` is already ahead of `origin/main`. The file matching is shared with the CI check (`.github/scripts/lib-app-files.sh`), so both always agree. CI only verifies; it does not push commits. Concurrent pull requests that both bump will conflict in `VERSION`: after merging `main`, re-run the script (reset `VERSION` to the `main` value first with `git checkout origin/main -- VERSION`).
 
 ## Cutting a release
 
@@ -40,7 +42,7 @@ If the workflow fails, fix the problem, delete the tag (`git push origin :refs/t
 
 - [ ] CI is green on `main`
 - [ ] Browser test with the Content-Security-Policy active: map, timetable, favourites, print exports, SoundCloud, Matomo, install as app, offline use, admin panel, setup wizard
-- [ ] Fresh install from the zip on PHP 7.4 and a current PHP 8.x, with Apache and `.htaccess`
+- [ ] Fresh install from the zip on PHP 8.1 and a current PHP 8.x, with Apache and `.htaccess`
 - [ ] Upgrade of a copy of a real installation: nothing lost, database migrated, offline cache refreshed
 - [ ] MariaDB features: pinboard, Pretix API sync, CSV import, order summary
 - [ ] Security pass: login throttling, CSRF, uploads, role limits, reset flow; no secrets or personal data in the zip
