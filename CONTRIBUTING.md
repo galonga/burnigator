@@ -44,6 +44,7 @@ php tests/stats_test.php
 php tests/dashboard_test.php
 node tests/timetable-core.test.js
 node tests/deeplink.test.js
+node tests/exposure-check.test.js
 npx prettier@3 --check "assets/*.js" "assets/*.css" sw.js "tests/*.js" eslint.config.mjs
 npx eslint@9 .
 ```

@@ -584,6 +584,19 @@
     statsLoadFailed: 'Statistik konnte nicht geladen werden.|Statistics could not be loaded.',
     history_stats_setting: 'Statistik-Einstellung geändert|Statistics setting changed',
     adminDashboardView: 'Dashboard|Dashboard',
+    dashboardSecurityTitle: 'Sicherheitsprüfung|Security check',
+    dashboardExposureOk:
+      'Geschützte Dateien (data/, config.php, lib/) sind von außen nicht abrufbar.|Protected files (data/, config.php, lib/) are not reachable from the web.',
+    dashboardExposureBad:
+      'Achtung: Geschützte Dateien sind öffentlich abrufbar!|Warning: protected files are publicly reachable!',
+    dashboardExposureFix:
+      'Sperre den Zugriff auf diese Dateien in der Server-Konfiguration (die .htaccess-Dateien greifen hier offenbar nicht, z. B. bei nginx) und prüfe danach erneut.|Block access to these files in the server configuration (the .htaccess files apparently have no effect here, e.g. on nginx), then check again.',
+    dashboardExposureUnchecked:
+      'Die Sicherheitsprüfung konnte nicht durchgeführt werden (Netzwerkfehler oder Zeitüberschreitung).|The security check could not be completed (network error or timeout).',
+    dashboardHttpsWarning:
+      'Diese Seite wird nicht über HTTPS ausgeliefert. Bitte HTTPS einrichten.|This site is not served over HTTPS. Please set up HTTPS.',
+    setupHttpsWarning:
+      'Achtung: Diese Seite wird nicht über HTTPS ausgeliefert. Passwort und Anmeldung würden unverschlüsselt übertragen. Richte HTTPS ein, bevor du fortfährst. Die Einrichtung ist weiterhin möglich.|Warning: this site is not served over HTTPS. Your password and login would be sent unencrypted. Set up HTTPS before you continue. You can still finish setup.',
     dashboardRefresh: 'Aktualisieren|Refresh',
     dashboardUpdated: 'Aktualisiert|Updated',
     dashboardLoadFailed: 'Das Dashboard konnte nicht geladen werden.|The dashboard could not be loaded.',

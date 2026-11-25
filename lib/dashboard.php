@@ -27,6 +27,29 @@ function dashboardProgramOwners(array $map): array
     return $owners;
 }
 
+/** True when the request host is the local machine (development), where plain HTTP is fine. */
+function deploymentIsLocalHost(string $host): bool
+{
+    $host = strtolower(trim($host));
+    if (preg_match('/^\[([^\]]+)\](?::\d+)?$/D', $host, $m)) {
+        $host = $m[1];
+    } elseif (substr_count($host, ':') === 1) {
+        $host = explode(':', $host, 2)[0];
+    }
+    return $host === 'localhost' || $host === '::1' || substr($host, -10) === '.localhost' || preg_match('/^127(\.\d{1,3}){3}$/D', $host) === 1;
+}
+
+/**
+ * True when setup should warn that the site is not served over HTTPS. Uses only what the app
+ * already trusts for the Secure cookie flag (HTTPS server variable, port 443); forwarded-protocol
+ * headers are deliberately ignored because clients can forge them.
+ */
+function deploymentNeedsHttpsWarning(array $server): bool
+{
+    $https = !empty($server['HTTPS']) && strtolower((string) $server['HTTPS']) !== 'off' || (int) ($server['SERVER_PORT'] ?? 0) === 443;
+    return !$https && !deploymentIsLocalHost((string) ($server['HTTP_HOST'] ?? $server['SERVER_NAME'] ?? ''));
+}
+
 /** Totals for the dashboard tiles. */
 function dashboardCounts(array $map, ?array $owners = null): array
 {

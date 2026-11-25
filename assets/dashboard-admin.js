@@ -13,6 +13,8 @@
     const weekdayKeys = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
     let last = null;
     let loading = null;
+    // Deployment self-check result: null until done, then { exposed: [paths], unchecked: count }.
+    let exposure = null;
 
     const el = (tag, className, text) => {
       const node = document.createElement(tag);
@@ -252,8 +254,60 @@
       return wide;
     }
 
+    // Fetches the protected files from the browser (same origin, short timeout, redirects not
+    // followed) and only inspects them. Never shows or stores the response body.
+    async function checkExposure() {
+      const exposure_ = window.BurnigatorExposure;
+      if (!exposure_) return null;
+      const result = { exposed: [], unchecked: 0 };
+      await Promise.all(
+        exposure_.PROTECTED.map(async (item) => {
+          const controller = new window.AbortController();
+          const timer = setTimeout(() => controller.abort(), 5000);
+          try {
+            const url = new URL(item.path, window.location.href);
+            url.searchParams.set('exposure-check', String(Date.now()));
+            const response = await fetch(url.href, {
+              cache: 'no-store',
+              credentials: 'omit',
+              redirect: 'manual',
+              signal: controller.signal,
+            });
+            const body = response.status >= 200 && response.status < 300 ? await response.text() : '';
+            if (exposure_.classify(item.kind, response.status, body) === 'exposed')
+              result.exposed.push(item.path);
+          } catch (_) {
+            result.unchecked++;
+          } finally {
+            clearTimeout(timer);
+          }
+        })
+      );
+      return result;
+    }
+    const insecureTransport = () =>
+      window.location.protocol !== 'https:' &&
+      !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+    function securityCard() {
+      if (!exposure) return null;
+      const parts = [];
+      if (exposure.exposed.length) {
+        parts.push(pill(false, t('dashboardExposureBad')));
+        const list = el('ul', 'dashboard-list');
+        exposure.exposed.forEach((path) => list.append(el('li', '', path)));
+        parts.push(list, el('p', 'hint', t('dashboardExposureFix')));
+      } else if (exposure.unchecked) {
+        parts.push(el('p', 'hint', t('dashboardExposureUnchecked')));
+      } else {
+        parts.push(pill(true, t('dashboardExposureOk')));
+      }
+      if (insecureTransport()) parts.push(pill(false, t('dashboardHttpsWarning')));
+      return card('dashboardSecurityTitle', ...parts);
+    }
+
     function render(d) {
       grid.replaceChildren(
+        ...(exposure && (exposure.exposed.length || insecureTransport()) ? [securityCard()] : []),
         statusCard(d),
         countsCard(d),
         nowCard(d),
@@ -261,7 +315,8 @@
         pinboardCard(d),
         ordersCard(d),
         statsCard(d),
-        historyCard(d)
+        historyCard(d),
+        ...(exposure && !exposure.exposed.length && !insecureTransport() ? [securityCard()] : [])
       );
     }
 
@@ -294,5 +349,9 @@
       if (!document.getElementById('admin-dashboard-view').hidden && !document.hidden) load();
     }, 60000);
     load();
+    checkExposure().then((result) => {
+      exposure = result;
+      if (last) render(last);
+    });
   });
 })();
