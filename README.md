@@ -182,7 +182,9 @@ Matomo tracking is off by default. It only runs when the owner enters a Matomo U
 | `index.php` | Public map and timetable |
 | `admin.php` | Login and admin interface |
 | `setup.php` | First-install configuration wizard |
-| `api.php` | Public read endpoint and authenticated write actions |
+| `api.php` | Public read endpoint and authenticated write actions: bootstrap, security checks and dispatch to the modules in `lib/api/` |
+| `lib/api/` | The API action modules (`public`, `owner_reads`, `pinboard`, `settings`, `backup`, `uploads`, `accounts`, `pois`, `program`, `map_save`, `support`), loaded by `api.php` |
+| `lib/map_revision.php` | Optimistic-concurrency check for saves (stale `expectedUpdatedAt` gives a 409) |
 | `auth.php` | Account, role, login, and security header support |
 | `config.sample.php` | Template for `config.php`, which setup creates |
 | `theme_bootstrap.php` | Passes the saved theme colors to the page before first paint |
@@ -191,13 +193,20 @@ Matomo tracking is off by default. It only runs when the owner enters a Matomo U
 | `lib/dashboard.php` | Pure counting helpers for the admin dashboard, loaded by `api.php` |
 | `lib/map_clean.php` | Pure validation and sanitising helpers for map data, loaded by `api.php` |
 | `assets/timetable-core.js` | Pure time, overnight-event and timeline helpers, shared by the visitor page and the tests |
-| `assets/map.js` | Map, timetable, player, exports, and visitor interactions |
+| `assets/map.js` | Map, timetable, favourites, search and visitor interactions |
+| `assets/map-export.js`, `assets/map-soundcloud.js`, `assets/map-ui.js` | JPG exports, SoundCloud player and small UI helpers, split out of `map.js` |
 | `assets/admin.js` | Admin editing and configuration |
+| `assets/admin-program.js` | Programme and timeline editor, split out of `admin.js` |
+| `assets/exposure-check.js` | Admin dashboard check that `data/`, `config.php` and `lib/` are not web-accessible |
 | `assets/style.css` | Application styles |
 | `assets/design-system.css` | Shared UI tokens, components, and states |
 | `assets/i18n.js` | German and English UI strings |
 | `sw.php` | Serves the installation-specific service worker |
 | `sw.js` | Service-worker source template |
+| `GLOSSARY.md`, `docs/adr/` | Domain terms and architecture decision records |
+| `tests/` | PHP, Node and HTTP integration tests; run everything with `npm run check` |
+| `package.json` | Development tooling only (Prettier, ESLint, test scripts); not needed on the web host |
+| `scripts/` | `bump-version.sh` and an optional pre-commit hook (`scripts/install-hooks.sh`) that bump `VERSION` |
 | `docs/agents/` | Issue tracker, triage-label, and domain-doc guidance for engineering skills |
 | `DESIGN_SYSTEM.md` | Design-system guidance for interface changes |
 | `VERSION` | Current version (CalVer `YEAR.MONTH.BUILD`); single source for the footer, asset cache-busting and the service-worker cache |
@@ -208,7 +217,7 @@ Matomo tracking is off by default. It only runs when the owner enters a Matomo U
 
 ## Development notes
 
-- There is no compilation step or dependency installation. The local Leaflet, Font Awesome, and QR code assets are committed with the application.
+- There is no compilation step or dependency installation for running the app. `npm ci` is only needed for the development checks. The local Leaflet, Font Awesome, and QR code assets are committed with the application.
 - See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full workflow. JS and CSS are formatted with Prettier (`.prettierrc.json`).
 - Follow [`DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md) and `assets/design-system.css` when changing UI. Use the semantic color, typography, spacing, shape, and control-size tokens, and keep applicable interaction states consistent across visitor and admin screens.
 - Versions use CalVer (`YEAR.MONTH.BUILD`, for example `2026.11.1359`) from the `VERSION` file. When changing application code or the visitor shell, increase the build number (the last number) in `VERSION`; the footer, asset cache-busting and the service-worker cache derive from it, so installed/offline clients receive the new version. See [`RELEASING.md`](RELEASING.md).
