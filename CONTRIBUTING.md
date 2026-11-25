@@ -63,12 +63,13 @@ npm run lint:php     # php -l over all PHP files (except assets/vendor)
 npm run lint:js      # node --check plus ESLint
 npm run format       # Prettier, writes changes
 npm run format:check # Prettier, check only
+npm run test:http    # HTTP integration tests (starts php -S on a temp copy of the app; needs php on PATH)
 npm test             # PHP tests (needs pdo_sqlite), Node tests and the version-bump script test
 ```
 
 `npm run test:php`, `npm run test:js`, `npm run lint:js:syntax` and `npm run lint:js:eslint` run the individual parts.
 
-CI runs the PHP and JavaScript syntax checks, the PHP and Node tests, Prettier, ESLint (correctness rules only), and the version check.
+CI runs the PHP and JavaScript syntax checks, the PHP and Node tests, the HTTP integration tests (which start `php -S` on a copy of the app in a temp directory and need `php` on your PATH; they never touch your `config.php` or `data/`) on PHP 8.1, 8.3 and 8.4, Prettier, ESLint (correctness rules only), and the version check.
 
 ## Pull requests
 

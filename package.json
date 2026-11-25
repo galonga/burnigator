@@ -12,8 +12,9 @@
     "format:check": "prettier --check \"assets/*.js\" \"assets/*.css\" sw.js \"tests/*.js\" eslint.config.mjs package.json",
     "test:php": "php tests/event_auth_test.php && php tests/map_clean_test.php && php tests/stats_test.php && php tests/dashboard_test.php && php tests/map_revision_test.php",
     "test:js": "node tests/timetable-core.test.js && node tests/deeplink.test.js && node tests/exposure-check.test.js",
+    "test:http": "node tests/http-integration.test.js",
     "test:sh": "tests/bump_version_test.sh",
-    "test": "npm run test:php && npm run test:js && npm run test:sh",
+    "test": "npm run test:php && npm run test:js && npm run test:sh && npm run test:http",
     "check": "npm run lint:php && npm run lint:js && npm run format:check && npm test"
   },
   "devDependencies": {
